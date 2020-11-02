@@ -1,0 +1,36 @@
+<html>
+    <script src="http://alpine-next.test/dist/alpine.js" defer></script>
+
+    <span x-data="{ hey: 'there' }" x-text="hey" x-on:click="console.log($el);"></span>
+
+    <div x-data="{ items: [['foo', 'bar'], ['bar', 'baz']] }">
+
+        <h1 x-data="{ foo: 'bar' }">
+            <span x-text="foo"></span>
+            <span x-text="items"></span>
+        </h1>
+
+        <template x-for="item in items">
+            <div>
+                <h1 x-text="item"></h1>
+                <template x-for="yo in item">
+                    <h1 x-text="yo"></h1>
+                </template>
+            </div>
+        </template>
+    </div>
+
+    <span x-data x-init="console.log('yo')"></span>
+
+    <select type="text" x-data="{ selected: 'bar' }" x-bind:value="selected">
+        <option>foo</option>
+        <option>bar</option>
+        <option>baz</option>
+    </select>
+
+    <div x-data="{ foo: 'bar' }">
+        <span x-text="foo"></span>
+
+        <input type="text" x-model="foo">
+    </div>
+</html>
