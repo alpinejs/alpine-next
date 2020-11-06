@@ -385,7 +385,9 @@
     let spreadDirective = directives.filter(directive => directive.type === 'spread')[0];
 
     if (spreadDirective) {
-      let spreadObject = this.__x__evaluate(spreadDirective.expression);
+      let data = this.__x__closestDataProxy();
+
+      let spreadObject = data[spreadDirective.expression] || this.__x__evaluate(spreadDirective.expression);
 
       directives = directives.concat(Object.entries(spreadObject).map(([name, value]) => parseHtmlAttribute({
         name,
@@ -562,7 +564,14 @@
     if (this.hasAttribute('x-data')) {
       let expression = this.getAttribute('x-data');
       expression = expression === '' ? '{}' : expression;
-      this.__x__data = this.__x__evaluate(expression, Alpine.clonedComponentAccessor());
+      let components = Alpine.clonedComponentAccessor();
+
+      if (Object.keys(components).includes(expression)) {
+        this.__x__data = components[expression];
+      } else {
+        this.__x__data = this.__x__evaluate(expression);
+      }
+
       this.__x__$data = Alpine.observe(this.__x__data);
       this.__x__dataStack = new Set(this.__x__closestDataStack());
 
@@ -663,6 +672,10 @@
     if (this.__x__dataStack) return this.__x__dataStack;
     if (!this.parentElement) return new Set();
     return this.parentElement.__x__closestDataStack();
+  };
+
+  window.Element.prototype.__x__closestDataProxy = function () {
+    return mergeProxies(...this.__x__closestDataStack());
   };
 
   window.Element.prototype.__x__closestRoot = function () {

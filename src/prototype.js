@@ -11,7 +11,15 @@ window.Element.prototype.__x__init = function () {
         let expression = this.getAttribute('x-data')
         expression = expression === '' ? '{}' : expression
 
-        this.__x__data = this.__x__evaluate(expression, Alpine.clonedComponentAccessor())
+        let components = Alpine.clonedComponentAccessor()
+
+
+        if (Object.keys(components).includes(expression)) {
+            this.__x__data = components[expression]
+        } else {
+            this.__x__data = this.__x__evaluate(expression)
+        }
+
         this.__x__$data = Alpine.observe(this.__x__data)
         this.__x__dataStack = new Set(this.__x__closestDataStack())
         this.__x__dataStack.add(this.__x__$data)
@@ -118,6 +126,10 @@ window.Element.prototype.__x__closestDataStack = function () {
     if (! this.parentElement) return new Set
 
     return this.parentElement.__x__closestDataStack()
+}
+
+window.Element.prototype.__x__closestDataProxy = function () {
+    return mergeProxies(...this.__x__closestDataStack())
 }
 
 window.Element.prototype.__x__closestRoot = function () {

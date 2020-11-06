@@ -5,7 +5,9 @@ export function getAttrs() {
     let spreadDirective = directives.filter(directive => directive.type === 'spread')[0]
 
     if (spreadDirective) {
-        let spreadObject = this.__x__evaluate(spreadDirective.expression)
+        let data = this.__x__closestDataProxy()
+
+        let spreadObject = data[spreadDirective.expression] || this.__x__evaluate(spreadDirective.expression)
 
         directives = directives.concat(Object.entries(spreadObject).map(([name, value]) => parseHtmlAttribute({ name, value })))
     }
