@@ -1,5 +1,4 @@
 import { getAttrs } from './attrs'
-import { init } from './element'
 import { bind } from './directives/x-bind'
 import { on } from './directives/x-on'
 
