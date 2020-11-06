@@ -3,6 +3,14 @@
     <script src="http://alpine-next.test/dist/alpine.js" defer></script>
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
 
+    <div x-data="{ show: false }">
+        <h1 class="font-bold" :class="show ? 'hidden': ''">thing</h1>
+
+        <button @click="show = ! show">yo</button>
+    </div>
+
+    <button x-data x-on:click="if (true) console.log('hey')">error</button>
+
     <button x-data x-on:click="console.log('yo')">error</button>
 
     <div x-data="hey">
@@ -25,7 +33,6 @@
         <button x-spread="trigger">trigger</button>
         <div x-spread="dialogue">hey</div>
     </div>
-
 
     <script>
         window.addEventListener('alpine:loading', () => {

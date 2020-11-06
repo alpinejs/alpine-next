@@ -1,4 +1,3 @@
+import Alpine from '../alpine'
 
-export default function (el) {
-    return el.__x__closestRoot().__x__$refs || {}
-}
+Alpine.magic('refs', el => el.__x__closestRoot().__x__$refs || {})

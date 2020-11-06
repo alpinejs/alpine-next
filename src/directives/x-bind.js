@@ -1,6 +1,7 @@
 import hyperactiv from 'hyperactiv'
+import Alpine from '../alpine'
 
-export default (el, value, modifiers, expression, react) => {
+Alpine.directive('bind', (el, value, modifiers, expression, react) => {
     let attrName = value
     let evaluate = el.__x__getEvaluator(expression)
 
@@ -11,12 +12,16 @@ export default (el, value, modifiers, expression, react) => {
 
         el.__x__bind(attrName, value)
     })
-}
+})
 
 export function bind(name, value) {
     switch (name) {
         case 'value':
             bindInputValue(this, value)
+            break;
+
+        case 'class':
+            bindClasses(this, value)
             break;
 
         default:
@@ -57,6 +62,12 @@ function bindInputValue(el, value) {
     }
 }
 
+function bindClasses(el, value) {
+    if (el.__x__undoAddedClasses) el.__x__undoAddedClasses()
+
+    el.__x__undoAddedClasses = el.__x__addClasses(value)
+}
+
 function bindAttribute(el, name, value) {
     // If an attribute's bound value is null, undefined or false, remove the attribute
     if ([null, undefined, false].includes(value)) {
@@ -88,7 +99,7 @@ function checkedAttrLooseCompare(valueA, valueB) {
     return valueA == valueB
 }
 
-export function isBooleanAttr(attrName) {
+function isBooleanAttr(attrName) {
     // As per HTML spec table https://html.spec.whatwg.org/multipage/indices.html#attributes-3:boolean-attribute
     // Array roughly ordered by estimated usage
     const booleanAttributes = [

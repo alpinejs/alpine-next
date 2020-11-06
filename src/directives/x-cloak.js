@@ -1,3 +1,5 @@
-export default (el, value, modifiers, expression, react) => {
+import Alpine from '../alpine'
+
+Alpine.directive('cloak', (el) => {
     el.removeAttribute('x-cloak')
-}
+})

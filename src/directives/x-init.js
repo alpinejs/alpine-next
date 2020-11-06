@@ -1,5 +1,5 @@
-import hyperactiv from 'hyperactiv'
+import Alpine from '../alpine'
 
-export default (el, value, modifiers, expression) => {
-    el.__x__evaluate(expression)
-}
+Alpine.directive('init', (el, value, modifiers, expression, react) => {
+    el.__x__evaluate(expression, {}, false)
+})

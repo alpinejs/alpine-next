@@ -1,6 +1,6 @@
-import hyperactiv from 'hyperactiv'
+import Alpine from '../alpine'
 
-export default (el, value, modifiers, expression, react) => {
+Alpine.directive('model', (el, value, modifiers, expression, react) => {
     let evaluate = el.__x__getEvaluator(expression)
     let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`
     let evaluateAssignment = el.__x__getEvaluator(assignmentExpression)
@@ -29,7 +29,7 @@ export default (el, value, modifiers, expression, react) => {
 
         el.__x__bind('value', value)
     })
-}
+})
 
 function generateAssignmentFunction(el, modifiers, expression) {
     if (el.type === 'radio') {

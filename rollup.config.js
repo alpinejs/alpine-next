@@ -3,6 +3,7 @@ import filesize from 'rollup-plugin-filesize';
 import resolve from 'rollup-plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import pkg from './package.json';
+import { terser } from "rollup-plugin-terser";
 
 export default {
     input: 'src/index.js',
@@ -17,9 +18,10 @@ export default {
             "process.env.PKG_VERSION": `"${pkg.version}"`
         }),
         resolve(),
+        // terser(),
         filesize(),
-        // babel({
-        //     exclude: 'node_modules/**'
-        // }),
+        babel({
+            exclude: 'node_modules/**'
+        }),
     ]
 }

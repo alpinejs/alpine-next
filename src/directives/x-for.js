@@ -1,15 +1,14 @@
-import Alpine from '../index'
+import Alpine from '../alpine'
 
-export default (el, value, modifiers, expression, react) => {
+Alpine.directive('for', (el, value, modifiers, expression, react) => {
     let iteratorNames = parseForExpression(expression)
-    console.log('hey')
 
     let evaluateItems = el.__x__getEvaluator(iteratorNames.items)
 
     react(() => {
         loop(el, iteratorNames, evaluateItems)
     })
-}
+})
 
 function loop(el, iteratorNames, evaluateItems) {
     let templateEl = el

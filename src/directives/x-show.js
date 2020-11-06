@@ -1,6 +1,6 @@
-import hyperactiv from 'hyperactiv'
+import Alpine from '../alpine'
 
-export default (el, value, modifiers, expression, react) => {
+Alpine.directive('show', (el, value, modifiers, expression, react) => {
     let evaluate = el.__x__getEvaluator(expression)
 
     let hide = () => {
@@ -40,4 +40,4 @@ export default (el, value, modifiers, expression, react) => {
             }
         }
     })
-}
+})

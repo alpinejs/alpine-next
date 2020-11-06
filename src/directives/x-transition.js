@@ -1,18 +1,11 @@
+import Alpine from '../alpine'
 
-export default (el, value, modifiers, expression, react) => {
+Alpine.directive('transition', (el, value, modifiers, expression, react) => {
     if (! el.__x__transition) {
         el.__x__transition = {
-            enter: {
-                during: '',
-                start: '',
-                end: '',
-            },
+            enter: { during: '', start: '', end: '' },
 
-            leave: {
-                during: '',
-                start: '',
-                end: '',
-            },
+            leave: { during: '', start: '', end: '' },
 
             in(before, after) {
                 transitionClasses(el, {
@@ -42,36 +35,26 @@ export default (el, value, modifiers, expression, react) => {
     }
 
     directiveStorageMap[value](expression)
-}
+})
 
 export function transitionClasses(el, { during = '', start = '', end = '' } = {}, before = () => {}, after = () => {}) {
     // Permaturely finsh and clear the previous transition if exists to avoid caching the wrong classes
     if (el.__x__transitioning) el.__x__transitioning.finish()
 
-    let split = classString => classString.split(' ').filter(Boolean)
-
-    let missingClasses = classString => classString.split(' ').filter(i => ! el.classList.contains(i))
-
-    let addClassesAndReturnUndo = classes => {
-        el.classList.add(...classes)
-
-        return () => { el.classList.remove(...classes) }
-    }
-
     let undoStart, undoDuring, undoEnd
 
     performTransition(el, {
         start() {
-            undoStart = addClassesAndReturnUndo(missingClasses(start))
+            undoStart = el.__x__addClasses(start)
         },
         during() {
-            undoDuring = addClassesAndReturnUndo(missingClasses(during))
+            undoDuring = el.__x__addClasses(during)
         },
         before,
         end() {
             undoStart()
 
-            undoEnd = addClassesAndReturnUndo(missingClasses(end))
+            undoEnd = el.__x__addClasses(end)
         },
         after,
         cleanup() {

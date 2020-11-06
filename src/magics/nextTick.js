@@ -1,6 +1,7 @@
+import Alpine from '../alpine'
 
-export default function (el) {
+Alpine.magic('nextTick', el => {
     return (callback) => {
         setTimeout(callback)
     }
-}
+})

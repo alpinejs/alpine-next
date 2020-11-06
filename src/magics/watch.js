@@ -1,6 +1,6 @@
-import Alpine from '../index'
+import Alpine from '../alpine'
 
-export default function (el) {
+Alpine.magic('watch', el => {
     return (key, callback) => {
         let evaluate = el.__x__getEvaluator(key)
 
@@ -18,4 +18,4 @@ export default function (el) {
             firstTime = false
         })
     }
-}
+})

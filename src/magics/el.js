@@ -1,4 +1,3 @@
+import Alpine from '../alpine'
 
-export default function (el) {
-    return el
-}
+Alpine.magic('el', el => el)

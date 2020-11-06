@@ -1,9 +1,7 @@
+import Alpine from '../alpine'
 
-export default function (el) {
+Alpine.magic('dispatch', el => {
     return (event, detail = {}) => {
-        el.dispatchEvent(new CustomEvent(event, {
-            detail,
-            bubbles: true,
-        }))
+        return el.__x__dispatch(event, detail)
     }
-}
+})
