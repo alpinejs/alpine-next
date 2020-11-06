@@ -2,6 +2,14 @@
 export function getAttrs() {
     let directives = Array.from(this.attributes).filter(isXAttr).map(parseHtmlAttribute)
 
+    let spreadDirective = directives.filter(directive => directive.type === 'spread')[0]
+
+    if (spreadDirective) {
+        let spreadObject = this.__x__evaluate(spreadDirective.expression)
+
+        directives = directives.concat(Object.entries(spreadObject).map(([name, value]) => parseHtmlAttribute({ name, value })))
+    }
+
     return sortDirectives(directives)
 }
 
@@ -14,7 +22,7 @@ function isXAttr(attr) {
 }
 
 function sortDirectives(directives) {
-    let directiveOrder = ['data', 'init', 'for', 'bind', 'model', 'show', 'catch-all']
+    let directiveOrder = ['ref', 'data', 'init', 'for', 'bind', 'model', 'transition', 'show', 'catch-all']
 
     return directives.sort((a, b) => {
         let typeA = directiveOrder.indexOf(a.type) === -1 ? 'catch-all' : a.type

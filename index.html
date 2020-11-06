@@ -1,9 +1,82 @@
 <html>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
     <script src="http://alpine-next.test/dist/alpine.js" defer></script>
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
 
-    <span x-data="{ hey: 'there' }" x-text="hey" x-on:click="console.log($el);"></span>
+    <button x-data x-on:click="console.log('yo')">error</button>
+
+    <div x-data="hey">
+        im here
+        <button x-spread="trigger">trigger</button>
+        <div x-spread="dialogue">hey</div>
+    </div>
+
+    <div x-data="{ foo: 'hey' }" x-init="$watch('foo', value => console.log(value))">
+        <button @click="foo = 'yo'">Toggle Show</button>
+        <span x-text="foo"></span>
+    </div>
+
+    <div x-data x-init="$nextTick(() => $refs.button.innerText = 'yo')">
+        <button x-ref="button"></button>
+    </div>
+
+    <div x-data="hey">
+        im here
+        <button x-spread="trigger">trigger</button>
+        <div x-spread="dialogue">hey</div>
+    </div>
+
+
+    <script>
+        window.addEventListener('alpine:loading', () => {
+            Alpine.component('hey', {
+                open: false,
+                trigger: {
+                    ['@click']() {
+                        this.open = ! this.open
+                        console.log(this.$refs.yo)
+                    },
+                },
+                dialogue: {
+                    ['x-show']() {
+                        return this.open
+                    },
+                    ['x-ref']: 'yo',
+                    ['@click.away']() {
+                        this.open = false
+                    },
+                }
+            })
+        })
+    </script>
+
+
+    <div x-data="{ show: false }">
+        <button @click="show = ! show">Toggle</button>
+        <div
+            x-show="show"
+            x-transition:enter="duration-1000"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="duration-1000"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+        >
+            <h1>show/hide me</h1>
+            <h2>...and me</h2>
+        </div>
+
+    </div>
+
+    <div x-data>
+        Foo: <h1 x-init="$el.innerText = 'foo'"></h1>
+        Bar: <h2 x-init="$el.innerText = 'bar'"></h2>
+    </div>
+
+    <span x-data="{ hey: 'there' }" x-text="hey"></span>
 
     <div x-data="{ items: [['foo', 'bar'], ['bar', 'baz']] }">
+        <button @click="items[1].push('heyheyhey')">add hey</button>
 
         <h1 x-data="{ foo: 'bar' }">
             <span x-text="foo"></span>
@@ -13,14 +86,15 @@
         <template x-for="item in items">
             <div>
                 <h1 x-text="item"></h1>
+
                 <template x-for="yo in item">
-                    <h1 x-text="yo"></h1>
+                    <h1 x-init="console.log('inited')" x-text="yo"></h1>
                 </template>
             </div>
         </template>
     </div>
 
-    <span x-data x-init="console.log('yo')"></span>
+    <span x-data></span>
 
     <select type="text" x-data="{ selected: 'bar' }" x-bind:value="selected">
         <option>foo</option>

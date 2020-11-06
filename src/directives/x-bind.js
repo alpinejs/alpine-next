@@ -1,10 +1,10 @@
 import hyperactiv from 'hyperactiv'
 
-export default (el, value, modifiers, expression, reactive) => {
+export default (el, value, modifiers, expression, react) => {
     let attrName = value
     let evaluate = el.__x__getEvaluator(expression)
 
-    reactive(() => {
+    react(() => {
         let value = evaluate()
 
         attrName = modifiers.includes('camel') ? camelCase(attrName) : attrName

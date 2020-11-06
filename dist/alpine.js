@@ -1,7 +1,8 @@
-(function (factory) {
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
-    factory();
-}((function () { 'use strict';
+    (global = global || self, global.Alpine = factory());
+}(this, (function () { 'use strict';
 
     const BIND_IGNORED = [
         'String',
@@ -251,32 +252,153 @@
         dispose
     };
 
-    var data$1 = (el, value, modifiers, expression) => {
-        expression = expression === '' ? '{}' : expression;
-
-        el.__x__data = el.__x__evaluate(expression);
-        el.__x__$data = hyperactiv.observe(el.__x__data);
-        el.__x__dataStack = new Set(el.__x__closestDataStack());
-        el.__x__dataStack.add(el.__x__$data);
-    };
-
     var init = (el, value, modifiers, expression) => {
         el.__x__evaluate(expression);
     };
 
-    var text = (el, value, modifiers, expression, reactive) => {
+    var xFor = (el, value, modifiers, expression, react) => {
+        let iteratorNames = parseForExpression(expression);
+        console.log('hey');
+
+        let evaluateItems = el.__x__getEvaluator(iteratorNames.items);
+
+        react(() => {
+            loop(el, iteratorNames, evaluateItems);
+        });
+    };
+
+    function loop(el, iteratorNames, evaluateItems) {
+        let templateEl = el;
+
+        let items = evaluateItems();
+
+        let closestParentContext = el.__x__closestDataStack();
+
+        // As we walk the array, we'll also walk the DOM (updating/creating as we go).
+        let currentEl = templateEl;
+        items.forEach((item, index) => {
+            let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items);
+
+            let currentKey = index;
+            let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey);
+
+            // If we haven't found a matching key, insert the element at the current position.
+            if (! nextEl) {
+                nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl);
+
+                let newSet = new Set(closestParentContext);
+                newSet.add(Alpine.observe(iterationScopeVariables));
+                nextEl.__x__dataStack = newSet;
+                nextEl.__x_for = iterationScopeVariables;
+                nextEl.__x__initChunk();
+            } {
+                // Refresh data
+                Object.entries(iterationScopeVariables).forEach(([key, value]) => {
+                    Array.from(nextEl.__x__dataStack).slice(-1)[0][key] = value;
+                });
+            }
+
+            currentEl = nextEl;
+            currentEl.__x_for_key = currentKey;
+        });
+
+        removeAnyLeftOverElementsFromPreviousUpdate(currentEl);
+    }
+
+
+    // This was taken from VueJS 2.* core. Thanks Vue!
+    function parseForExpression(expression) {
+        let forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/;
+        let stripParensRE = /^\(|\)$/g;
+        let forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/;
+        let inMatch = expression.match(forAliasRE);
+        if (! inMatch) return
+        let res = {};
+        res.items = inMatch[2].trim();
+        let item = inMatch[1].trim().replace(stripParensRE, '');
+        let iteratorMatch = item.match(forIteratorRE);
+
+        if (iteratorMatch) {
+            res.item = item.replace(forIteratorRE, '').trim();
+            res.index = iteratorMatch[1].trim();
+
+            if (iteratorMatch[2]) {
+                res.collection = iteratorMatch[2].trim();
+            }
+        } else {
+            res.item = item;
+        }
+        return res
+    }
+
+    function getIterationScopeVariables(iteratorNames, item, index, items) {
+        // We must create a new object, so each iteration has a new scope
+        let scopeVariables = {};
+        scopeVariables[iteratorNames.item] = item;
+        if (iteratorNames.index) scopeVariables[iteratorNames.index] = index;
+        if (iteratorNames.collection) scopeVariables[iteratorNames.collection] = items;
+
+        return scopeVariables
+    }
+
+    function addElementInLoopAfterCurrentEl(templateEl, currentEl) {
+        let clone = document.importNode(templateEl.content, true);
+
+
+        currentEl.parentElement.insertBefore(clone, currentEl.nextElementSibling);
+
+        let inserted = currentEl.nextElementSibling;
+
+        inserted.__x__skip_mutation_observer = true;
+
+        return inserted
+    }
+
+    function lookAheadForMatchingKeyedElementAndMoveItIfFound(nextEl, currentKey) {
+        if (! nextEl) return
+
+        // If the the key's DO match, no need to look ahead.
+        if (nextEl.__x_for_key === currentKey) return nextEl
+
+        // If they don't, we'll look ahead for a match.
+        // If we find it, we'll move it to the current position in the loop.
+        let tmpNextEl = nextEl;
+
+        while(tmpNextEl) {
+            if (tmpNextEl.__x_for_key === currentKey) {
+                return tmpNextEl.parentElement.insertBefore(tmpNextEl, nextEl)
+            }
+
+            tmpNextEl = (tmpNextEl.nextElementSibling && tmpNextEl.nextElementSibling.__x_for_key !== undefined) ? tmpNextEl.nextElementSibling : false;
+        }
+    }
+
+    function removeAnyLeftOverElementsFromPreviousUpdate(currentEl) {
+        var nextElementFromOldLoop = (currentEl.nextElementSibling && currentEl.nextElementSibling.__x_for_key !== undefined) ? currentEl.nextElementSibling : false;
+
+        while (nextElementFromOldLoop) {
+            let nextElementFromOldLoopImmutable = nextElementFromOldLoop;
+            let nextSibling = nextElementFromOldLoop.nextElementSibling;
+
+            nextElementFromOldLoopImmutable.remove();
+
+            nextElementFromOldLoop = (nextSibling && nextSibling.__x_for_key !== undefined) ? nextSibling : false;
+        }
+    }
+
+    var text = (el, value, modifiers, expression, react) => {
         let evaluate = el.__x__getEvaluator(expression);
 
-        reactive(() => {
+        react(() => {
             el.innerText = evaluate();
         });
     };
 
-    var bind = (el, value, modifiers, expression, reactive) => {
+    var bind = (el, value, modifiers, expression, react) => {
         let attrName = value;
         let evaluate = el.__x__getEvaluator(expression);
 
-        reactive(() => {
+        react(() => {
             let value = evaluate();
 
             attrName = modifiers.includes('camel') ? camelCase(attrName) : attrName;
@@ -374,7 +496,7 @@
         return booleanAttributes.includes(attrName)
     }
 
-    var model = (el, value, modifiers, expression, reactive) => {
+    var model = (el, value, modifiers, expression, react) => {
         let evaluate = el.__x__getEvaluator(expression);
         let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`;
         let evaluateAssignment = el.__x__getEvaluator(assignmentExpression);
@@ -395,7 +517,7 @@
             });
         });
 
-        reactive(() => {
+        react(() => {
             let value = evaluate();
 
             // If nested model key is undefined, set the default value to empty string.
@@ -453,6 +575,176 @@
         return valueA == valueB
     }
 
+    var show = (el, value, modifiers, expression, react) => {
+        let evaluate = el.__x__getEvaluator(expression);
+
+        let hide = () => {
+            el.style.display = 'none';
+        };
+
+        let show = () => {
+            if (el.style.length === 1 && el.style.display === 'none') {
+                el.removeAttribute('style');
+            } else {
+                el.style.removeProperty('display');
+            }
+        };
+
+        let isFirstRun = true;
+
+        react(() => {
+            let value = evaluate();
+
+            if (isFirstRun) {
+                value ? show() : hide();
+                isFirstRun = false;
+                return
+            }
+
+            if (value) {
+                if (el.__x__transition) {
+                    el.__x__transition.in(show, () => {});
+                } else {
+                    show();
+                }
+            } else {
+                if (el.__x__transition) {
+                    el.__x__transition.out(() => {}, hide);
+                } else {
+                    hide();
+                }
+            }
+        });
+    };
+
+    var transition = (el, value, modifiers, expression, react) => {
+        if (! el.__x__transition) {
+            el.__x__transition = {
+                enter: {
+                    during: '',
+                    start: '',
+                    end: '',
+                },
+
+                leave: {
+                    during: '',
+                    start: '',
+                    end: '',
+                },
+
+                in(before, after) {
+                    transitionClasses(el, {
+                        during: this.enter.during,
+                        start: this.enter.start,
+                        end: this.enter.end,
+                    }, before, after);
+                },
+
+                out(before, after) {
+                    transitionClasses(el, {
+                        during: this.leave.during,
+                        start: this.leave.start,
+                        end: this.leave.end,
+                    }, before, after);
+                }
+            };
+        }
+
+        let directiveStorageMap = {
+            'enter': (classes) => { el.__x__transition.enter.during = classes; },
+            'enter-start': (classes) => { el.__x__transition.enter.start = classes; },
+            'enter-end': (classes) => { el.__x__transition.enter.end = classes; },
+            'leave': (classes) => { el.__x__transition.leave.during = classes; },
+            'leave-start': (classes) => { el.__x__transition.leave.start = classes; },
+            'leave-end': (classes) => { el.__x__transition.leave.end = classes; },
+        };
+
+        directiveStorageMap[value](expression);
+    };
+
+    function transitionClasses(el, { during = '', start = '', end = '' } = {}, before = () => {}, after = () => {}) {
+        // Permaturely finsh and clear the previous transition if exists to avoid caching the wrong classes
+        if (el.__x__transitioning) el.__x__transitioning.finish();
+
+        let missingClasses = classString => classString.split(' ').filter(i => ! el.classList.contains(i));
+
+        let addClassesAndReturnUndo = classes => {
+            el.classList.add(...classes);
+
+            return () => { el.classList.remove(...classes); }
+        };
+
+        let undoStart, undoDuring, undoEnd;
+
+        performTransition(el, {
+            start() {
+                undoStart = addClassesAndReturnUndo(missingClasses(start));
+            },
+            during() {
+                undoDuring = addClassesAndReturnUndo(missingClasses(during));
+            },
+            before,
+            end() {
+                undoStart();
+
+                undoEnd = addClassesAndReturnUndo(missingClasses(end));
+            },
+            after,
+            cleanup() {
+                undoDuring();
+                undoEnd();
+            },
+        });
+    }
+
+    function performTransition(el, stages) {
+        let finish = once(() => {
+            stages.after();
+
+            // Adding an "isConnected" check, in case the callback removed the element from the DOM.
+            if (el.isConnected) stages.cleanup();
+
+            delete el.__x__transitioning;
+        });
+
+        el.__x__transitioning = { finish };
+
+        stages.start();
+        stages.during();
+
+        requestAnimationFrame(() => {
+            // Note: Safari's transitionDuration property will list out comma separated transition durations
+            // for every single transition property. Let's grab the first one and call it a day.
+            let duration = Number(getComputedStyle(el).transitionDuration.replace(/,.*/, '').replace('s', '')) * 1000;
+
+            if (duration === 0) {
+                duration = Number(getComputedStyle(el).animationDuration.replace('s', '')) * 1000;
+            }
+
+            stages.before();
+
+            requestAnimationFrame(() => {
+                stages.end();
+
+                setTimeout(el.__x__transitioning.finish, duration);
+            });
+        });
+    }
+
+    // Thanks VueJs!
+    // https://github.com/vuejs/vue/blob/4de4649d9637262a9b007720b59f80ac72a5620c/src/shared/util.js
+    function once(callback) {
+        let called = false;
+
+        return function () {
+            if (! called) {
+                called = true;
+
+                callback.apply(this, arguments);
+            }
+        }
+    }
+
     var on = (el, value, modifiers, expression) => {
         let evaluate = el.__x__getEvaluator(expression);
 
@@ -469,17 +761,93 @@
         target.addEventListener(event, callback);
     }
 
+    var ref = (el, value, modifiers, expression, react) => {
+        let root = el.__x__closestRoot();
+
+        if (! root.__x__$refs) root.__x__$refs = {};
+
+        root.__x__$refs[expression] = el;
+    };
+
+    var cloak = (el, value, modifiers, expression, react) => {
+        el.removeAttribute('x-cloak');
+    };
+
     var directives = {
-        data: data$1,
         init,
+        for: xFor,
         bind,
+        show,
+        transition,
         model,
         text,
+        ref,
         on,
+        cloak,
+    };
+
+    function watch (el) {
+        return (key, callback) => {
+            let evaluate = el.__x__getEvaluator(key);
+
+            let firstTime = true;
+
+            Alpine.react(() => {
+                let value = evaluate();
+
+                // This is a hack to force deep reactivity for things like "items.push()"
+                let div = document.createElement('div');
+                div.dataset.hey = value;
+
+                if (! firstTime) callback(value);
+
+                firstTime = false;
+            });
+        }
+    }
+
+    function nextTick (el) {
+        return (callback) => {
+            setTimeout(callback);
+        }
+    }
+
+    function refs (el) {
+        return el.__x__closestRoot().__x__$refs || {}
+    }
+
+    function dispatch (el) {
+        return (event, detail = {}) => {
+            el.dispatchEvent(new CustomEvent(event, {
+                detail,
+                bubbles: true,
+            }));
+        }
+    }
+
+    function el (el) {
+        return el
+    }
+
+    var magics = {
+        watch,
+        nextTick,
+        el,
+        nextTick,
+        refs,
+        dispatch,
     };
 
     function getAttrs() {
         let directives = Array.from(this.attributes).filter(isXAttr).map(parseHtmlAttribute);
+
+        let spreadDirective = directives.filter(directive => directive.type === 'spread')[0];
+
+        if (spreadDirective) {
+            let spreadObject = this.__x__evaluate(spreadDirective.expression);
+
+            directives = directives.concat(Object.entries(spreadObject).map(([name, value]) => parseHtmlAttribute({ name, value })));
+        }
 
         return sortDirectives(directives)
     }
@@ -493,7 +861,7 @@
     }
 
     function sortDirectives(directives) {
-        let directiveOrder = ['data', 'init', 'for', 'bind', 'model', 'show', 'catch-all'];
+        let directiveOrder = ['ref', 'data', 'init', 'for', 'bind', 'model', 'transition', 'show', 'catch-all'];
 
         return directives.sort((a, b) => {
             let typeA = directiveOrder.indexOf(a.type) === -1 ? 'catch-all' : a.type;
@@ -529,355 +897,64 @@
     }
 
     function init$1() {
+        if (this.hasAttribute('x-data')) {
+            let expression = this.getAttribute('x-data');
+            expression = expression === '' ? '{}' : expression;
+
+            this.__x__data = this.__x__evaluate(expression, Alpine.clonedComponentAccessor());
+            this.__x__$data = Alpine.observe(this.__x__data);
+            this.__x__dataStack = new Set(this.__x__closestDataStack());
+            this.__x__dataStack.add(this.__x__$data);
+        }
+
         let attrs = this.__x__getAttrs();
 
         attrs.forEach(attr => {
             let noop = () => {};
-            let run = this.__x__directives[attr.type] || noop;
+            let run = Alpine.directives[attr.type] || noop;
 
-            run(this, attr.value, attr.modifiers, attr.expression, hyperactiv.computed);
-        });
-    }
-
-    function show() {
-        if (el.style.display === 'none' || el.__x_transition) {
-            transitionIn(this, () => {
-                show();
-            });
-        }
-    }
-
-    function hide() {
-        if (el.style.display !== 'none') {
-            transitionOut(this, () => {
-                hide();
-            });
-        }
-    }
-
-    function convertClassStringToArray(classList, filterFn = Boolean) {
-        return classList.split(' ').filter(filterFn)
-    }
-
-    const TRANSITION_TYPE_IN = 'in';
-    const TRANSITION_TYPE_OUT = 'out';
-    const TRANSITION_CANCELLED = 'cancelled';
-
-    function transitionIn(el, show, reject, component, forceSkip = false) {
-        // We don't want to transition on the initial page load.
-        if (forceSkip) return show()
-
-        if (el.__x_transition && el.__x_transition.type === TRANSITION_TYPE_IN) {
-            // there is already a similar transition going on, this was probably triggered by
-            // a change in a different property, let's just leave the previous one doing its job
-            return
-        }
-
-        const attrs = getXAttrs(el, component, 'transition');
-        const showAttr = getXAttrs(el, component, 'show')[0];
-
-        // If this is triggered by a x-show.transition.
-        if (showAttr && showAttr.modifiers.includes('transition')) {
-            let modifiers = showAttr.modifiers;
-
-            // If x-show.transition.out, we'll skip the "in" transition.
-            if (modifiers.includes('out') && ! modifiers.includes('in')) return show()
-
-            const settingBothSidesOfTransition = modifiers.includes('in') && modifiers.includes('out');
-
-            // If x-show.transition.in...out... only use "in" related modifiers for this transition.
-            modifiers = settingBothSidesOfTransition
-                ? modifiers.filter((i, index) => index < modifiers.indexOf('out')) : modifiers;
-
-            transitionHelperIn(el, modifiers, show, reject);
-        // Otherwise, we can assume x-transition:enter.
-        } else if (attrs.some(attr => ['enter', 'enter-start', 'enter-end'].includes(attr.value))) {
-            transitionClassesIn(el, component, attrs, show, reject);
-        } else {
-        // If neither, just show that damn thing.
-            show();
-        }
-    }
-
-    function transitionOut(el, hide, reject, component, forceSkip = false) {
-        // We don't want to transition on the initial page load.
-        if (forceSkip) return hide()
-
-        if (el.__x_transition && el.__x_transition.type === TRANSITION_TYPE_OUT) {
-            // there is already a similar transition going on, this was probably triggered by
-            // a change in a different property, let's just leave the previous one doing its job
-            return
-        }
-
-        const attrs = getXAttrs(el, component, 'transition');
-        const showAttr = getXAttrs(el, component, 'show')[0];
-
-        if (showAttr && showAttr.modifiers.includes('transition')) {
-            let modifiers = showAttr.modifiers;
-
-            if (modifiers.includes('in') && ! modifiers.includes('out')) return hide()
-
-            const settingBothSidesOfTransition = modifiers.includes('in') && modifiers.includes('out');
-
-            modifiers = settingBothSidesOfTransition
-                ? modifiers.filter((i, index) => index > modifiers.indexOf('out')) : modifiers;
-
-            transitionHelperOut(el, modifiers, settingBothSidesOfTransition, hide, reject);
-        } else if (attrs.some(attr => ['leave', 'leave-start', 'leave-end'].includes(attr.value))) {
-            transitionClassesOut(el, component, attrs, hide, reject);
-        } else {
-            hide();
-        }
-    }
-
-    function transitionHelperIn(el, modifiers, showCallback, reject) {
-        // Default values inspired by: https://material.io/design/motion/speed.html#duration
-        const styleValues = {
-            duration: modifierValue(modifiers, 'duration', 150),
-            origin: modifierValue(modifiers, 'origin', 'center'),
-            first: {
-                opacity: 0,
-                scale: modifierValue(modifiers, 'scale', 95),
-            },
-            second: {
-                opacity: 1,
-                scale: 100,
-            },
-        };
-
-        transitionHelper(el, modifiers, showCallback, () => {}, reject, styleValues, TRANSITION_TYPE_IN);
-    }
-
-    function transitionHelperOut(el, modifiers, settingBothSidesOfTransition, hideCallback, reject) {
-        // Make the "out" transition .5x slower than the "in". (Visually better)
-        // HOWEVER, if they explicitly set a duration for the "out" transition,
-        // use that.
-        const duration = settingBothSidesOfTransition
-            ? modifierValue(modifiers, 'duration', 150)
-            : modifierValue(modifiers, 'duration', 150) / 2;
-
-        const styleValues = {
-            duration: duration,
-            origin: modifierValue(modifiers, 'origin', 'center'),
-            first: {
-                opacity: 1,
-                scale: 100,
-            },
-            second: {
-                opacity: 0,
-                scale: modifierValue(modifiers, 'scale', 95),
-            },
-        };
-
-        transitionHelper(el, modifiers, () => {}, hideCallback, reject, styleValues, TRANSITION_TYPE_OUT);
-    }
-
-    function modifierValue(modifiers, key, fallback) {
-        // If the modifier isn't present, use the default.
-        if (modifiers.indexOf(key) === -1) return fallback
-
-        // If it IS present, grab the value after it: x-show.transition.duration.500ms
-        const rawValue = modifiers[modifiers.indexOf(key) + 1];
-
-        if (! rawValue) return fallback
-
-        if (key === 'scale') {
-            // Check if the very next value is NOT a number and return the fallback.
-            // If x-show.transition.scale, we'll use the default scale value.
-            // That is how a user opts out of the opacity transition.
-            if (! isNumeric(rawValue)) return fallback
-        }
-
-        if (key === 'duration') {
-            // Support x-show.transition.duration.500ms && duration.500
-            let match = rawValue.match(/([0-9]+)ms/);
-            if (match) return match[1]
-        }
-
-        if (key === 'origin') {
-            // Support chaining origin directions: x-show.transition.top.right
-            if (['top', 'right', 'left', 'center', 'bottom'].includes(modifiers[modifiers.indexOf(key) + 2])) {
-                return [rawValue, modifiers[modifiers.indexOf(key) + 2]].join(' ')
-            }
-        }
-
-        return rawValue
-    }
-
-    function transitionHelper(el, modifiers, hook1, hook2, reject, styleValues, type) {
-        // clear the previous transition if exists to avoid caching the wrong styles
-        if (el.__x_transition) {
-            el.__x_transition.cancel && el.__x_transition.cancel();
-        }
-
-        // If the user set these style values, we'll put them back when we're done with them.
-        const opacityCache = el.style.opacity;
-        const transformCache = el.style.transform;
-        const transformOriginCache = el.style.transformOrigin;
-
-        // If no modifiers are present: x-show.transition, we'll default to both opacity and scale.
-        const noModifiers = ! modifiers.includes('opacity') && ! modifiers.includes('scale');
-        const transitionOpacity = noModifiers || modifiers.includes('opacity');
-        const transitionScale = noModifiers || modifiers.includes('scale');
-
-        // These are the explicit stages of a transition (same stages for in and for out).
-        // This way you can get a birds eye view of the hooks, and the differences
-        // between them.
-        const stages = {
-            start() {
-                if (transitionOpacity) el.style.opacity = styleValues.first.opacity;
-                if (transitionScale) el.style.transform = `scale(${styleValues.first.scale / 100})`;
-            },
-            during() {
-                if (transitionScale) el.style.transformOrigin = styleValues.origin;
-                el.style.transitionProperty = [(transitionOpacity ? `opacity` : ``), (transitionScale ? `transform` : ``)].join(' ').trim();
-                el.style.transitionDuration = `${styleValues.duration / 1000}s`;
-                el.style.transitionTimingFunction = `cubic-bezier(0.4, 0.0, 0.2, 1)`;
-            },
-            show() {
-                hook1();
-            },
-            end() {
-                if (transitionOpacity) el.style.opacity = styleValues.second.opacity;
-                if (transitionScale) el.style.transform = `scale(${styleValues.second.scale / 100})`;
-            },
-            hide() {
-                hook2();
-            },
-            cleanup() {
-                if (transitionOpacity) el.style.opacity = opacityCache;
-                if (transitionScale) el.style.transform = transformCache;
-                if (transitionScale) el.style.transformOrigin = transformOriginCache;
-                el.style.transitionProperty = null;
-                el.style.transitionDuration = null;
-                el.style.transitionTimingFunction = null;
-            },
-        };
-
-        transition(el, stages, type, reject);
-    }
-
-    function transitionClassesIn(el, component, directives, showCallback, reject) {
-        const enter = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'enter') || { expression: '' }).expression, el, component));
-        const enterStart = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'enter-start') || { expression: '' }).expression, el, component));
-        const enterEnd = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'enter-end') || { expression: '' }).expression, el, component));
-
-        transitionClasses(el, enter, enterStart, enterEnd, showCallback, () => {}, TRANSITION_TYPE_IN, reject);
-    }
-
-    function transitionClassesOut(el, component, directives, hideCallback, reject) {
-        const leave = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'leave') || { expression: '' }).expression, el, component));
-        const leaveStart = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'leave-start') || { expression: '' }).expression, el, component));
-        const leaveEnd = convertClassStringToArray(ensureStringExpression((directives.find(i => i.value === 'leave-end') || { expression: '' }).expression, el, component));
-
-        transitionClasses(el, leave, leaveStart, leaveEnd, () => {}, hideCallback, TRANSITION_TYPE_OUT, reject);
-    }
-
-    function transitionClasses(el, classesDuring, classesStart, classesEnd, hook1, hook2, type, reject) {
-        // clear the previous transition if exists to avoid caching the wrong classes
-        if (el.__x_transition) {
-            el.__x_transition.cancel && el.__x_transition.cancel();
-        }
-
-        const originalClasses = el.__x_original_classes || [];
-
-        const stages = {
-            start() {
-                el.classList.add(...classesStart);
-            },
-            during() {
-                el.classList.add(...classesDuring);
-            },
-            show() {
-                hook1();
-            },
-            end() {
-                // Don't remove classes that were in the original class attribute.
-                el.classList.remove(...classesStart.filter(i => !originalClasses.includes(i)));
-                el.classList.add(...classesEnd);
-            },
-            hide() {
-                hook2();
-            },
-            cleanup() {
-                el.classList.remove(...classesDuring.filter(i => !originalClasses.includes(i)));
-                el.classList.remove(...classesEnd.filter(i => !originalClasses.includes(i)));
-            },
-        };
-
-        transition(el, stages, type, reject);
-    }
-
-    function transition(el, stages, type, reject) {
-        const finish = once(() => {
-            stages.hide();
-
-            // Adding an "isConnected" check, in case the callback
-            // removed the element from the DOM.
-            if (el.isConnected) {
-                stages.cleanup();
-            }
-
-            delete el.__x_transition;
-        });
-
-        el.__x_transition = {
-            // Set transition type so we can avoid clearing transition if the direction is the same
-           type: type,
-            // create a callback for the last stages of the transition so we can call it
-            // from different point and early terminate it. Once will ensure that function
-            // is only called one time.
-            cancel: once(() => {
-                reject(TRANSITION_CANCELLED);
-
-                finish();
-            }),
-            finish,
-            // This store the next animation frame so we can cancel it
-            nextFrame: null
-        };
-
-        stages.start();
-        stages.during();
-
-        el.__x_transition.nextFrame = requestAnimationFrame(() => {
-            // Note: Safari's transitionDuration property will list out comma separated transition durations
-            // for every single transition property. Let's grab the first one and call it a day.
-            let duration = Number(getComputedStyle(el).transitionDuration.replace(/,.*/, '').replace('s', '')) * 1000;
-
-            if (duration === 0) {
-                duration = Number(getComputedStyle(el).animationDuration.replace('s', '')) * 1000;
-            }
-
-            stages.show();
-
-            el.__x_transition.nextFrame = requestAnimationFrame(() => {
-                stages.end();
-
-                setTimeout(el.__x_transition.finish, duration);
-            });
+            run(this, attr.value, attr.modifiers, attr.expression, Alpine.react);
         });
     }
 
     /**
      * Extend DOM with Alpine functionality.
      */
-    window.Element.prototype.__x__directives = directives;
+    window.Element.prototype.__x__on = on$1;
+    window.Element.prototype.__x__bind = bind$1;
     window.Element.prototype.__x__getAttrs = getAttrs;
     window.Element.prototype.__x__init = init$1;
-    window.Element.prototype.__x__bind = bind$1;
-    window.Element.prototype.__x__on = on$1;
-    window.Element.prototype.__x__show = show;
-    window.Element.prototype.__x__hide = hide;
     window.Element.prototype.__x__initChunk = function () {
         walk(this, el => {
             el.__x__init();
         });
     };
 
+
+    let mergeProxies = (...objects) => {
+        return new Proxy({}, {
+            get: (target, name) => {
+                return (objects.find(object => Object.keys(object).includes(name)) || {})[name];
+            },
+
+            set: (target, name, value) => {
+                (objects.find(object => Object.keys(object).includes(name)) || {})[name] = value;
+
+                return true
+            },
+        })
+    };
+
     window.Element.prototype.__x__getEvaluator = function (expression) {
+        let farExtras = Alpine.getElementMagics(this);
         let dataStack = this.__x__closestDataStack();
-        let reversedDataStack = Array.from(dataStack).concat([{'$el': this}]).reverse();
+        let closeExtras = {};
+        let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse();
+
+        if (typeof expression === 'function') {
+            let mergedObject = mergeProxies(...reversedDataStack);
+            return expression.bind(mergedObject)
+        }
 
         let names = reversedDataStack.map((data, index) => `$data${index}`);
 
@@ -887,10 +964,26 @@
 
         let namesWithPlaceholderAndDefault = names.concat(['$dataPlaceholder = {}']);
 
-        let evaluator = new Function(namesWithPlaceholderAndDefault, `var __x__result; ${withExpression}; return __x__result`);
+        let evaluator = () => {};
 
-        return evaluator.bind(null, ...reversedDataStack)
+        evaluator = tryCatch(this, () => {
+            return new Function(namesWithPlaceholderAndDefault, `var __x__result; ${withExpression}; return __x__result;`)
+        });
+
+        let boundEvaluator = evaluator.bind(null, ...reversedDataStack);
+
+        return tryCatch.bind(null, this, boundEvaluator)
     };
+
+    function tryCatch(el, callback, ...args) {
+        try {
+            return callback(...args)
+        } catch (e) {
+            console.warn('Alpine Expression Error: '+e.message, el);
+
+            throw e
+        }
+    }
 
     window.Element.prototype.__x__evaluate = function (expression, extras = {}) {
         return this.__x__getEvaluator(expression)(extras)
@@ -902,6 +995,12 @@
         if (! this.parentElement) return new Set
 
         return this.parentElement.__x__closestDataStack()
+    };
+
+    window.Element.prototype.__x__closestRoot = function () {
+        if (this.hasAttribute('x-data')) return this
+
+        return this.parentElement.__x__closestRoot()
     };
 
     function walk(el, callback, forceFirst = true) {
@@ -921,21 +1020,92 @@
     /**
      * Define Alpine boot logic.
      */
-    function start() {
-        document.querySelectorAll('[x-data]').forEach(el => {
-            el.__x__initChunk();
-        });
-    }
+    let Alpine = {
+        observe: hyperactiv.observe,
 
-    /**
-     * Boot Alpine (or defer).
-     */
+        react: hyperactiv.computed,
+
+        directives: {},
+
+        magics: {},
+
+        components: {},
+
+        directive(name, callback) {
+            this.directives[name] = callback;
+        },
+
+        magic(name, callback) {
+            this.magics[name] = callback;
+        },
+
+        getElementMagics(el) {
+            let magics = {};
+
+            Object.entries(this.magics).forEach(([name, callback]) => {
+                Object.defineProperty(magics, `$${name}`, {
+                    get() { return callback(el) },
+                    enumerable: true,
+                });
+            });
+
+            return magics
+        },
+
+        component(name, callback) {
+            this.components[name] = callback;
+        },
+
+        clonedComponentAccessor() {
+            let components = {};
+
+            Object.entries(this.components).forEach(([name, componentObject]) => {
+                Object.defineProperty(components, name, {
+                    get() { return {...componentObject} },
+                    enumerable: true,
+                });
+            });
+
+            return components
+        },
+
+        start() {
+            Object.entries(directives).forEach(([name, callback]) => this.directive(name, callback));
+            Object.entries(magics).forEach(([name, callback]) => this.magic(name, callback));
+
+            document.querySelectorAll('[x-data]').forEach(el => {
+                el.__x__initChunk();
+            });
+
+            let observer = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    if (mutation.type !== 'childList') return
+
+                    Array.from(mutation.addedNodes).forEach(node => {
+                        // Discard non-element nodes (like line-breaks)
+                        if (node.nodeType !== 1 || node.__x__skip_mutation_observer) return
+
+                        node.__x__initChunk();
+                    });
+                });
+            });
+
+            observer.observe(document.querySelector('body'), { subtree: true, childList: true });
+        }
+    };
+
+    window.Alpine = Alpine;
+
+    window.dispatchEvent(new CustomEvent('alpine:loading'), {bubbles: true});
+
     if (window.deferLoadingAlpine) {
         window.deferLoadingAlpine(() => {
-            start();
+            Alpine.start();
         });
     } else {
-        start();
+        Alpine.start();
     }
+
+    return Alpine;
 
 })));

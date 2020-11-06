@@ -1,11 +1,12 @@
-import hyperactiv from 'hyperactiv'
+import Alpine from '../index'
 
-export default (el, value, modifiers, expression, reactive) => {
+export default (el, value, modifiers, expression, react) => {
     let iteratorNames = parseForExpression(expression)
+    console.log('hey')
 
     let evaluateItems = el.__x__getEvaluator(iteratorNames.items)
 
-    reactive(() => {
+    react(() => {
         loop(el, iteratorNames, evaluateItems)
     })
 }
@@ -30,7 +31,7 @@ function loop(el, iteratorNames, evaluateItems) {
             nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl)
 
             let newSet = new Set(closestParentContext)
-            newSet.add(hyperactiv.observe(iterationScopeVariables))
+            newSet.add(Alpine.observe(iterationScopeVariables))
             nextEl.__x__dataStack = newSet
             nextEl.__x_for = iterationScopeVariables
             nextEl.__x__initChunk()
@@ -85,11 +86,16 @@ function getIterationScopeVariables(iteratorNames, item, index, items) {
 }
 
 function addElementInLoopAfterCurrentEl(templateEl, currentEl) {
-    let clone = document.importNode(templateEl.content, true  )
+    let clone = document.importNode(templateEl.content, true)
+
 
     currentEl.parentElement.insertBefore(clone, currentEl.nextElementSibling)
 
-    return currentEl.nextElementSibling
+    let inserted = currentEl.nextElementSibling
+
+    inserted.__x__skip_mutation_observer = true
+
+    return inserted
 }
 
 function lookAheadForMatchingKeyedElementAndMoveItIfFound(nextEl, currentKey) {

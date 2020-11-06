@@ -1,12 +1,10 @@
 import hyperactiv from 'hyperactiv'
 
-export default (el, value, modifiers, expression, reactive) => {
+export default (el, value, modifiers, expression, react) => {
     let evaluate = el.__x__getEvaluator(expression)
 
     let hide = () => {
         el.style.display = 'none'
-
-        el.__x__isShown = false
     }
 
     let show = () => {
@@ -15,26 +13,11 @@ export default (el, value, modifiers, expression, reactive) => {
         } else {
             el.style.removeProperty('display')
         }
-
-        el.__x_isShown = true
-    }
-
-    const handle = (resolve, reject) => {
-        if (value) {
-
-            resolve(() => {})
-        } else {
-            if (el.style.display !== 'none') {
-
-            } else {
-                resolve(() => {})
-            }
-        }
     }
 
     let isFirstRun = true
 
-    reactive(() => {
+    react(() => {
         let value = evaluate()
 
         if (isFirstRun) {
@@ -43,26 +26,18 @@ export default (el, value, modifiers, expression, reactive) => {
             return
         }
 
-        // The working of x-show is a bit complex because we need to
-        // wait for any child transitions to finish before hiding
-        // some element. Also, this has to be done recursively.
-
-        // If x-show.immediate, foregoe the waiting.
-        if (modifiers.includes('immediate')) {
-            handle(finish => finish(), () => {})
-            return
+        if (value) {
+            if (el.__x__transition) {
+                el.__x__transition.in(show, () => {})
+            } else {
+                show()
+            }
+        } else {
+            if (el.__x__transition) {
+                el.__x__transition.out(() => {}, hide)
+            } else {
+                hide()
+            }
         }
-
-        // x-show is encountered during a DOM tree walk. If an element
-        // we encounter is NOT a child of another x-show element we
-        // can execute the previous x-show stack (if one exists).
-        if (component.showDirectiveLastElement && ! component.showDirectiveLastElement.contains(el)) {
-            component.executeAndClearRemainingShowDirectiveStack()
-        }
-
-        component.showDirectiveStack.push(handle)
-
-        component.showDirectiveLastElement = el
-
     })
 }

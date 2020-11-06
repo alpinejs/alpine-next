@@ -1,6 +1,6 @@
 import hyperactiv from 'hyperactiv'
 
-export default (el, value, modifiers, expression, reactive) => {
+export default (el, value, modifiers, expression, react) => {
     let evaluate = el.__x__getEvaluator(expression)
     let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`
     let evaluateAssignment = el.__x__getEvaluator(assignmentExpression)
@@ -21,7 +21,7 @@ export default (el, value, modifiers, expression, reactive) => {
         })
     })
 
-    reactive(() => {
+    react(() => {
         let value = evaluate()
 
         // If nested model key is undefined, set the default value to empty string.

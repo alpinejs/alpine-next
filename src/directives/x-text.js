@@ -1,7 +1,7 @@
-export default (el, value, modifiers, expression, reactive) => {
+export default (el, value, modifiers, expression, react) => {
     let evaluate = el.__x__getEvaluator(expression)
 
-    reactive(() => {
+    react(() => {
         el.innerText = evaluate()
     })
 }
