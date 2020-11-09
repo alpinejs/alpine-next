@@ -1,7 +1,8 @@
-(function (factory) {
-  typeof define === 'function' && define.amd ? define(factory) :
-  factory();
-}((function () { 'use strict';
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('cypress/types/bluebird')) :
+  typeof define === 'function' && define.amd ? define(['cypress/types/bluebird'], factory) :
+  (global = global || self, factory(global.bluebird));
+}(this, (function (bluebird) { 'use strict';
 
   function _defineProperty(obj, key, value) {
     if (key in obj) {
@@ -708,16 +709,16 @@
           end: ''
         },
 
-        in(before, after) {
-          transitionClasses(el, {
+        in(before = () => {}, after = () => {}) {
+          return transitionClasses(el, {
             during: this.enter.during,
             start: this.enter.start,
             end: this.enter.end
           }, before, after);
         },
 
-        out(before, after) {
-          transitionClasses(el, {
+        out(before = () => {}, after = () => {}) {
+          return transitionClasses(el, {
             during: this.leave.during,
             start: this.leave.start,
             end: this.leave.end
@@ -754,8 +755,7 @@
     start = '',
     end = ''
   } = {}, before = () => {}, after = () => {}) {
-    // Permaturely finsh and clear the previous transition if exists to avoid caching the wrong classes
-    if (el.__x__transitioning) el.__x__transitioning.finish();
+    if (el.__x__transitioning) el.__x__transitioning.cancel();
     let undoStart, undoDuring, undoEnd;
     performTransition(el, {
       start() {
@@ -790,6 +790,18 @@
       delete el.__x__transitioning;
     });
     el.__x__transitioning = {
+      beforeCancels: [],
+
+      beforeCancel(callback) {
+        this.beforeCancels.push(callback);
+      },
+
+      cancel: once(function () {
+        while (this.beforeCancels.length) {
+          this.beforeCancels.shift()();
+        }
+        finish();
+      }),
       finish
     };
     stages.start();
@@ -809,9 +821,7 @@
         setTimeout(el.__x__transitioning.finish, duration);
       });
     });
-  } // Thanks VueJs!
-  // https://github.com/vuejs/vue/blob/4de4649d9637262a9b007720b59f80ac72a5620c/src/shared/util.js
-
+  }
   function once(callback) {
     let called = false;
     return function () {
@@ -927,28 +937,59 @@
     let isFirstRun = true;
     react(() => {
       let value = evaluate();
-
-      if (isFirstRun) {
-        value ? show() : hide();
-        isFirstRun = false;
-        return;
-      }
-
-      if (value) {
-        if (el.__x__transition) {
-          el.__x__transition.in(show, () => {});
-        } else {
-          show();
-        }
-      } else {
-        if (el.__x__transition) {
-          el.__x__transition.out(() => {}, hide);
-        } else {
-          hide();
-        }
-      }
+      isFirstRun ? toggleImmediately(el, value, show, hide) : toggleWithTransitions(el, value, show, hide);
+      isFirstRun = false;
     });
   });
+
+  function toggleImmediately(el, value, show, hide) {
+    value ? show() : hide();
+  }
+
+  function toggleWithTransitions(el, value, show, hide) {
+    if (value) {
+      el.__x__transition ? el.__x__transition.in(show) : show();
+    } else {
+      el.__x__do_hide = el.__x__transition ? (resolve, reject) => {
+        el.__x__transition.out(() => {}, () => resolve(hide));
+
+        el.__x__transitioning.beforeCancel(() => reject({
+          isFromCancelledTransition: true
+        }));
+      } : resolve => resolve(hide);
+      queueMicrotask(() => {
+        let closest = closestHide(el);
+
+        if (closest) {
+          closest.__x__hide_child = el;
+        } else {
+          queueMicrotask(() => {
+            let hidePromises = [];
+            let current = el;
+
+            while (current) {
+              hidePromises.push(new Promise(current.__x__do_hide));
+              current = current.__x__hide_child;
+            }
+
+            hidePromises.reverse().reduce((promiseChain, promise) => {
+              return promiseChain.then(() => {
+                return promise.then(doHide => doHide());
+              });
+            }, Promise.resolve(() => {})).catch(e => {
+              if (!e.isFromCancelledTransition) throw e;
+            });
+          });
+        }
+      });
+    }
+  }
+
+  function closestHide(el) {
+    let parent = el.parentElement;
+    if (!parent) return;
+    return parent.__x__do_hide ? parent : closestHide(parent);
+  }
 
   Alpine$1.directive('for', (el, value, modifiers, expression, react) => {
     let iteratorNames = parseForExpression(expression);

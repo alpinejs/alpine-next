@@ -1,3 +1,4 @@
+import { reject } from 'cypress/types/bluebird'
 import Alpine from '../alpine'
 
 Alpine.directive('transition', (el, value, modifiers, expression, react) => {
@@ -7,16 +8,16 @@ Alpine.directive('transition', (el, value, modifiers, expression, react) => {
 
             leave: { during: '', start: '', end: '' },
 
-            in(before, after) {
-                transitionClasses(el, {
+            in(before = () => {}, after = () => {}) {
+                return transitionClasses(el, {
                     during: this.enter.during,
                     start: this.enter.start,
                     end: this.enter.end,
                 }, before, after)
             },
 
-            out(before, after) {
-                transitionClasses(el, {
+            out(before = () => {}, after = () => {}) {
+                return transitionClasses(el, {
                     during: this.leave.during,
                     start: this.leave.start,
                     end: this.leave.end,
@@ -38,8 +39,7 @@ Alpine.directive('transition', (el, value, modifiers, expression, react) => {
 })
 
 export function transitionClasses(el, { during = '', start = '', end = '' } = {}, before = () => {}, after = () => {}) {
-    // Permaturely finsh and clear the previous transition if exists to avoid caching the wrong classes
-    if (el.__x__transitioning) el.__x__transitioning.finish()
+    if (el.__x__transitioning) el.__x__transitioning.cancel()
 
     let undoStart, undoDuring, undoEnd
 
@@ -74,7 +74,12 @@ export function performTransition(el, stages) {
         delete el.__x__transitioning
     })
 
-    el.__x__transitioning = { finish }
+    el.__x__transitioning = {
+        beforeCancels: [],
+        beforeCancel(callback) { this.beforeCancels.push(callback) },
+        cancel: once(function () { while (this.beforeCancels.length) { this.beforeCancels.shift()() }; finish(); }),
+        finish
+    }
 
     stages.start()
     stages.during()
@@ -98,8 +103,6 @@ export function performTransition(el, stages) {
     })
 }
 
-// Thanks VueJs!
-// https://github.com/vuejs/vue/blob/4de4649d9637262a9b007720b59f80ac72a5620c/src/shared/util.js
 export function once(callback) {
     let called = false
 

@@ -6,9 +6,19 @@
     <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline';"> -->
 
     <div x-data="{ show: false }">
-        <h1 class="font-bold" :class="show ? 'hidden': ''">thing</h1>
-
         <button @click="show = ! show">yo</button>
+
+        <div x-show="show">
+            <div
+                x-show="show"
+                x-transition:enter="duration-1000"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="duration-1000"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+            >faded</div>
+        </div>
     </div>
 
     <button x-data x-on:click="if (true) console.log('hey')">error</button>

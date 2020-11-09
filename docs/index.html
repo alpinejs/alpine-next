@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.3.2/styles/github-gist.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.3.2/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <title>Alpine.js</title>
+</head>
+<body>
+    <header style="height: 3.6rem" class="fixed border-b px-6 py-3 top-0 left-0 right-0 flex items-center justify-between">
+        <div>Alpine</div>
+        <div></div>
+    </header>
+
+    <aside style="top: 3.6rem" class="fixed border-r py-3 px-6 left-0 bottom-0 w-64 overflow-y-auto">hey</aside>
+
+    <main style="padding-top: 3.6rem" class="pl-64">
+        <style>.markdown>*+* { margin-top: 1.5rem; }</style>
+        <div class="m-auto max-w-3xl px-6 py-3 text-gray-800 markdown">
+            <h1 class="font-semibold text-4xl border-b">Installation</h1>
+
+            <p class="">Alpine aims to be incredibly easy to install.</p>
+
+            <h2 class="border-b  font-semibold text-2xl">Via CDN</h2>
+
+            <p class="">Add the following script to the end of your <code class="bg-gray-200 rounded text-sm px-1" style="padding-top: .1rem; padding-bottom: .1rem;">&lt;head&gt;</code> section.</p>
+
+            <pre><code class=" text-sm rounded" style="padding: 1rem; background: #f6f7f9">&lt;script src=&quot;https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js&quot; defer&gt;&lt;/script&gt;</code></pre>
+
+            <p class="">That's it. It will initialize itself.</p>
+
+            <p class="">For production environments, it's recommended to pin a specific version number in the link to avoid unexpected breakage from newer versions. For example, to use version 2.7.3 (latest):</p>
+
+            <pre><code class=" text-sm rounded" style="padding: 1rem; background: #f6f7f9">&lt;script src=&quot;https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.7.3/dist/alpine.min.js&quot; defer&gt;&lt;/script&gt;</code></pre>
+
+            <h2 class="border-b  font-semibold text-2xl">Via NPM</h2>
+
+            <p class="">Install the package from npm.</p>
+
+            <pre><code class=" text-sm rounded" style="padding: 1rem; background: #f6f7f9">npm install alpinejs</code></pre>
+
+            <p class="">Include it in your script.</p>
+
+            <pre><code class=" text-sm rounded" style="padding: 1rem; background: #f6f7f9">import 'alpinejs'</code></pre>
+        </div>
+    </main>
+</body>
+</html>
