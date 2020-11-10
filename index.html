@@ -5,7 +5,10 @@
 
     <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline';"> -->
 
+    <div x-data yclass="'foo'" yclass="'bar'">me</div>
+
     <div x-data="{ show: false }">
+        <button @click="console.log(foo.bar.baz)">click mwe</button>
         <button @click="show = ! show">yo</button>
 
         <div x-show="show">
@@ -113,6 +116,10 @@
     </div>
 
     <span x-data></span>
+
+    <div x-data="{ show: false }">
+        <span x-intersect.enter="console.log('enter')" x-intersect.leave="console.log('leave')">hey</span>
+    </div>
 
     <select type="text" x-data="{ selected: 'bar' }" x-bind:value="selected">
         <option>foo</option>

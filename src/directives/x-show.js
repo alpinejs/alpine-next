@@ -1,4 +1,3 @@
-import { resolve } from 'cypress/types/bluebird'
 import Alpine from '../alpine'
 
 Alpine.directive('show', (el, value, modifiers, expression, react) => {

@@ -1,4 +1,3 @@
-import { reject } from 'cypress/types/bluebird'
 import Alpine from '../alpine'
 
 Alpine.directive('transition', (el, value, modifiers, expression, react) => {
