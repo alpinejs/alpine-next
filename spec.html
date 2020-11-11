@@ -366,4 +366,19 @@
             <td class="border px-4 py-2 text-gray-700">non-string and non-boolean attributes are cast to string when bound to checkbox</td>
         </tr>
     </table>
+
+    <!-- x-cloak -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-cloak</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ hidden: true }">
+                    <span x-cloak></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-cloak is removed</td>
+        </tr>
+    </table>
 </html>
