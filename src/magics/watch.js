@@ -2,11 +2,11 @@ import Alpine from '../alpine'
 
 Alpine.magic('watch', el => {
     return (key, callback) => {
-        let evaluate = el.__x__getEvaluator(key)
+        let evaluate = el._x_evaluator(key)
 
         let firstTime = true
 
-        Alpine.react(() => {
+        Alpine.effect(() => {
             let value = evaluate()
 
             // This is a hack to force deep reactivity for things like "items.push()"

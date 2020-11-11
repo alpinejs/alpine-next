@@ -1,13 +1,13 @@
 
-export function getAttrs() {
+window.Element.prototype.attributes = function() {
     let directives = Array.from(this.attributes).filter(isXAttr).map(parseHtmlAttribute)
 
     let spreadDirective = directives.filter(directive => directive.type === 'spread')[0]
 
     if (spreadDirective) {
-        let data = this.__x__closestDataProxy()
+        let data = this._x_closestDataProxy()
 
-        let spreadObject = data[spreadDirective.expression] || this.__x__evaluate(spreadDirective.expression)
+        let spreadObject = data[spreadDirective.expression] || this._x_evaluate(spreadDirective.expression)
 
         directives = directives.concat(Object.entries(spreadObject).map(([name, value]) => parseHtmlAttribute({ name, value })))
     }

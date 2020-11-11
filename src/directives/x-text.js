@@ -1,9 +1,9 @@
 import Alpine from '../alpine'
 
-Alpine.directive('text', (el, value, modifiers, expression, react) => {
-    let evaluate = el.__x__getEvaluator(expression)
+Alpine.directive('text', (el, value, modifiers, expression, effect) => {
+    let evaluate = el._x_evaluator(expression)
 
-    react(() => {
+    effect(() => {
         el.innerText = evaluate()
     })
 })

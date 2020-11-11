@@ -1,3 +1,3 @@
 import Alpine from '../alpine'
 
-Alpine.magic('refs', el => el.__x__closestRoot().__x__$refs || {})
+Alpine.magic('refs', el => el._x_root()._x_$refs || {})

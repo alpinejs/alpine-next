@@ -1,8 +1,8 @@
 import Alpine from '../alpine'
 
-Alpine.directive('transition', (el, value, modifiers, expression, react) => {
-    if (! el.__x__transition) {
-        el.__x__transition = {
+Alpine.directive('transition', (el, value, modifiers, expression, effect) => {
+    if (! el._x_transition) {
+        el._x_transition = {
             enter: { during: '', start: '', end: '' },
 
             leave: { during: '', start: '', end: '' },
@@ -26,34 +26,34 @@ Alpine.directive('transition', (el, value, modifiers, expression, react) => {
     }
 
     let directiveStorageMap = {
-        'enter': (classes) => { el.__x__transition.enter.during = classes },
-        'enter-start': (classes) => { el.__x__transition.enter.start = classes },
-        'enter-end': (classes) => { el.__x__transition.enter.end = classes },
-        'leave': (classes) => { el.__x__transition.leave.during = classes },
-        'leave-start': (classes) => { el.__x__transition.leave.start = classes },
-        'leave-end': (classes) => { el.__x__transition.leave.end = classes },
+        'enter': (classes) => { el._x_transition.enter.during = classes },
+        'enter-start': (classes) => { el._x_transition.enter.start = classes },
+        'enter-end': (classes) => { el._x_transition.enter.end = classes },
+        'leave': (classes) => { el._x_transition.leave.during = classes },
+        'leave-start': (classes) => { el._x_transition.leave.start = classes },
+        'leave-end': (classes) => { el._x_transition.leave.end = classes },
     }
 
     directiveStorageMap[value](expression)
 })
 
 export function transitionClasses(el, { during = '', start = '', end = '' } = {}, before = () => {}, after = () => {}) {
-    if (el.__x__transitioning) el.__x__transitioning.cancel()
+    if (el._x_transitioning) el._x_transitioning.cancel()
 
     let undoStart, undoDuring, undoEnd
 
     performTransition(el, {
         start() {
-            undoStart = el.__x__addClasses(start)
+            undoStart = el._x_classes(start)
         },
         during() {
-            undoDuring = el.__x__addClasses(during)
+            undoDuring = el._x_classes(during)
         },
         before,
         end() {
             undoStart()
 
-            undoEnd = el.__x__addClasses(end)
+            undoEnd = el._x_classes(end)
         },
         after,
         cleanup() {
@@ -70,10 +70,10 @@ export function performTransition(el, stages) {
         // Adding an "isConnected" check, in case the callback removed the element from the DOM.
         if (el.isConnected) stages.cleanup()
 
-        delete el.__x__transitioning
+        delete el._x_transitioning
     })
 
-    el.__x__transitioning = {
+    el._x_transitioning = {
         beforeCancels: [],
         beforeCancel(callback) { this.beforeCancels.push(callback) },
         cancel: once(function () { while (this.beforeCancels.length) { this.beforeCancels.shift()() }; finish(); }),
@@ -97,7 +97,7 @@ export function performTransition(el, stages) {
         requestAnimationFrame(() => {
             stages.end()
 
-            setTimeout(el.__x__transitioning.finish, duration)
+            setTimeout(el._x_transitioning.finish, duration)
         })
     })
 }

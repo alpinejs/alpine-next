@@ -1,11 +1,11 @@
 import Alpine from '../alpine'
 
-Alpine.directive('for', (el, value, modifiers, expression, react) => {
+Alpine.directive('for', (el, value, modifiers, expression, effect) => {
     let iteratorNames = parseForExpression(expression)
 
-    let evaluateItems = el.__x__getEvaluator(iteratorNames.items)
+    let evaluateItems = el._x_evaluator(iteratorNames.items)
 
-    react(() => {
+    effect(() => {
         loop(el, iteratorNames, evaluateItems)
     })
 })
@@ -15,7 +15,7 @@ function loop(el, iteratorNames, evaluateItems) {
 
     let items = evaluateItems()
 
-    let closestParentContext = el.__x__closestDataStack()
+    let closestParentContext = el._x_closestDataStack()
 
     // As we walk the array, we'll also walk the DOM (updating/creating as we go).
     let currentEl = templateEl
@@ -31,13 +31,13 @@ function loop(el, iteratorNames, evaluateItems) {
 
             let newSet = new Set(closestParentContext)
             newSet.add(Alpine.observe(iterationScopeVariables))
-            nextEl.__x__dataStack = newSet
+            nextEl._x_dataStack = newSet
             nextEl.__x_for = iterationScopeVariables
-            nextEl.__x__initChunk()
+            nextEl._x_initChunk()
         } {
             // Refresh data
             Object.entries(iterationScopeVariables).forEach(([key, value]) => {
-                Array.from(nextEl.__x__dataStack).slice(-1)[0][key] = value
+                Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value
             })
         }
 
@@ -92,7 +92,7 @@ function addElementInLoopAfterCurrentEl(templateEl, currentEl) {
 
     let inserted = currentEl.nextElementSibling
 
-    inserted.__x__skip_mutation_observer = true
+    inserted._x_skip_mutation_observer = true
 
     return inserted
 }

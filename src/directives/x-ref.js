@@ -1,9 +1,9 @@
 import Alpine from '../alpine'
 
-Alpine.directive('ref', (el, value, modifiers, expression, react) => {
-    let root = el.__x__closestRoot()
+Alpine.directive('ref', (el, value, modifiers, expression, effect) => {
+    let root = el._x_root()
 
-    if (! root.__x__$refs) root.__x__$refs = {}
+    if (! root._x_$refs) root._x_$refs = {}
 
-    root.__x__$refs[expression] = el
+    root._x_$refs[expression] = el
 })

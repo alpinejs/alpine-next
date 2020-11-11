@@ -1,7 +1,7 @@
 import Alpine from '../alpine'
 
-Alpine.directive('show', (el, value, modifiers, expression, react) => {
-    let evaluate = el.__x__getEvaluator(expression)
+Alpine.directive('show', (el, value, modifiers, expression, effect) => {
+    let evaluate = el._x_evaluator(expression)
 
     let hide = () => {
         el.style.display = 'none'
@@ -17,7 +17,7 @@ Alpine.directive('show', (el, value, modifiers, expression, react) => {
 
     let isFirstRun = true
 
-    react(() => {
+    effect(() => {
         let value = evaluate()
 
         isFirstRun ? toggleImmediately(el, value, show, hide) : toggleWithTransitions(el, value, show, hide)
@@ -32,15 +32,15 @@ function toggleImmediately(el, value, show, hide) {
 
 function toggleWithTransitions(el, value, show, hide) {
     if (value) {
-        el.__x__transition
-            ? el.__x__transition.in(show)
+        el._x_transition
+            ? el._x_transition.in(show)
             : show()
     } else {
-        el.__x__do_hide = el.__x__transition
+        el._x_do_hide = el._x_transition
             ? (resolve, reject) => {
-                el.__x__transition.out(() => {}, () => resolve(hide))
+                el._x_transition.out(() => {}, () => resolve(hide))
 
-                el.__x__transitioning.beforeCancel(() => reject({ isFromCancelledTransition: true }))
+                el._x_transitioning.beforeCancel(() => reject({ isFromCancelledTransition: true }))
             }
             : (resolve) => resolve(hide)
 
@@ -48,15 +48,15 @@ function toggleWithTransitions(el, value, show, hide) {
             let closest = closestHide(el)
 
             if (closest) {
-                closest.__x__hide_child = el
+                closest._x_hide_child = el
             } else {
                 queueMicrotask(() => {
                     let hidePromises = []
                     let current = el
                     while (current) {
-                        hidePromises.push(new Promise(current.__x__do_hide))
+                        hidePromises.push(new Promise(current._x_do_hide))
 
-                        current = current.__x__hide_child
+                        current = current._x_hide_child
                     }
 
                     hidePromises.reverse().reduce((promiseChain, promise) => {
@@ -77,5 +77,5 @@ function closestHide(el) {
 
     if (! parent) return
 
-    return parent.__x__do_hide ? parent : closestHide(parent)
+    return parent._x_do_hide ? parent : closestHide(parent)
 }

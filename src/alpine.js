@@ -3,7 +3,7 @@ import hyperactiv from 'hyperactiv'
 let Alpine = {
     observe: hyperactiv.observe,
 
-    react: hyperactiv.computed,
+    effect: hyperactiv.computed,
 
     directives: {},
 
@@ -53,7 +53,7 @@ let Alpine = {
         window.dispatchEvent(new CustomEvent('alpine:loading'), { bubbles: true })
 
         document.querySelectorAll('[x-data]').forEach(el => {
-            el.__x__initChunk()
+            el._x_initChunk()
         })
 
         window.dispatchEvent(new CustomEvent('alpine:loaded'), { bubbles: true })
@@ -67,9 +67,9 @@ let Alpine = {
                 if (mutation.type !== 'childList') return
 
                 for(let node of mutation.addedNodes) {
-                    if (node.nodeType !== 1 || node.__x__skip_mutation_observer) return
+                    if (node.nodeType !== 1 || node._x_skip_mutation_observer) return
 
-                    node.__x__initChunk()
+                    node._x_initChunk()
                 }
             }
         })

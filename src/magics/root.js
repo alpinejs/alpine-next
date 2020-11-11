@@ -1,3 +1,3 @@
 import Alpine from '../alpine'
 
-Alpine.magic('root', el => el.__x__closestRoot())
+Alpine.magic('root', el => el._x_root())

@@ -4,9 +4,16 @@ import Alpine from './alpine'
 window.Alpine = Alpine
 
 /**
- * Define Element Prototype Overrides
+ * Register Element Prototype Utilities
  */
-import './prototype'
+import './utils/attributes'
+import './utils/evaluate'
+import './utils/dispatch'
+import './utils/classes'
+import './utils/init'
+import './utils/root'
+import './utils/bind'
+import './utils/on'
 
 /**
  * Register Directives
@@ -33,7 +40,7 @@ import './magics/refs'
 import './magics/el'
 
 /**
- * Start it up!
+ * Start It Up
  */
 if (! window.deferLoadingAlpine) window.deferLoadingAlpine = callback => callback()
 

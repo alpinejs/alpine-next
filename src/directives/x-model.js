@@ -1,9 +1,9 @@
 import Alpine from '../alpine'
 
-Alpine.directive('model', (el, value, modifiers, expression, react) => {
-    let evaluate = el.__x__getEvaluator(expression)
+Alpine.directive('model', (el, value, modifiers, expression, effect) => {
+    let evaluate = el._x_evaluator(expression)
     let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`
-    let evaluateAssignment = el.__x__getEvaluator(assignmentExpression)
+    let evaluateAssignment = el._x_evaluator(assignmentExpression)
 
     // If the element we are binding to is a select, a radio, or checkbox
     // we'll listen for the change event instead of the "input" event.
@@ -14,20 +14,20 @@ Alpine.directive('model', (el, value, modifiers, expression, react) => {
 
     let assigmentFunction = generateAssignmentFunction(el, modifiers, expression)
 
-    el.__x__on(el, event, modifiers, (e) => {
+    el._x_on(el, event, modifiers, (e) => {
         evaluateAssignment({
             '$event': e,
             rightSideOfExpression: assigmentFunction
         })
     })
 
-    react(() => {
+    effect(() => {
         let value = evaluate()
 
         // If nested model key is undefined, set the default value to empty string.
         if (value === undefined && expression.match(/\./)) value = ''
 
-        el.__x__bind('value', value)
+        el._x_bind('value', value)
     })
 })
 
