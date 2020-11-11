@@ -1,5 +1,5 @@
 
-window.Element.prototype.init = function() {
+window.Element.prototype._x_init = function() {
     if (this.hasAttribute('x-data')) {
         let expression = this.getAttribute('x-data')
         expression = expression === '' ? '{}' : expression
@@ -28,7 +28,7 @@ window.Element.prototype.init = function() {
     })
 }
 
-window.Element.prototype.initTree = function() {
+window.Element.prototype._x_initTree = function() {
     walk(this, el => el._x_init())
 }
 

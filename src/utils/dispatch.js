@@ -1,5 +1,5 @@
 
-window.Element.prototype.dispatch = function(event, detail = {}) {
+window.Element.prototype._x_dispatch = function(event, detail = {}) {
     this.dispatchEvent(new CustomEvent(event, {
         detail,
         bubbles: true,

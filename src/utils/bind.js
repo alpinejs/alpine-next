@@ -1,5 +1,5 @@
 
-window.Element.prototype.bind = function(name, value, modifiers = []) {
+window.Element.prototype._x_bind = function(name, value, modifiers = []) {
     name = modifiers.includes('camel') ? camelCase(name) : name
 
     switch (name) {

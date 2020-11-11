@@ -1,4 +1,4 @@
-window.Element.prototype.evaluator = function(expression, extras = {}, returns = true) {
+window.Element.prototype._x_evaluator = function(expression, extras = {}, returns = true) {
     let farExtras = Alpine.getElementMagics(this)
     let dataStack = this._x_closestDataStack()
     let closeExtras = extras
@@ -30,11 +30,11 @@ window.Element.prototype.evaluator = function(expression, extras = {}, returns =
     return tryCatch.bind(null, this, boundEvaluator)
 }
 
-window.Element.prototype.evaluate = function(expression, extras = {}, returns = true) {
+window.Element.prototype._x_evaluate = function(expression, extras = {}, returns = true) {
     return this._x_evaluator(expression, extras, returns)()
 }
 
-window.Element.prototype.closestDataStack = function() {
+window.Element.prototype._x_closestDataStack = function() {
     if (this._x_dataStack) return this._x_dataStack
 
     if (! this.parentElement) return new Set
@@ -42,7 +42,7 @@ window.Element.prototype.closestDataStack = function() {
     return this.parentElement._x_closestDataStack()
 }
 
-window.Element.prototype.closestDataProxy = function() {
+window.Element.prototype._x_closestDataProxy = function() {
     return mergeProxies(...this._x_closestDataStack())
 }
 

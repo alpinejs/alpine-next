@@ -53,7 +53,7 @@ let Alpine = {
         window.dispatchEvent(new CustomEvent('alpine:loading'), { bubbles: true })
 
         document.querySelectorAll('[x-data]').forEach(el => {
-            el._x_initChunk()
+            el._x_initTree()
         })
 
         window.dispatchEvent(new CustomEvent('alpine:loaded'), { bubbles: true })
@@ -69,7 +69,7 @@ let Alpine = {
                 for(let node of mutation.addedNodes) {
                     if (node.nodeType !== 1 || node._x_skip_mutation_observer) return
 
-                    node._x_initChunk()
+                    node._x_initTree()
                 }
             }
         })

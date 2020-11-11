@@ -1,5 +1,5 @@
 
-window.Element.prototype.classes = function(classString) {
+window.Element.prototype._x_classes = function(classString) {
     let split = classString => classString.split(' ').filter(Boolean)
 
     let missingClasses = classString => classString.split(' ').filter(i => ! this.classList.contains(i)).filter(Boolean)

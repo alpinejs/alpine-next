@@ -352,7 +352,7 @@
         bubbles: true
       });
       document.querySelectorAll('[x-data]').forEach(el => {
-        el._x_initChunk();
+        el._x_initTree();
       });
       window.dispatchEvent(new CustomEvent('alpine:loaded'), {
         bubbles: true
@@ -368,7 +368,7 @@
           for (let node of mutation.addedNodes) {
             if (node.nodeType !== 1 || node._x_skip_mutation_observer) return;
 
-            node._x_initChunk();
+            node._x_initTree();
           }
         }
       });
@@ -380,7 +380,7 @@
 
   };
 
-  window.Element.prototype.attributes = function () {
+  window.Element.prototype._x_attributes = function () {
     let directives = Array.from(this.attributes).filter(isXAttr).map(parseHtmlAttribute);
     let spreadDirective = directives.filter(directive => directive.type === 'spread')[0];
 
@@ -440,7 +440,7 @@
     return name;
   }
 
-  window.Element.prototype.evaluator = function (expression, extras = {}, returns = true) {
+  window.Element.prototype._x_evaluator = function (expression, extras = {}, returns = true) {
     let farExtras = Alpine.getElementMagics(this);
 
     let dataStack = this._x_closestDataStack();
@@ -470,17 +470,17 @@
     return tryCatch.bind(null, this, boundEvaluator);
   };
 
-  window.Element.prototype.evaluate = function (expression, extras = {}, returns = true) {
+  window.Element.prototype._x_evaluate = function (expression, extras = {}, returns = true) {
     return this._x_evaluator(expression, extras, returns)();
   };
 
-  window.Element.prototype.closestDataStack = function () {
+  window.Element.prototype._x_closestDataStack = function () {
     if (this._x_dataStack) return this._x_dataStack;
     if (!this.parentElement) return new Set();
     return this.parentElement._x_closestDataStack();
   };
 
-  window.Element.prototype.closestDataProxy = function () {
+  window.Element.prototype._x_closestDataProxy = function () {
     return mergeProxies(...this._x_closestDataStack());
   };
 
@@ -505,14 +505,14 @@
     });
   }
 
-  window.Element.prototype.dispatch = function (event, detail = {}) {
+  window.Element.prototype._x_dispatch = function (event, detail = {}) {
     this.dispatchEvent(new CustomEvent(event, {
       detail,
       bubbles: true
     }));
   };
 
-  window.Element.prototype.classes = function (classString) {
+  window.Element.prototype._x_classes = function (classString) {
 
     let missingClasses = classString => classString.split(' ').filter(i => !this.classList.contains(i)).filter(Boolean);
 
@@ -526,7 +526,7 @@
     return addClassesAndReturnUndo(missingClasses(classString));
   };
 
-  window.Element.prototype.init = function () {
+  window.Element.prototype._x_init = function () {
     if (this.hasAttribute('x-data')) {
       let expression = this.getAttribute('x-data');
       expression = expression === '' ? '{}' : expression;
@@ -554,7 +554,7 @@
     });
   };
 
-  window.Element.prototype.initTree = function () {
+  window.Element.prototype._x_initTree = function () {
     walk(this, el => el._x_init());
   };
 
@@ -569,12 +569,12 @@
     }
   }
 
-  window.Element.prototype.root = function () {
+  window.Element.prototype._x_root = function () {
     if (this.hasAttribute('x-data')) return this;
     return this.parentElement._x_root();
   };
 
-  window.Element.prototype.bind = function (name, value, modifiers = []) {
+  window.Element.prototype._x_bind = function (name, value, modifiers = []) {
     name = modifiers.includes('camel') ? camelCase(name) : name;
 
     switch (name) {
@@ -1153,7 +1153,7 @@
         nextEl._x_dataStack = newSet;
         nextEl.__x_for = iterationScopeVariables;
 
-        nextEl._x_initChunk();
+        nextEl._x_initTree();
       }
 
       {

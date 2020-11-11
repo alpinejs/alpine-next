@@ -33,7 +33,7 @@ function loop(el, iteratorNames, evaluateItems) {
             newSet.add(Alpine.observe(iterationScopeVariables))
             nextEl._x_dataStack = newSet
             nextEl.__x_for = iterationScopeVariables
-            nextEl._x_initChunk()
+            nextEl._x_initTree()
         } {
             // Refresh data
             Object.entries(iterationScopeVariables).forEach(([key, value]) => {

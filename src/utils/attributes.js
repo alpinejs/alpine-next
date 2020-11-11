@@ -1,5 +1,5 @@
 
-window.Element.prototype.attributes = function() {
+window.Element.prototype._x_attributes = function() {
     let directives = Array.from(this.attributes).filter(isXAttr).map(parseHtmlAttribute)
 
     let spreadDirective = directives.filter(directive => directive.type === 'spread')[0]
