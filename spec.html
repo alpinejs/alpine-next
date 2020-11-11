@@ -463,4 +463,65 @@
             <td class="border px-4 py-2 text-gray-700">component refresh one time per update whatever the number of mutations in the update</td>
         </tr>
     </table>
+
+    <!-- debounce -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">debounce</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:input.debounce="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-on with debounce modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:input.debounce.100="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-on with debounce modifier and specified wait</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ search: '' }">
+                    <input x-model.debounce="search" />
+                    <span x-text="search"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model with debounce modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:input.debounce.100ms="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-on with debounce modifier (with "ms" suffix)</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:keydown.a.debounce.10ms="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown with key modifier and debounce with 10ms wait</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:keydown.a.debounce="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown with debounce modifier and no specified wait</td>
+        </tr>
+    </table>
 </html>
