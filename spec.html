@@ -524,4 +524,21 @@
             <td class="border px-4 py-2 text-gray-700">keydown with debounce modifier and no specified wait</td>
         </tr>
     </table>
+
+    <!-- $dispatch -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">$dispatch</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-on:custom-event="foo = $event.detail.newValue">
+                    <span x-text="foo"></span>
+
+                    <button x-on:click="$dispatch('custom-event', {newValue: 'baz'})"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$dispatch</td>
+        </tr>
+    </table>
 </html>
