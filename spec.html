@@ -396,4 +396,71 @@
             <td class="border px-4 py-2 text-gray-700">can register custom magic properties</td>
         </tr>
     </table>
+
+    <!-- x-data -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-data</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">data manipulated on component object is reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <span x-text="'foo'"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-data attribute value is optional</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="test()">
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-data can use attributes from a reusable function</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ text: $el.dataset.text }" data-text="test">
+                    <span x-text="text"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-data can use $el</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', getFoo() {return this.foo}}">
+                    <span x-text="getFoo()"></span>
+                    <button x-on:click="foo = 'baz'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">functions in x-data are reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ list: [ {name: 'foo'}, {name: 'bar'} ] }">
+                    <span x-text="list[0].name"></span>
+                    <button x-on:click="list.sort((a, b) => (a.name > b.name) ? 1 : -1)"></button>
+                    <h1 x-on:click="list.sort((a, b) => (a.name < b.name) ? 1 : -1)"></h1>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">Proxies are not nested and duplicated when manipulating an array</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar'], qux: 'quux', test() {return ++refreshCount} }">
+                    <span x-text="test()"></span>
+                    <button x-on:click="items.push('baz'); qux = 'corge';"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">component refresh one time per update whatever the number of mutations in the update</td>
+        </tr>
+    </table>
 </html>
