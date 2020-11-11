@@ -541,4 +541,27 @@
             <td class="border px-4 py-2 text-gray-700">$dispatch</td>
         </tr>
     </table>
+
+    <!-- $el -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">$el</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <button @click="$el.innerHTML = 'foo'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$el</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <button @click="setIsProxy($el)"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$el doesnt return a proxy</td>
+        </tr>
+    </table>
 </html>
