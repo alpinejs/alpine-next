@@ -564,4 +564,284 @@
             <td class="border px-4 py-2 text-gray-700">$el doesnt return a proxy</td>
         </tr>
     </table>
+
+    <!-- x-for -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-for</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <button x-on:click="items = ['foo', 'bar']"></button>
+
+                    <template x-for="item in items">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <button x-on:click="items = []"></button>
+
+                    <template x-for="item in items">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">removes all elements when array is empty and previously had one item</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar', 'world'] }">
+                    <button x-on:click="items = []"></button>
+
+                    <template x-for="item in items">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">removes all elements when array is empty and previously had multiple items</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['first'], foo: 'bar' }">
+                    <button x-on:click="foo = 'baz'"></button>
+
+                    <template x-for="item in items">
+                        <span>
+                            <h1 x-text="item"></h1>
+                            <h2 x-text="foo"></h2>
+                        </span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">elements inside of loop are reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['first'] }">
+                    <template x-for="item in items">
+                        <div x-data="{foo: 'bar'}" class="child">
+                            <span x-text="foo"></span>
+                            <button x-on:click="foo = 'bob'"></button>
+                        </div>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">components inside of loop are reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['first'] }">
+                    <template x-for="item in items">
+                        <ul>
+                            <div x-data="{foo: 'bar'}" class="child">
+                                <span x-text="foo"></span>
+                                <button x-on:click="foo = 'bob'"></button>
+                            </div>
+                        </ul>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">components inside a plain element of loop are reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar'] }">
+                    <button x-on:click="items = ['bar', 'foo', 'baz']"></button>
+
+                    <template x-for="item in items" :key="item">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">adding key attribute moves dom nodes properly</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar'] }">
+                    <button x-on:click="items = ['bar', 'foo', 'baz']"></button>
+
+                    <template x-for="(item, index) in items" :key="index">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can key by index</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <template x-for="(item, index) in items">
+                        <div>
+                            <h1 x-text="items.indexOf(item)"></h1>
+                            <h2 x-text="index"></h2>
+                        </div>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can use index inside of loop</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <template x-for="(item, index, things) in items">
+                        <div>
+                            <h1 x-text="items"></h1>
+                            <h2 x-text="things"></h2>
+                        </div>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can use third iterator param (collection) inside of loop</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar'], show: false }">
+                    <button @click="show = ! show"></button>
+
+                    <template x-if="show" x-for="item in items">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can use x-if in conjunction with x-for</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'], output: '' }">
+                    <button x-on:click="items = ['bar']"></button>
+
+                    <template x-for="(item, index) in items">
+                        <span x-text="item" x-on:click="output = item"></span>
+                    </template>
+
+                    <h1 x-text="output"></h1>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">listeners in loop get fresh iteration data even though they are only registered initially</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [ {bars: ['bob', 'lob']} ] }">
+                    <button x-on:click="foos = [ {bars: ['bob', 'lob']}, {bars: ['law']} ]"></button>
+                    <template x-for="foo in foos">
+                        <h1>
+                            <template x-for="bar in foo.bars">
+                                <h2 x-text="bar"></h2>
+                            </template>
+                        </h1>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">nested x-for</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: [{name: 'one', key: '1'}, {name: 'two', key: '2'}] }">
+                    <button x-on:click="items = [{name: 'zero', key: '0'}, {name: 'one', key: '1'}, {name: 'two', key: '2'}]"></button>
+
+                    <template x-for="item in items" :key="item.key">
+                        <span x-text="item.name"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for updates the right elements when new item are inserted at the beginning of the list</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [ {name: 'foo', bars: ['bob', 'lob']}, {name: 'baz', bars: ['bab', 'lab']} ] }">
+                    <template x-for="foo in foos">
+                        <h1>
+                            <template x-for="bar in foo.bars">
+                                <h2 x-text="foo.name+': '+bar"></h2>
+                            </template>
+                        </h1>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">nested x-for access outer loop variable</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [1], bars: [1, 2] }">
+                    <template x-for="foo in foos">
+                        <h1 x-text="foo"></h1>
+                    </template>
+                    <template x-for="bar in bars">
+                        <h2 x-text="bar"></h2>
+                    </template>
+                    <button @click="foos = [1, 2];bars = [1, 2, 3]">Change</button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">sibling x-for do not interact with each other</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [
+                    {name: 'foo', bars: [{name: 'bob', count: 0}, {name: 'lob', count: 0}]},
+                    {name: 'baz', bars: [{name: 'bab', count: 0}, {name: 'lab', count: 0}]}
+                ], fnText: function(foo, bar) { return foo.name+': '+bar.name+' = '+bar.count; } }">
+                    <template x-for="foo in foos">
+                        <h1>
+                            <template x-for="bar in foo.bars">
+                                <h2 x-text="fnText(foo, bar)"
+                                    x-on:click="bar.count += 1; document._alerts.push(fnText(foo, bar))"
+                                ></h2>
+                            </template>
+                        </h1>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">nested x-for event listeners</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <button @click="items = ['bar']">Change</button>
+
+                    <template x-for="item in items" :key="item">
+                        <h1 @click="registerClick()"></h1>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">make sure new elements with different keys added to the beginning of a loop are initialized instead of just updated</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <template x-for="i in 10">
+                        <span x-text="i"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for over range using i in x syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 10 }">
+                    <template x-for="i in count">
+                        <span x-text="i"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for over range using i in x syntax with data property</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: [] }">
+                    <template x-for="i in items">
+                        <span x-text="i"></span>
+                    </template>
+                    <button id="push-2" @click="items.push(2)"></button>
+                    <button id="push-3" @click="items.push(3)"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for with an array of numbers</td>
+        </tr>
+    </table>
 </html>
