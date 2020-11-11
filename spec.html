@@ -54,6 +54,98 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
+                <div x-data="{ isOn: false }">
+                    <span class="foo" x-bind:class="isOn ? 'bar': ''"></span>
+
+                    <button @click="isOn = ! isOn"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are merged by string syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: false }">
+                    <span class="foo" x-bind:class="isOn ? ['bar', 'baz']: ['bar']"></span>
+
+                    <button @click="isOn = ! isOn"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are merged by array syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: false }">
+                    <span class="foo" x-bind:class="{ 'foo': isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are removed by object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ initialClass: 'foo' }">
+                    <span x-bind:class="initialClass"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by string syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: true }">
+                    <span x-bind:class="{ 'foo': isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: false }">
+                    <span class="foo bar" x-bind:class="{ 'foo bar': isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">multiple classes are removed by object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: true }">
+                    <span x-bind:class="{ 'foo bar': isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">multiple classes are added by object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ nested: { isOn: true } }">
+                    <span x-bind:class="{ 'foo': nested.isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by nested object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 'bar baz'}">
+                    <span class="" x-bind:class="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by array syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <span class="" x-bind:class="['foo']"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are synced by string syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <span class="" x-bind:class="['foo']"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are synced by string syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
                 <div x-data="{}">
                     <a href="#hello" x-bind:href="null">null</a>
                     <a href="#hello" x-bind:href="false">false</a>
@@ -110,6 +202,168 @@
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">truthy boolean attribute values are set to their attribute name</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isSet: false }">
+                    <input x-bind:disabled="isSet"></input>
+                    <input x-bind:checked="isSet"></input>
+                    <input x-bind:required="isSet"></input>
+                    <input x-bind:readonly="isSet"></input>
+                    <input x-bind:hidden="isSet"></input>
+                    <details x-bind:open="isSet"></details>
+                    <select x-bind:multiple="isSet"></select>
+                    <option x-bind:selected="isSet"></option>
+                    <textarea x-bind:autofocus="isSet"></textarea>
+                    <dl x-bind:itemscope="isSet"></dl>
+                    <form x-bind:novalidate="isSet"></form>
+                    <iframe
+                        x-bind:allowfullscreen="isSet"
+                        x-bind:allowpaymentrequest="isSet"
+                    ></iframe>
+                    <button x-bind:formnovalidate="isSet"></button>
+                    <audio
+                        x-bind:autoplay="isSet"
+                        x-bind:controls="isSet"
+                        x-bind:loop="isSet"
+                        x-bind:muted="isSet"
+                    ></audio>
+                    <video x-bind:playsinline="isSet"></video>
+                    <track x-bind:default="isSet" />
+                    <img x-bind:ismap="isSet" />
+                    <ol x-bind:reversed="isSet"></ol>
+                    <script
+                        x-bind:async="isSet"
+                        x-bind:defer="isSet"
+                        x-bind:nomodule="isSet"
+                    ></script>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">null, undefined, or false boolean attribute values are removed</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <input x-bind:disabled="''">
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">boolean empty string attributes are not removed</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <span :class="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">binding supports short syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: {bar: 'baz'}}">
+                    <input type="checkbox" x-bind:value="''"></input>
+                    <input type="checkbox" x-bind:value="'test'"></input>
+                    <input type="checkbox" x-bind:value="foo.bar"></input>
+                    <input type="checkbox" x-bind:value="0"></input>
+                    <input type="checkbox" x-bind:value="10"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">checkbox is unchecked by default</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: {bar: 'baz'}}">
+                    <input type="radio" x-bind:value="''"></input>
+                    <input type="radio" x-bind:value="'test'"></input>
+                    <input type="radio" x-bind:value="foo.bar"></input>
+                    <input type="radio" x-bind:value="0"></input>
+                    <input type="radio" x-bind:value="10"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">radio is unchecked by default</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ stringValue: 'foo', trueValue: true, falseValue: false }">
+                    <input type="checkbox" name="stringCheckbox" :value="stringValue" />
+                    <input type="checkbox" name="trueCheckbox" :value="trueValue" />
+                    <input type="checkbox" name="falseCheckbox" :value="falseValue" />
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">checkbox values are set correctly</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{lists: [{id: 1}, {id: 8}], selectedListID: '8'}">
+                    <template x-for="list in lists" :key="list.id">
+                        <input x-model="selectedListID" type="radio" :value="list.id.toString()" :id="'list-' + list.id">
+                    </template>
+                    <input type="radio" id="list-test" value="test" x-model="selectedListID">
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">radio values are set correctly</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOpen: true }">
+                    <span :class="{ 'text-red block': isOpen, 'text-red hidden': !isOpen }">
+                        Span
+                    </span>
+                    <button @click="isOpen = !isOpen"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">classes are removed before being added</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <span x-bind:class="{ '  foo  bar  ': true }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">extra whitespace in class binding object syntax is ignored</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <span x-bind:class="'  foo  bar  '"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">extra whitespace in class binding string syntax is ignored</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ errorClass: (hasError) => { if (hasError) { return 'red' } } }">
+                    <span id="error" x-bind:class="errorClass(true)">should be red</span>
+                    <span id="empty" x-bind:class="errorClass(false)">should be empty</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">undefined class binding resolves to empty string</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <svg x-bind:view-box.camel="'0 0 42 42'"></svg>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.camel modifier correctly sets name of attribute</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <svg x-data>
+                    <line x1="1" y1="2" :x2="3" x-bind:y2="4" />
+                </svg>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">attribute binding names can contain numbers</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ number: 100, zero: 0, bool: true, nullProp: null }">
+                    <input type="checkbox" id="number" :value="number">
+                    <input type="checkbox" id="zero" :value="zero">
+                    <input type="checkbox" id="boolean" :value="bool">
+                    <input type="checkbox" id="null" :value="nullProp">
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">non-string and non-boolean attributes are cast to string when bound to checkbox</td>
         </tr>
     </table>
 </html>
