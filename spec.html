@@ -1836,4 +1836,39 @@
             <td class="border px-4 py-2 text-gray-700">Proxy does not error in strict mode when reactivity is suspended</td>
         </tr>
     </table>
+
+    <!-- x-text -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-text</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-text on init</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: '' }">
+                    <button x-on:click="foo = 'bar'"></button>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-text on triggered update</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <svg>
+                        <text x-text="foo"></text>
+                    </svg>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-text on SVG elements</td>
+        </tr>
+    </table>
 </html>
