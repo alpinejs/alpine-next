@@ -845,8 +845,8 @@
         </tr>
     </table>
 
-     <!-- x-html -->
-     <table class="table m-auto mt-8 text-sm">
+    <!-- x-html -->
+    <table class="table m-auto mt-8 text-sm">
         <tr>
             <th colspan="2" class="bg-gray-100 border text-base py-2">x-html</th>
         </tr>
@@ -870,8 +870,8 @@
         </tr>
     </table>
 
-     <!-- x-if -->
-     <table class="table m-auto mt-8 text-sm">
+    <!-- x-if -->
+    <table class="table m-auto mt-8 text-sm">
         <tr>
             <th colspan="2" class="bg-gray-100 border text-base py-2">x-if</th>
         </tr>
@@ -930,10 +930,10 @@
         </tr>
     </table>
 
-     <!-- x-init -->
-     <table class="table m-auto mt-8 text-sm">
+    <!-- lifecycle -->
+    <table class="table m-auto mt-8 text-sm">
         <tr>
-            <th colspan="2" class="bg-gray-100 border text-base py-2">x-init</th>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">lifecycle</th>
         </tr>
         <tr>
             <td class="border px-4 py-2">
@@ -980,6 +980,338 @@
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">x-init is capable of dispatching an event</td>
+        </tr>
+    </table>
+
+    <!-- x-model -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-model</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input x-model="foo"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model has value binding when initialized</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input x-model="foo"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model updates value when updated via input event</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input x-model="foo"></input>
+
+                    <button x-on:click="foo = 'baz'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model reflects data changed elsewhere</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: null }">
+                    <input type="number" x-model.number="foo"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model casts value to number if number modifier is present</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 0, bar: '' }">
+                    <input type="number" x-model.number="foo"></input>
+                    <input x-model.number="bar"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model with number modifier returns: null if empty, original value if casting fails, numeric value if casting passes</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: '' }">
+                    <input x-model.trim="foo"></input>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model trims value if trim modifier is present</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input x-model.lazy="foo"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model updates value when updated via changed event when lazy modifier is present</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: true }">
+                    <input type="checkbox" x-model="foo"></input>
+
+                    <span x-bind:bar="JSON.stringify(foo)"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds checkbox value</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: ['bar'] }">
+                    <input type="checkbox" x-model="foo" value="bar"></input>
+                    <input type="checkbox" x-model="foo" value="baz"></input>
+
+                    <span x-bind:bar="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds checkbox value to array</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div
+                    x-data="{
+                        selected: [2]
+                    }"
+                >
+                    <input type="checkbox" value="1" x-model.number="selected" />
+                    <input type="checkbox" value="2" x-model.number="selected" />
+                    <input type="checkbox" value="3" x-model.number="selected" />
+
+                    <span x-bind:bar="JSON.stringify(selected)"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model checkbox array binding supports .number modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div
+                    x-data="{
+                        selected: [2]
+                    }"
+                >
+                    <input type="checkbox" value="2" x-model="selected" />
+
+                    <span x-bind:bar="JSON.stringify(selected)"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model checkbox array binding is consistent (if value is initially checked, it can be unchecked)</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input type="radio" x-model="foo" value="bar"></input>
+                    <input type="radio" x-model="foo" value="baz"></input>
+
+                    <span x-bind:bar="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds radio value</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <select x-model="foo">
+                        <option disabled value="">Please select one</option>
+                        <option>bar</option>
+                        <option>baz</option>
+                    </select>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds select dropdown</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <select x-model="foo">
+                        <option disabled value="">Please select one</option>
+                        <option>bar</option>
+                        <option>baz</option>
+                    </select>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds select dropdown</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: ['bar'] }">
+                    <select x-model="foo" multiple>
+                        <option disabled value="">Please select one</option>
+                        <option>bar</option>
+                        <option>baz</option>
+                    </select>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds multiple select dropdown</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ some: { nested: { key: 'foo' } } }">
+                    <input type="text" x-model="some.nested.key">
+                    <span x-text="some.nested.key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds nested keys</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ some: { nested: {} } }">
+                    <input type="text" x-model="some.nested.key">
+                    <span x-text="some.nested.key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model undefined nested model key defaults to empty string</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-model="foo">
+                    <button @click="$dispatch('input', 'baz')"></button>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model can listen for custom input event dispatches</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '#ff0000' }">
+                    <input type="color" x-model="key">
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind color input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: 'foo' }">
+                    <input type="button" x-model="key">
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind button input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '2020-07-10' }">
+                    <input type="date" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind date input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '2020-01-01T20:00' }">
+                    <input type="datetime-local" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind datetime-local input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '2020-04' }">
+                    <input type="month" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind month input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '11' }">
+                    <input type="number" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind number input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: 'SecretKey' }">
+                    <input type="password" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind password input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '10' }">
+                    <input type="range" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind range input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '' }">
+                    <input type="search" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind search input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '+12345678901' }">
+                    <input type="tel" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind tel input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '22:00' }">
+                    <input type="time" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind time input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '2020-W20' }">
+                    <input type="week" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind week input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: 'https://example.com' }">
+                    <input type="url" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind url input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ a: 'foo', b: 'foo' }">
+                    <select x-model="a" @change="window.selectValueA = a">
+                        <option>foo</option>
+                        <option>bar</option>
+                    </select>
+                    <select @change="window.selectValueB = b" x-model="b">
+                        <option>foo</option>
+                        <option>bar</option>
+                    </select>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model sets value before x-on directive expression is processed</td>
         </tr>
     </table>
 </html>
