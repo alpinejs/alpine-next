@@ -869,4 +869,64 @@
             <td class="border px-4 py-2 text-gray-700">x-html on triggered update</td>
         </tr>
     </table>
+
+     <!-- x-if -->
+     <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-if</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <template x-if="show">
+                        <p></p>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-if</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false, foo: 'bar' }">
+                    <h1 x-on:click="show = ! show"></h1>
+
+                    <template x-if="show">
+                        <h2 @click="foo = 'baz'"></h2>
+                    </template>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">elements inside x-if are still reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [{bar: 'baz'}, {bar: 'bop'}]}">
+                    <template x-for="foo in foos">
+                        <div>
+                            <template x-if="foo.bar === 'baz'">
+                                <div>
+                                    <span x-text="foo.bar"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-if works inside a loop</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <span x-text="count"></span>
+                    <template x-if="true">
+                        <button @click="count += 1">Click me</button>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">event listeners are attached once</td>
+        </tr>
+    </table>
 </html>
