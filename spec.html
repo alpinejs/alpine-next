@@ -1349,7 +1349,7 @@
     <!-- $nextTick -->
     <table class="table m-auto mt-8 text-sm">
         <tr>
-            <th colspan="2" class="bg-gray-100 border text-base py-2">nesting</th>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">$nextTick</th>
         </tr>
         <tr>
             <td class="border px-4 py-2">
@@ -1386,6 +1386,258 @@
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">$nextTick works with transition</td>
+        </tr>
+    </table>
+
+    <!-- x-on -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-on</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <button x-on:click="foo = 'baz'"></button>
+
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">data modified in event listener updates affected attribute bindings</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ nested: { foo: 'bar' } }">
+                    <button x-on:click="nested.foo = 'baz'"></button>
+
+                    <span x-bind:foo="nested.foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">nested data modified in event listener updates affected attribute bindings</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ defaultPrevented: null }">
+                    <button
+                        x-on:mousedown.passive="
+                            $event.preventDefault();
+                            defaultPrevented = $event.defaultPrevented;
+                        "
+                    >
+                        <span></span>
+                    </button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.passive modifier should disable e.preventDefault()</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <button x-on:click="foo = 'baz'">
+                        <span></span>
+                    </button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.stop modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <div x-on:click.self="foo = 'baz'" id="selfTarget">
+                        <button></button>
+                    </div>
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.self modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <input type="checkbox" x-on:click.prevent>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.prevent modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <div x-on:click.window="foo = 'baz'"></div>
+
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.window modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <div x-on:click.window="document._callCount += 1"></div>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">unbind global event handler when element is removed</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <div x-on:click.document="foo = 'baz'"></div>
+
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.document modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <button x-on:click.once="count = count+1"></button>
+
+                    <span x-bind:foo="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.once modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <button x-on:click.once="return ++count === 2"></button>
+
+                    <span x-bind:foo="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.once modifier does not remove listener if false is returned</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <input type="text" x-on:keydown="count++" x-on:keydown.enter="count++" x-on:keydown.space="count++">
+
+                    <span x-text="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown modifiers</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <input type="text" x-on:keydown.cmd.enter="count++">
+
+                    <span x-text="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown combo modifiers</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <article x-on:keydown="count++">
+                        <input type="text" x-on:keydown.enter.stop>
+                    </article>
+
+                    <span x-text="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown with specified key and stop modifier only stops for specified key</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div id="outer">
+                    <div x-data="{ isOpen: true }">
+                        <button x-on:click="isOpen = true"></button>
+
+                        <ul x-bind:class="{ 'hidden': ! isOpen }" x-on:click.away="isOpen = false">
+                            <li>...</li>
+                        </ul>
+                    </div>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">click away</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ defaultPrevented: null }">
+                    <button
+                        x-on:mousedown.away.passive="
+                            $event.preventDefault();
+                            defaultPrevented = $event.defaultPrevented;
+                        "
+                    ></button>
+                    <span></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.passive + .away modifier still disables e.preventDefault()</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <button @click="foo = 'baz'"></button>
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">supports short syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <div x-on:my:event.document="foo = 'baz'"></div>
+
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">event with colon</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <input type="checkbox" x-on:click="return confirm('are you sure?')">
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">prevent default action when an event returns false</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', changeFoo() { this.foo = 'baz' } }">
+                    <button x-on:click="changeFoo"></button>
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">allow method reference to be passed to listeners</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', changeFoo(e) { this.foo = e.target.id } }">
+                    <button x-on:click="changeFoo" id="baz"></button>
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">event instance is passed to method reference</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <input type="text" x-on:keydown.?="count++">
+
+                    <span x-text="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">autocomplete event does not trigger keydown with modifier callback</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-on:event-name.camel.window="foo = 'bob'">
+                    <button x-on:click="$dispatch('eventName')"></button>
+                    <p x-text="foo"></p>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.camel modifier correctly binds event listener</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-on:ns:event-name.camel.window="foo = 'bob'">
+                    <button x-on:click="$dispatch('ns:eventName')"></button>
+                    <p x-text="foo"></p>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.camel modifier correctly binds event listener with namespace</td>
         </tr>
     </table>
 </html>
