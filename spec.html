@@ -844,4 +844,29 @@
             <td class="border px-4 py-2 text-gray-700">x-for with an array of numbers</td>
         </tr>
     </table>
+
+     <!-- x-html -->
+     <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-html</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: '<h1>bar</h1>' }">
+                    <span x-html="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-html on init</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: '' }">
+                    <button x-on:click="foo = '<h1>bar</h1>'"></button>
+
+                    <span x-html="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-html on triggered update</td>
+        </tr>
+    </table>
 </html>
