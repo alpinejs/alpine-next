@@ -1819,4 +1819,21 @@
             <td class="border px-4 py-2 text-gray-700">x-spread event handlers defined as functions receive the event object as their first argument</td>
         </tr>
     </table>
+
+    <!-- strict-mode -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">strict-mode</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div class="my-48">
+                    <div x-data="statCounter()" x-init="init()">
+                        <span x-text="count"></span>
+                    </div>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">Proxy does not error in strict mode when reactivity is suspended</td>
+        </tr>
+    </table>
 </html>
