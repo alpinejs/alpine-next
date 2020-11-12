@@ -1772,4 +1772,51 @@
             <td class="border px-4 py-2 text-gray-700">x-show takes precedence over style bindings for display property</td>
         </tr>
     </table>
+
+    <!-- x-spread -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-spread</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="window.modal()">
+                    <button x-spread="trigger">Toggle</button>
+
+                    <span x-spread="dialogue">Modal Body</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can bind an object of directives</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="window.todos()">
+                    <ul>
+                        <template x-spread="outputForExpression">
+                            <li x-text="todo"></li>
+                        </template>
+                    </ul>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-spread supports x-for</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="transitions()">
+                    <button x-spread="outputClickExpression"></button>
+
+                    <span x-spread="outputTransitionExpression"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-spread syntax supports x-transition</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="window.data()">
+                    <button x-spread="button">click me<button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-spread event handlers defined as functions receive the event object as their first argument</td>
+        </tr>
+    </table>
 </html>
