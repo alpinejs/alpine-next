@@ -1640,4 +1640,23 @@
             <td class="border px-4 py-2 text-gray-700">.camel modifier correctly binds event listener with namespace</td>
         </tr>
     </table>
+
+    <!-- readonly -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">readonly</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ files: [] }">
+                    <input type="file"
+                        multiple
+                        x-ref="files"
+                        x-on:change="files = [...$refs.files.files].filter(Boolean)">
+                    <span x-text="files.length"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">read-only properties do not break the proxy</td>
+        </tr>
+    </table>
 </html>
