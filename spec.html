@@ -1659,4 +1659,31 @@
             <td class="border px-4 py-2 text-gray-700">read-only properties do not break the proxy</td>
         </tr>
     </table>
+
+    <!-- refs -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">refs</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <span x-ref="bob"></span>
+
+                    <button x-on:click="$refs['bob'].textContent = 'lob'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can reference elements from event listeners</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo() { this.$refs.bob.textContent = 'lob' } }">
+                    <span x-ref="bob"></span>
+
+                    <button x-on:click="foo()"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can reference elements from data object methods</td>
+        </tr>
+    </table>
 </html>
