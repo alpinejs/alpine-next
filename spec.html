@@ -929,4 +929,57 @@
             <td class="border px-4 py-2 text-gray-700">event listeners are attached once</td>
         </tr>
     </table>
+
+     <!-- x-init -->
+     <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-init</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-init="window.setSpanValue($refs.foo)">
+                    <span x-text="foo" x-ref="foo">baz</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-init</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="window.data()" x-init="init()">
+                    <span x-text="foo" x-ref="foo">baz</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-init from data function with callback return for "x-mounted" functionality</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ bar: 'baz', foo() { this.$refs.foo.addEventListener('click', () => { this.bar = 'bob' }) } }" x-init="foo()">
+                    <button x-ref="foo"></button>
+
+                    <span x-text="bar"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">callbacks registered within x-init can affect reactive data changes</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ bar: 'baz', foo() { this.$refs.foo.addEventListener('click', () => { this.bar = 'bob' }) } }" x-init="() => { foo() }">
+                    <button x-ref="foo"></button>
+
+                    <span x-text="bar"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">callbacks registered within x-init callback can affect reactive data changes</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" @update-foo="foo = $event.detail.foo">
+                    <div x-data x-init="$dispatch('update-foo', { foo: 'baz' })"></div>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-init is capable of dispatching an event</td>
+        </tr>
+    </table>
 </html>
