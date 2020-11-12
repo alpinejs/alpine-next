@@ -2039,4 +2039,73 @@
             <td class="border px-4 py-2 text-gray-700">x-transition with parent x-show does not overlap</td>
         </tr>
     </table>
+
+    <!-- $watch -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">$watch</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', bob: 'lob' }" x-init="$watch('foo', value => { bob = value })">
+                    <h1 x-text="foo"></h1>
+                    <h2 x-text="bob"></h2>
+
+                    <button x-on:click="foo = 'baz'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: { bar: 'baz', bob: 'lob' } }" x-init="
+                    $watch('foo.bar', value => { foo.bob = value });
+                ">
+                    <h1 x-text="foo.bar"></h1>
+                    <h2 x-text="foo.bob"></h2>
+
+                    <button x-on:click="foo.bar = 'law'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch nested properties</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: ['one'], bob: 'lob' }" x-init="$watch('foo', value => { bob = value })">
+                    <h1 x-text="foo"></h1>
+                    <h2 x-text="bob"></h2>
+
+                    <button id="push" x-on:click="foo.push('two')"></button>
+                    <button id="pop" x-on:click="foo.pop()"></button>
+                    <button id="unshift" x-on:click="foo.unshift('zero')"></button>
+                    <button id="shift" x-on:click="foo.shift()"></button>
+                    <button id="assign" x-on:click="foo = [2,1,3]"></button>
+                    <button id="sort" x-on:click="foo.sort()"></button>
+                    <button id="reverse" x-on:click="foo.reverse()"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch arrays</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: {baz: ['one']}, bob: 'lob' }" x-init="$watch('foo.baz', value => { bob = value })">
+                    <h1 x-text="foo.baz"></h1>
+                    <h2 x-text="bob"></h2>
+
+                    <button id="push" x-on:click="foo.baz.push('two')"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch nested arrays</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', bob: 'car' }" x-init="$watch('$self.foo', value => bob = value)">
+                    <span x-text="bob"></span>
+
+                    <button x-on:click="$self.foo = 'far'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch with magic properties</td>
+        </tr>
+    </table>
 </html>
