@@ -1345,4 +1345,47 @@
             <td class="border px-4 py-2 text-gray-700">can access parent properties after nested components</td>
         </tr>
     </table>
+
+    <!-- $nextTick -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">nesting</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 'bar'}">
+                    <span x-text="foo" x-ref="span"></span>
+
+                    <button x-on:click="foo = 'baz'; $nextTick(() => {$refs.span.textContent = 'bob'})"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$nextTick</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{list: ['one', 'two'], check: 2}">
+                    <template x-for="item in list">
+                        <span x-text="item"></span>
+                    </template>
+
+                    <p x-text="check"></p>
+
+                    <button x-on:click="list = ['one', 'two', 'three']; $nextTick(() => {check = document.querySelectorAll('span').length})"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$nextTick waits for x-for to finish rendering</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false, loggedDisplayStyle: null }" x-init="$nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })">
+                    <h1 x-show="show" x-transition:enter="animation-enter"></h1>
+
+                    <h2 x-text="loggedDisplayStyle"></h2>
+
+                    <button @click="show = true; $nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$nextTick works with transition</td>
+        </tr>
+    </table>
 </html>
