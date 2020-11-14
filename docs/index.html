@@ -6,62 +6,144 @@
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.3.2/styles/github-gist.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.3.2/highlight.min.js"></script>
+    <script src="http://alpine-next.test/dist/alpine.js" defer></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet">
     <script>hljs.initHighlightingOnLoad();</script>
-    <title>Alpine.js</title>
+    <title>Installation — Alpine.js</title>
+    <style>html { scroll-behavior: smooth;  }</style>
 </head>
 <body>
-    <header style="height: 3.6rem" class="fixed border-b px-6 py-3 top-0 left-0 right-0 flex items-center justify-between bg-white">
-        <div class="text-2xl font-medium">Alpine.js</div>
-        <div></div>
+    <header style="height: 3.6rem" class="bg-white border-b border-gray-200 fixed flex items-center justify-between left-0 px-6 py-3 right-0 top-0">
+        <div class="text-2xl font-semibold md:w-64 text-gray-800 hover:text-gray-900">
+            <a href="/" class="flex items-center space-x-4">
+                <div class="top-0 left-0 absolute flex">
+                    <div class="bg-white w-6"></div>
+                    <img src="/logo.svg" alt="" style="height: calc(3.6rem + (3.6rem / 2))">
+                </div>
+                <span class="pl-24" style="font-family: 'Rubik', sans-serif;">
+                    Alpine.js
+                </span>
+            </a>
+        </div>
+
+        <div class="flex justify-center max-w-3xl w-full px-6">
+            <input
+                x-data
+                x-on:keydown.slash.window="if(! $el._x_hasFocus()) { $event.preventDefault(); $el.focus() }"
+                x-on:keydown.escape.window="$el.blur()"
+                type="text" class="bg-gradient-to-r focus:bg-gray-200 focus:outline-none focus:placeholder-gray-600 focus:shadow-outline from-gray-200 px-4 py-1 rounded to-transparent w-full" placeholder="Search (Press &quot;/&quot;)">
+        </div>
+
+        <div class="space-x-3 text-gray-500 hidden md:flex justify-end w-64">
+            <a href="#" class="block hover:text-gray-600"><svg class="fill-current w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>GitHub</title><path d="M10 0a10 10 0 0 0-3.16 19.49c.5.1.68-.22.68-.48l-.01-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.1.39-1.99 1.03-2.69a3.6 3.6 0 0 1 .1-2.64s.84-.27 2.75 1.02a9.58 9.58 0 0 1 5 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.37.2 2.4.1 2.64.64.7 1.03 1.6 1.03 2.69 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85l-.01 2.75c0 .26.18.58.69.48A10 10 0 0 0 10 0"></path></svg></a>
+            <a href="#" class="block hover:text-gray-600"><svg class="fill-current w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Twitter</title><path d="M6.29 18.25c7.55 0 11.67-6.25 11.67-11.67v-.53c.8-.59 1.49-1.3 2.04-2.13-.75.33-1.54.55-2.36.65a4.12 4.12 0 0 0 1.8-2.27c-.8.48-1.68.81-2.6 1a4.1 4.1 0 0 0-7 3.74 11.65 11.65 0 0 1-8.45-4.3 4.1 4.1 0 0 0 1.27 5.49C2.01 8.2 1.37 8.03.8 7.7v.05a4.1 4.1 0 0 0 3.3 4.03 4.1 4.1 0 0 1-1.86.07 4.1 4.1 0 0 0 3.83 2.85A8.23 8.23 0 0 1 0 16.4a11.62 11.62 0 0 0 6.29 1.84"></path></svg></a>
+            <a href="#" class="block hover:text-gray-600"><svg class="fill-current w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 146 146"><title>Discord</title><path d="M107.75 125.001s-4.5-5.375-8.25-10.125c16.375-4.625 22.625-14.875 22.625-14.875-5.125 3.375-10 5.75-14.375 7.375-6.25 2.625-12.25 4.375-18.125 5.375-12 2.25-23 1.625-32.375-.125-7.125-1.375-13.25-3.375-18.375-5.375-2.875-1.125-6-2.5-9.125-4.25-.375-.25-.75-.375-1.125-.625-.25-.125-.375-.25-.5-.375-2.25-1.25-3.5-2.125-3.5-2.125s6 10 21.875 14.75c-3.75 4.75-8.375 10.375-8.375 10.375-27.625-.875-38.125-19-38.125-19 0-40.25 18-72.875 18-72.875 18-13.5 35.125-13.125 35.125-13.125l1.25 1.5c-22.5 6.5-32.875 16.375-32.875 16.375s2.75-1.5 7.375-3.625c13.375-5.875 24-7.5 28.375-7.875.75-.125 1.375-.25 2.125-.25 7.625-1 16.25-1.25 25.25-.25 11.875 1.375 24.625 4.875 37.625 12 0 0-9.875-9.375-31.125-15.875l1.75-2S110 19.626 128 33.126c0 0 18 32.625 18 72.875 0 0-10.625 18.125-38.25 19zM49.625 66.626c-7.125 0-12.75 6.25-12.75 13.875s5.75 13.875 12.75 13.875c7.125 0 12.75-6.25 12.75-13.875.125-7.625-5.625-13.875-12.75-13.875zm45.625 0c-7.125 0-12.75 6.25-12.75 13.875s5.75 13.875 12.75 13.875c7.125 0 12.75-6.25 12.75-13.875s-5.625-13.875-12.75-13.875z" fill-rule="nonzero"></path></svg></a>
+        </div>
+
+        <div class="block md:hidden flex items-center" x-data="{ show: false }">
+            <button class="text-gray-600 focus:outline-none" x-on:click="show = ! show">
+                <svg x-show="! show" class="fill-current w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"></path></svg>
+                <svg x-show="show" class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+            </button>
+
+            <div class="bg-gray-100 bottom-0 fixed p-6 right-0 shadow-xl w-1/2 overflow-y-auto" style="top: 3.6rem" x-show="show"
+                x-transition:enter="transition ease-in-out duration-300 transform"
+                x-transition:enter-start="translate-x-full"
+                x-transition:enter-end="translate-x-0"
+                x-transition:leave="transition ease-in-out duration-300 transform"
+                x-transition:leave-start="translate-x-0"
+                x-transition:leave-end="translate-x-full">
+                <ul class="space-y-2 text-gray-800">
+                    <li class="-ml-6 border-gray-700 border-l-4 pl-5 hover:text-gray-900"><a href="#" class="font-semibold">Installation</a></li>
+                    <li><a class="font-medium hover:text-gray-900" href="#">Component Basics</a></li>
+                    <li>
+                        <span class="font-medium">Directives</span>
+                        <ul class="pl-3">
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>data</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>init</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>on</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>bind</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>show</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>transition</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>intersect</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>model</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>for</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>text</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>ref</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>spread</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>cloak</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <span class="font-medium">Magics</span>
+                        <ul class="pl-3">
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>el</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>root</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>dispatch</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>nextTick</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>refs</a></li>
+                            <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>watch</a></li>
+                        </ul>
+                    </li>
+                    <li><a class="font-medium hover:text-gray-900" href="#">Custom Directives</a></li>
+                    <li><a class="font-medium hover:text-gray-900" href="#">Custom Magics</a></li>
+                </ul>
+            </div>
+        </div>
     </header>
 
-    <aside style="top: 3.6rem" class="fixed border-r py-8 px-6 left-0 bottom-0 w-64 overflow-y-auto">
-        <ul class="space-y-3 text-gray-800 text-lg">
-            <li><a href="#" class="font-medium">Installation</a></li>
+    <style>[hover-scrollbar] { overflow-y: hidden; } [hover-scrollbar]:hover { overflow-y: scroll }</style>
+    <aside style="top: 3.6rem" class="fixed pb-6 pt-12 px-6 left-0 bottom-0 hidden md:block w-48 lg:w-64" hover-scrollbar>
+        <ul class="space-y-2 text-gray-800">
+            <li class="-ml-6 border-gray-700 border-l-4 pl-5 hover:text-gray-900"><a href="#" class="font-semibold">Installation</a></li>
+            <li><a class="font-medium hover:text-gray-900" href="#">Component Basics</a></li>
             <li>
                 <span class="font-medium">Directives</span>
                 <ul class="pl-3">
-                    <li><a href="#"><span class="text-gray-600">x-</span>data</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>init</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>on</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>bind</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>show</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>transition</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>model</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>for</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>text</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>ref</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>spread</a></li>
-                    <li><a href="#"><span class="text-gray-600">x-</span>cloak</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>data</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>init</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>on</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>bind</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>show</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>transition</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>intersect</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>model</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>for</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>text</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>ref</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>spread</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">x-</span>cloak</a></li>
                 </ul>
             </li>
             <li>
                 <span class="font-medium">Magics</span>
                 <ul class="pl-3">
-                    <li><a href="#"><span class="text-gray-600">$</span>el</a></li>
-                    <li><a href="#"><span class="text-gray-600">$</span>root</a></li>
-                    <li><a href="#"><span class="text-gray-600">$</span>dispatch</a></li>
-                    <li><a href="#"><span class="text-gray-600">$</span>nextTick</a></li>
-                    <li><a href="#"><span class="text-gray-600">$</span>refs</a></li>
-                    <li><a href="#"><span class="text-gray-600">$</span>watch</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>el</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>root</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>dispatch</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>nextTick</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>refs</a></li>
+                    <li><a href="#" class="hover:text-gray-900"><span class="text-gray-500">$</span>watch</a></li>
                 </ul>
             </li>
-            <li><a class="font-medium" href="#">Alpine.component</a></li>
-            <li><a class="font-medium" href="#">Alpine.directive</a></li>
-            <li><a class="font-medium" href="#">Alpine.magic</a></li>
+            <li><a class="font-medium hover:text-gray-900" href="#">Custom Directives</a></li>
+            <li><a class="font-medium hover:text-gray-900" href="#">Custom Magics</a></li>
         </ul>
     </aside>
 
-    <main style="padding-top: 7rem" class="pl-64">
-        <style>.markdown>*+* { margin-top: 1.5rem; }</style>
-        <div class="m-auto max-w-3xl px-6 pb-24 text-gray-800 markdown">
-            <h1 class="font-semibold text-4xl border-b">
+    <main style="padding-top: 6rem" class="pl-0 md:pl-48 lg:pl-64 pr-0 xl:pr-64">
+        <style>.markdown>*+* { margin-top: 1.5rem; } .markdown h1, .markdown h2, .markdown h3 { scroll-margin-top: 4rem; }</style>
+        <div class="m-auto max-w-3xl px-6 pb-24 text-gray-800 markdown" listen-for-intersection-of-titles>
+            <h1 class="font-semibold text-4xl border-b border-gray-200" id="installation">
                 <a href="#">Installation</a>
             </h1>
 
             <p class="">Alpine aims to be incredibly easy to install.</p>
 
-            <h2 class="border-b  font-semibold text-2xl">
+            <h2 class="border-b border-gray-200 font-semibold text-2xl" id="via-cdn">
                 <a href="#">Via CDN</a>
             </h2>
 
@@ -75,7 +157,7 @@
 
             <pre><code class=" text-sm rounded" style="padding: 1rem; background: #f6f7f9">&lt;script src=&quot;https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.7.3/dist/alpine.min.js&quot; defer&gt;&lt;/script&gt;</code></pre>
 
-            <h2 class="border-b  font-semibold text-2xl">
+            <h2 class="border-b border-gray-200 font-semibold text-2xl" id="via-npm">
                 <a href="#">Via NPM</a>
             </h2>
 
@@ -88,5 +170,27 @@
             <pre><code class=" text-sm rounded" style="padding: 1rem; background: #f6f7f9">import 'alpinejs'</code></pre>
         </div>
     </main>
+
+    <aside style="top: 3.6rem" class="fixed py-6 px-6 right-0 bottom-0 w-64 overflow-y-auto hidden xl:block">
+        <span class="block font-semibold mb-2 text-gray-500 text-sm uppercase tracking-wider">On this page</span>
+        <ul
+            x-data="{
+                currentId: null,
+                get headings() { return document.querySelectorAll('[listen-for-intersection-of-titles] h2, [listen-for-intersection-of-titles] h3') },
+                get headingsByTop() { let result = new Map; this.headings.forEach(heading => result.set(heading.getBoundingClientRect().top, heading)); return result; },
+                get headingsInView() { return Array.from(this.headingsByTop.keys()).filter(offset => offset >= 0 && offset <= window.innerHeight) },
+                get headingsAboveView() { return Array.from(this.headingsByTop.keys()).filter(offset => offset < 0) },
+                get closestHeading() { return this.headingsByTop.get(Math.min(...this.headingsInView)) || this.headingsByTop.get(Math.max(...this.headingsAboveView)) },
+                refreshHeading() { this.currentId = this.closestHeading.id },
+            }"
+            x-init="refreshHeading()"
+            x-on:scroll.window.debounce.50ms="refreshHeading()"
+            class="space-y-2 text-gray-800"
+        >
+            <template x-for="heading in headings">
+                <li><a :href="'#'+heading.id" class="hover:text-gray-900" :class="currentId == $el.getAttribute('href').split('#')[1] ? 'font-medium' : ''" x-text="heading.innerText"></a></li>
+            </template>
+        </ul>
+    </aside>
 </body>
 </html>

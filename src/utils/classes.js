@@ -10,5 +10,5 @@ window.Element.prototype._x_classes = function(classString) {
         return () => { this.classList.remove(...classes) }
     }
 
-    return addClassesAndReturnUndo(missingClasses(classString))
+    return addClassesAndReturnUndo(missingClasses(classString || ''))
 }

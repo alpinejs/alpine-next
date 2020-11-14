@@ -15,7 +15,8 @@ export default {
     plugins: [
         replace({
             // Inject Alpine.js package version number.
-            "process.env.PKG_VERSION": `"${pkg.version}"`
+            "process.env.PKG_VERSION": `"${pkg.version}"`,
+            "process.env.NODE_ENV": "'production'",
         }),
         resolve(),
         // terser(),

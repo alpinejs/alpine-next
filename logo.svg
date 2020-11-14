@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="103px" height="78px" viewBox="0 0 103 78" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Group Copy</title>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Custom-Preset-4-Copy" transform="translate(-146.000000, -125.000000)">
+            <g id="Group-Copy" transform="translate(146.000000, 125.000000)">
+                <g id="Logo">
+                    <polygon id="Path" fill="#E5E9F0" points="25.75 26 77.25 26 103 -2.41993925e-15 51.5 1.77635684e-14"></polygon>
+                    <polygon id="Path-Copy-3" fill="#ECEFF4" points="25.75 26 77.25 26 51.5 2.30926389e-14 0 0"></polygon>
+                </g>
+                <g id="Logo-Copy" transform="translate(51.500000, 52.000000) scale(-1, -1) translate(-51.500000, -52.000000) translate(0.000000, 26.000000)">
+                    <polygon id="Path" fill="#D8DEE9" points="25.75 52 77.25 52 103 26 77.25 0"></polygon>
+                    <polygon id="Path-Copy-3" fill="#8AC0CF" points="25.75 52 77.25 52 52.5905924 27.1011807 25.75 0 0 26"></polygon>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

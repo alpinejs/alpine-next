@@ -1,9 +1,11 @@
-import hyperactiv from 'hyperactiv'
+import { reactive, effect } from '@vue/reactivity'
+window.reactive = reactive
+window.effect = effect
 
 let Alpine = {
-    observe: hyperactiv.observe,
+    observe: reactive,
 
-    effect: hyperactiv.computed,
+    effect: effect,
 
     directives: {},
 
@@ -74,7 +76,7 @@ let Alpine = {
             }
         })
 
-        observer.observe(document.querySelector('body'), { subtree: true, childList: true })
+        observer.observe(document.querySelector('body'), { subtree: true, childList: true, deep: false })
     },
 }
 

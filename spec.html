@@ -112,4 +112,78 @@
             <td class="border px-4 py-2 text-gray-700">truthy boolean attribute values are set to their attribute name</td>
         </tr>
     </table>
+
+    <!-- x-html -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-html</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <span x-ref="me" x-bind:foo="foo">[Subject]</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">attribute bindings are set on initialize</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <a href="#hello" x-bind:href="null">null</a>
+                    <a href="#hello" x-bind:href="false">false</a>
+                    <a href="#hello" x-bind:href="undefined">undefined</a>
+                    <!-- custom attribute see https://github.com/alpinejs/alpine/issues/280 -->
+                    <span visible="true" x-bind:visible="null">null</span>
+                    <span visible="true" x-bind:visible="false">false</span>
+                    <span visible="true" x-bind:visible="undefined">undefined</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">non-boolean attributes set to null/undefined/false are removed from the element</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <a href="#hello" x-bind:href="''"></a>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">non-boolean empty string attributes are not removed</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isSet: true }">
+                    <input x-bind:disabled="isSet"></input>
+                    <input x-bind:checked="isSet"></input>
+                    <input x-bind:required="isSet"></input>
+                    <input x-bind:readonly="isSet"></input>
+                    <details x-bind:open="isSet"></details>
+                    <select x-bind:multiple="isSet"></select>
+                    <option x-bind:selected="isSet"></option>
+                    <textarea x-bind:autofocus="isSet"></textarea>
+                    <dl x-bind:itemscope="isSet"></dl>
+                    <form x-bind:novalidate="isSet"></form>
+                    <iframe
+                        x-bind:allowfullscreen="isSet"
+                        x-bind:allowpaymentrequest="isSet"
+                    ></iframe>
+                    <button x-bind:formnovalidate="isSet"></button>
+                    <audio
+                        x-bind:autoplay="isSet"
+                        x-bind:controls="isSet"
+                        x-bind:loop="isSet"
+                        x-bind:muted="isSet"
+                    ></audio>
+                    <video x-bind:playsinline="isSet"></video>
+                    <track x-bind:default="isSet" />
+                    <img x-bind:ismap="isSet" />
+                    <ol x-bind:reversed="isSet"></ol>
+                    <script
+                        x-bind:async="isSet"
+                        x-bind:defer="isSet"
+                        x-bind:nomodule="isSet"
+                    ></script>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">truthy boolean attribute values are set to their attribute name</td>
+        </tr>
+    </table>
 </html>

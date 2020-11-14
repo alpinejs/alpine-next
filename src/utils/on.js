@@ -30,7 +30,7 @@ window.Element.prototype._x_on = function(el, event, modifiers, callback) {
             if (modifiers.includes('stop')) e.stopPropagation()
             if (modifiers.includes('self') && e.target !== el) return
 
-            callback()
+            callback(e)
 
             if (modifiers.includes('once')) {
                 listenerTarget.removeEventListener(event, handler, options)
@@ -41,6 +41,12 @@ window.Element.prototype._x_on = function(el, event, modifiers, callback) {
             let nextModifier = modifiers[modifiers.indexOf('debounce')+1] || 'invalid-wait'
             let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
             handler = debounce(handler, wait, this)
+        }
+
+        if (modifiers.includes('throttle')) {
+            let nextModifier = modifiers[modifiers.indexOf('throttle')+1] || 'invalid-wait'
+            let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
+            handler = throttle(handler, wait, this)
         }
 
         listenerTarget.addEventListener(event, handler, options)
@@ -61,7 +67,7 @@ function addAwayListener(el, event, modifiers, callback, options) {
 
         // Now that we are sure the element is visible, AND the click
         // is from outside it, let's run the expression.
-        callback()
+        callback(e)
 
         if (modifiers.includes('once')) {
             document.removeEventListener(event, handler, options)
@@ -74,7 +80,7 @@ function addAwayListener(el, event, modifiers, callback, options) {
 
 function debounce(func, wait) {
     var timeout
-    return function () {
+    return function() {
         var context = this, args = arguments
         var later = function () {
             timeout = null
@@ -82,6 +88,18 @@ function debounce(func, wait) {
         }
         clearTimeout(timeout)
         timeout = setTimeout(later, wait)
+    }
+}
+
+function throttle(func, limit) {
+    let inThrottle
+    return function() {
+        let context = this, args = arguments
+        if (! inThrottle) {
+            func.apply(context, args)
+            inThrottle = true
+            setTimeout(() => inThrottle = false, limit)
+        }
     }
 }
 

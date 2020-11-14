@@ -52,257 +52,641 @@
     return target;
   }
 
-  const BIND_IGNORED = [
-      'String',
-      'Number',
-      'Object',
-      'Array',
-      'Boolean',
-      'Date'
-  ];
-
-  function isObj(object) { return object && typeof object === 'object' }
-  function setHiddenKey(object, key, value) {
-      Object.defineProperty(object, key, { value, enumerable: false, configurable: true });
-  }
-  function defineBubblingProperties(object, key, parent) {
-      setHiddenKey(object, '__key', key);
-      setHiddenKey(object, '__parent', parent);
-  }
-  function getInstanceMethodKeys(object) {
-      return (
-          Object
-              .getOwnPropertyNames(object)
-              .concat(
-                  Object.getPrototypeOf(object) &&
-                  BIND_IGNORED.indexOf(Object.getPrototypeOf(object).constructor.name) < 0 ?
-                      Object.getOwnPropertyNames(Object.getPrototypeOf(object)) :
-                      []
-              )
-              .filter(prop => prop !== 'constructor' && typeof object[prop] === 'function')
-      )
-  }
-
-  const data = {
-      computedStack: [],
-      observersMap: new WeakMap(),
-      computedDependenciesTracker: new WeakMap()
+  /**
+   * Make a map and return a function for checking if a key
+   * is in that map.
+   * IMPORTANT: all calls of this function must be prefixed with
+   * \/\*#\_\_PURE\_\_\*\/
+   * So that rollup can tree-shake them if necessary.
+   */
+  const EMPTY_OBJ =  {};
+  const extend = Object.assign;
+  const hasOwnProperty = Object.prototype.hasOwnProperty;
+  const hasOwn = (val, key) => hasOwnProperty.call(val, key);
+  const isArray = Array.isArray;
+  const isMap = (val) => toTypeString(val) === '[object Map]';
+  const isString = (val) => typeof val === 'string';
+  const isSymbol = (val) => typeof val === 'symbol';
+  const isObject = (val) => val !== null && typeof val === 'object';
+  const objectToString = Object.prototype.toString;
+  const toTypeString = (value) => objectToString.call(value);
+  const toRawType = (value) => {
+      // extract "RawType" from strings like "[object RawType]"
+      return toTypeString(value).slice(8, -1);
   };
+  const isIntegerKey = (key) => isString(key) &&
+      key !== 'NaN' &&
+      key[0] !== '-' &&
+      '' + parseInt(key, 10) === key;
+  // compare whether a value has changed, accounting for NaN.
+  const hasChanged = (value, oldValue) => value !== oldValue && (value === value || oldValue === oldValue);
 
-  let timeout = null;
-  const queue = new Set();
-  function process() {
-      for(const task of queue) {
-          task();
-      }
-      queue.clear();
-      timeout = null;
+  const targetMap = new WeakMap();
+  const effectStack = [];
+  let activeEffect;
+  const ITERATE_KEY = Symbol( '');
+  const MAP_KEY_ITERATE_KEY = Symbol( '');
+  function isEffect(fn) {
+      return fn && fn._isEffect === true;
   }
-
-  function enqueue(task, batch) {
-      if(timeout === null)
-          timeout = setTimeout(process, batch === true ? 0 : batch);
-      queue.add(task);
-  }
-
-  const { observersMap, computedStack, computedDependenciesTracker } = data;
-
-  function observe(obj, options = {}) {
-      // 'deep' is slower but reasonable; 'shallow' a performance enhancement but with side-effects
-      const {
-          props,
-          ignore,
-          batch,
-          deep = true,
-          bubble,
-          bind
-      } = options;
-
-      // Ignore if the object is already observed
-      if(obj.__observed) {
-          return obj
+  function effect(fn, options = EMPTY_OBJ) {
+      if (isEffect(fn)) {
+          fn = fn.raw;
       }
-
-      // If the prop is explicitely not excluded
-      const isWatched = prop => (!props || props.includes(prop)) && (!ignore || !ignore.includes(prop));
-
-      // Add the object to the observers map.
-      // observersMap signature : Map<Object, Map<Property, Set<Computed function>>>
-      // In other words, observersMap is a map of observed objects.
-      // For each observed object, each property is mapped with a set of computed functions depending on this property.
-      // Whenever a property is set, we re-run each one of the functions stored inside the matching Set.
-      observersMap.set(obj, new Map());
-
-      // If the deep flag is set, observe nested objects/arrays
-      if(deep) {
-          Object.entries(obj).forEach(function([key, val]) {
-              if(isObj(val)) {
-                  obj[key] = observe(val, options);
-                  // If bubble is set, we add keys to the object used to bubble up the mutation
-                  if(bubble) {
-                      defineBubblingProperties(obj[key], key, obj);
+      const effect = createReactiveEffect(fn, options);
+      if (!options.lazy) {
+          effect();
+      }
+      return effect;
+  }
+  let uid = 0;
+  function createReactiveEffect(fn, options) {
+      const effect = function reactiveEffect() {
+          if (!effect.active) {
+              return options.scheduler ? undefined : fn();
+          }
+          if (!effectStack.includes(effect)) {
+              cleanup(effect);
+              try {
+                  enableTracking();
+                  effectStack.push(effect);
+                  activeEffect = effect;
+                  return fn();
+              }
+              finally {
+                  effectStack.pop();
+                  resetTracking();
+                  activeEffect = effectStack[effectStack.length - 1];
+              }
+          }
+      };
+      effect.id = uid++;
+      effect.allowRecurse = !!options.allowRecurse;
+      effect._isEffect = true;
+      effect.active = true;
+      effect.raw = fn;
+      effect.deps = [];
+      effect.options = options;
+      return effect;
+  }
+  function cleanup(effect) {
+      const { deps } = effect;
+      if (deps.length) {
+          for (let i = 0; i < deps.length; i++) {
+              deps[i].delete(effect);
+          }
+          deps.length = 0;
+      }
+  }
+  let shouldTrack = true;
+  const trackStack = [];
+  function pauseTracking() {
+      trackStack.push(shouldTrack);
+      shouldTrack = false;
+  }
+  function enableTracking() {
+      trackStack.push(shouldTrack);
+      shouldTrack = true;
+  }
+  function resetTracking() {
+      const last = trackStack.pop();
+      shouldTrack = last === undefined ? true : last;
+  }
+  function track(target, type, key) {
+      if (!shouldTrack || activeEffect === undefined) {
+          return;
+      }
+      let depsMap = targetMap.get(target);
+      if (!depsMap) {
+          targetMap.set(target, (depsMap = new Map()));
+      }
+      let dep = depsMap.get(key);
+      if (!dep) {
+          depsMap.set(key, (dep = new Set()));
+      }
+      if (!dep.has(activeEffect)) {
+          dep.add(activeEffect);
+          activeEffect.deps.push(dep);
+      }
+  }
+  function trigger(target, type, key, newValue, oldValue, oldTarget) {
+      const depsMap = targetMap.get(target);
+      if (!depsMap) {
+          // never been tracked
+          return;
+      }
+      const effects = new Set();
+      const add = (effectsToAdd) => {
+          if (effectsToAdd) {
+              effectsToAdd.forEach(effect => {
+                  if (effect !== activeEffect || effect.allowRecurse) {
+                      effects.add(effect);
                   }
+              });
+          }
+      };
+      if (type === "clear" /* CLEAR */) {
+          // collection being cleared
+          // trigger all effects for target
+          depsMap.forEach(add);
+      }
+      else if (key === 'length' && isArray(target)) {
+          depsMap.forEach((dep, key) => {
+              if (key === 'length' || key >= newValue) {
+                  add(dep);
               }
           });
       }
-
-      // Proxify the object in order to intercept get/set on props
-      const proxy = new Proxy(obj, {
-          get(_, prop) {
-              if(prop === '__observed')
-                  return true
-
-              // If the prop is watched
-              if(isWatched(prop)) {
-                  // If a computed function is being run
-                  if(computedStack.length) {
-                      const propertiesMap = observersMap.get(obj);
-                      if(!propertiesMap.has(prop))
-                          propertiesMap.set(prop, new Set());
-                      // Tracks object and properties accessed during the function call
-                      const tracker = computedDependenciesTracker.get(computedStack[0]);
-                      if(tracker) {
-                          if(!tracker.has(obj)) {
-                              tracker.set(obj, new Set());
-                          }
-                          tracker.get(obj).add(prop);
-                      }
-                      // Link the computed function and the property being accessed
-                      propertiesMap.get(prop).add(computedStack[0]);
-                  }
-              }
-
-              return obj[prop]
-          },
-          set(_, prop, value) {
-              if(prop === '__handler') {
-                  // Don't track bubble handlers
-                  setHiddenKey(obj, '__handler', value);
-              } else if(!isWatched(prop)) {
-                  // If the prop is ignored
-                  obj[prop] = value;
-              } else if(Array.isArray(obj) && prop === 'length' || obj[prop] !== value) {
-                  // If the new/old value are not equal
-                  const deeper = deep && isObj(value);
-                  const propertiesMap = observersMap.get(obj);
-
-                  // Remove bubbling infrastructure and pass old value to handlers
-                  const oldValue = obj[prop];
-                  if(isObj(oldValue))
-                      delete obj[prop];
-
-                  // If the deep flag is set we observe the newly set value
-                  obj[prop] = deeper ? observe(value, options) : value;
-
-                  // Co-opt assigned object into bubbling if appropriate
-                  if(deeper && bubble) {
-                      defineBubblingProperties(obj[prop], prop, obj);
-                  }
-
-                  const ancestry = [ prop ];
-                  let parent = obj;
-                  while(parent) {
-                      // If a handler explicitly returns 'false' then stop propagation
-                      if(parent.__handler && parent.__handler(ancestry, value, oldValue, proxy) === false) {
-                          break
-                      }
-                      // Continue propagation, traversing the mutated property's object hierarchy & call any __handlers along the way
-                      if(parent.__key && parent.__parent) {
-                          ancestry.unshift(parent.__key);
-                          parent = parent.__parent;
-                      } else {
-                          parent = null;
-                      }
-                  }
-
-                  const dependents = propertiesMap.get(prop);
-                  if(dependents) {
-                      // Retrieve the computed functions depending on the prop
-                      for(const dependent of dependents) {
-                          const tracker = computedDependenciesTracker.get(dependent);
-                          // If the function has been disposed or if the prop has not been used
-                          // during the latest function call, delete the function reference
-                          if(dependent.__disposed || tracker && (!tracker.has(obj) || !tracker.get(obj).has(prop))) {
-                              dependents.delete(dependent);
-                          } else if(dependent !== computedStack[0]) {
-                              // Run the computed function
-                              if(batch) {
-                                  enqueue(dependent, batch);
-                              } else {
-                                  dependent();
-                              }
-                          }
-                      }
-                  }
-              }
-
-              return true
+      else {
+          // schedule runs for SET | ADD | DELETE
+          if (key !== void 0) {
+              add(depsMap.get(key));
           }
-      });
-
-      if(bind) {
-          // Need this for binding es6 classes methods which are stored in the object prototype
-          getInstanceMethodKeys(obj).forEach(key => obj[key] = obj[key].bind(proxy));
-      }
-
-      return proxy
-  }
-
-  const { computedStack: computedStack$1, computedDependenciesTracker: computedDependenciesTracker$1 } = data;
-
-  function computed(wrappedFunction, { autoRun = true, callback, bind, disableTracking = false } = {}) {
-      // Proxify the function in order to intercept the calls
-      const proxy = new Proxy(wrappedFunction, {
-          apply(target, thisArg, argsList) {
-              function observeComputation(fun) {
-                  // Track object and object properties accessed during this function call
-                  if(!disableTracking) {
-                      computedDependenciesTracker$1.set(callback || proxy, new WeakMap());
+          // also run for iteration key on ADD | DELETE | Map.SET
+          switch (type) {
+              case "add" /* ADD */:
+                  if (!isArray(target)) {
+                      add(depsMap.get(ITERATE_KEY));
+                      if (isMap(target)) {
+                          add(depsMap.get(MAP_KEY_ITERATE_KEY));
+                      }
                   }
-                  // Store into the stack a reference to the computed function
-                  computedStack$1.unshift(callback || proxy);
-                  // Run the computed function - or the async function
-                  const result = fun ?
-                      fun() :
-                      target.apply(bind || thisArg, argsList);
-                  // Remove the reference
-                  computedStack$1.shift();
-                  // Return the result
-                  return result
-              }
-
-              // Inject the computeAsync argument which is used to manually declare when the computation takes part
-              argsList.push({
-                  computeAsync: function(target) { return observeComputation(target) }
-              });
-
-              return observeComputation()
+                  else if (isIntegerKey(key)) {
+                      // new index added to array -> length changes
+                      add(depsMap.get('length'));
+                  }
+                  break;
+              case "delete" /* DELETE */:
+                  if (!isArray(target)) {
+                      add(depsMap.get(ITERATE_KEY));
+                      if (isMap(target)) {
+                          add(depsMap.get(MAP_KEY_ITERATE_KEY));
+                      }
+                  }
+                  break;
+              case "set" /* SET */:
+                  if (isMap(target)) {
+                      add(depsMap.get(ITERATE_KEY));
+                  }
+                  break;
           }
-      });
-
-      // If autoRun, then call the function at once
-      if(autoRun) {
-          proxy();
       }
-
-      return proxy
+      const run = (effect) => {
+          if (effect.options.scheduler) {
+              effect.options.scheduler(effect);
+          }
+          else {
+              effect();
+          }
+      };
+      effects.forEach(run);
   }
 
-  // The disposed flag which is used to remove a computed function reference pointer
-  function dispose(computedFunction) {
-      data.computedDependenciesTracker.delete(computedFunction);
-      return computedFunction.__disposed = true
+  const builtInSymbols = new Set(Object.getOwnPropertyNames(Symbol)
+      .map(key => Symbol[key])
+      .filter(isSymbol));
+  const get = /*#__PURE__*/ createGetter();
+  const shallowGet = /*#__PURE__*/ createGetter(false, true);
+  const readonlyGet = /*#__PURE__*/ createGetter(true);
+  const shallowReadonlyGet = /*#__PURE__*/ createGetter(true, true);
+  const arrayInstrumentations = {};
+  ['includes', 'indexOf', 'lastIndexOf'].forEach(key => {
+      const method = Array.prototype[key];
+      arrayInstrumentations[key] = function (...args) {
+          const arr = toRaw(this);
+          for (let i = 0, l = this.length; i < l; i++) {
+              track(arr, "get" /* GET */, i + '');
+          }
+          // we run the method using the original args first (which may be reactive)
+          const res = method.apply(arr, args);
+          if (res === -1 || res === false) {
+              // if that didn't work, run it again using raw values.
+              return method.apply(arr, args.map(toRaw));
+          }
+          else {
+              return res;
+          }
+      };
+  });
+  ['push', 'pop', 'shift', 'unshift', 'splice'].forEach(key => {
+      const method = Array.prototype[key];
+      arrayInstrumentations[key] = function (...args) {
+          pauseTracking();
+          const res = method.apply(this, args);
+          resetTracking();
+          return res;
+      };
+  });
+  function createGetter(isReadonly = false, shallow = false) {
+      return function get(target, key, receiver) {
+          if (key === "__v_isReactive" /* IS_REACTIVE */) {
+              return !isReadonly;
+          }
+          else if (key === "__v_isReadonly" /* IS_READONLY */) {
+              return isReadonly;
+          }
+          else if (key === "__v_raw" /* RAW */ &&
+              receiver === (isReadonly ? readonlyMap : reactiveMap).get(target)) {
+              return target;
+          }
+          const targetIsArray = isArray(target);
+          if (targetIsArray && hasOwn(arrayInstrumentations, key)) {
+              return Reflect.get(arrayInstrumentations, key, receiver);
+          }
+          const res = Reflect.get(target, key, receiver);
+          if (isSymbol(key)
+              ? builtInSymbols.has(key)
+              : key === `__proto__` || key === `__v_isRef`) {
+              return res;
+          }
+          if (!isReadonly) {
+              track(target, "get" /* GET */, key);
+          }
+          if (shallow) {
+              return res;
+          }
+          if (isRef(res)) {
+              // ref unwrapping - does not apply for Array + integer key.
+              const shouldUnwrap = !targetIsArray || !isIntegerKey(key);
+              return shouldUnwrap ? res.value : res;
+          }
+          if (isObject(res)) {
+              // Convert returned value into a proxy as well. we do the isObject check
+              // here to avoid invalid value warning. Also need to lazy access readonly
+              // and reactive here to avoid circular dependency.
+              return isReadonly ? readonly(res) : reactive(res);
+          }
+          return res;
+      };
   }
+  const set = /*#__PURE__*/ createSetter();
+  const shallowSet = /*#__PURE__*/ createSetter(true);
+  function createSetter(shallow = false) {
+      return function set(target, key, value, receiver) {
+          const oldValue = target[key];
+          if (!shallow) {
+              value = toRaw(value);
+              if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
+                  oldValue.value = value;
+                  return true;
+              }
+          }
+          const hadKey = isArray(target) && isIntegerKey(key)
+              ? Number(key) < target.length
+              : hasOwn(target, key);
+          const result = Reflect.set(target, key, value, receiver);
+          // don't trigger if target is something up in the prototype chain of original
+          if (target === toRaw(receiver)) {
+              if (!hadKey) {
+                  trigger(target, "add" /* ADD */, key, value);
+              }
+              else if (hasChanged(value, oldValue)) {
+                  trigger(target, "set" /* SET */, key, value);
+              }
+          }
+          return result;
+      };
+  }
+  function deleteProperty(target, key) {
+      const hadKey = hasOwn(target, key);
+      const oldValue = target[key];
+      const result = Reflect.deleteProperty(target, key);
+      if (result && hadKey) {
+          trigger(target, "delete" /* DELETE */, key, undefined);
+      }
+      return result;
+  }
+  function has(target, key) {
+      const result = Reflect.has(target, key);
+      if (!isSymbol(key) || !builtInSymbols.has(key)) {
+          track(target, "has" /* HAS */, key);
+      }
+      return result;
+  }
+  function ownKeys$1(target) {
+      track(target, "iterate" /* ITERATE */, isArray(target) ? 'length' : ITERATE_KEY);
+      return Reflect.ownKeys(target);
+  }
+  const mutableHandlers = {
+      get,
+      set,
+      deleteProperty,
+      has,
+      ownKeys: ownKeys$1
+  };
+  const readonlyHandlers = {
+      get: readonlyGet,
+      set(target, key) {
+          return true;
+      },
+      deleteProperty(target, key) {
+          return true;
+      }
+  };
+  const shallowReactiveHandlers = extend({}, mutableHandlers, {
+      get: shallowGet,
+      set: shallowSet
+  });
+  // Props handlers are special in the sense that it should not unwrap top-level
+  // refs (in order to allow refs to be explicitly passed down), but should
+  // retain the reactivity of the normal readonly object.
+  const shallowReadonlyHandlers = extend({}, readonlyHandlers, {
+      get: shallowReadonlyGet
+  });
 
-  var hyperactiv = {
-      observe,
-      computed,
-      dispose
+  const toReactive = (value) => isObject(value) ? reactive(value) : value;
+  const toReadonly = (value) => isObject(value) ? readonly(value) : value;
+  const toShallow = (value) => value;
+  const getProto = (v) => Reflect.getPrototypeOf(v);
+  function get$1(target, key, isReadonly = false, isShallow = false) {
+      // #1772: readonly(reactive(Map)) should return readonly + reactive version
+      // of the value
+      target = target["__v_raw" /* RAW */];
+      const rawTarget = toRaw(target);
+      const rawKey = toRaw(key);
+      if (key !== rawKey) {
+          !isReadonly && track(rawTarget, "get" /* GET */, key);
+      }
+      !isReadonly && track(rawTarget, "get" /* GET */, rawKey);
+      const { has } = getProto(rawTarget);
+      const wrap = isReadonly ? toReadonly : isShallow ? toShallow : toReactive;
+      if (has.call(rawTarget, key)) {
+          return wrap(target.get(key));
+      }
+      else if (has.call(rawTarget, rawKey)) {
+          return wrap(target.get(rawKey));
+      }
+  }
+  function has$1(key, isReadonly = false) {
+      const target = this["__v_raw" /* RAW */];
+      const rawTarget = toRaw(target);
+      const rawKey = toRaw(key);
+      if (key !== rawKey) {
+          !isReadonly && track(rawTarget, "has" /* HAS */, key);
+      }
+      !isReadonly && track(rawTarget, "has" /* HAS */, rawKey);
+      return key === rawKey
+          ? target.has(key)
+          : target.has(key) || target.has(rawKey);
+  }
+  function size(target, isReadonly = false) {
+      target = target["__v_raw" /* RAW */];
+      !isReadonly && track(toRaw(target), "iterate" /* ITERATE */, ITERATE_KEY);
+      return Reflect.get(target, 'size', target);
+  }
+  function add(value) {
+      value = toRaw(value);
+      const target = toRaw(this);
+      const proto = getProto(target);
+      const hadKey = proto.has.call(target, value);
+      const result = target.add(value);
+      if (!hadKey) {
+          trigger(target, "add" /* ADD */, value, value);
+      }
+      return result;
+  }
+  function set$1(key, value) {
+      value = toRaw(value);
+      const target = toRaw(this);
+      const { has, get } = getProto(target);
+      let hadKey = has.call(target, key);
+      if (!hadKey) {
+          key = toRaw(key);
+          hadKey = has.call(target, key);
+      }
+      const oldValue = get.call(target, key);
+      const result = target.set(key, value);
+      if (!hadKey) {
+          trigger(target, "add" /* ADD */, key, value);
+      }
+      else if (hasChanged(value, oldValue)) {
+          trigger(target, "set" /* SET */, key, value);
+      }
+      return result;
+  }
+  function deleteEntry(key) {
+      const target = toRaw(this);
+      const { has, get } = getProto(target);
+      let hadKey = has.call(target, key);
+      if (!hadKey) {
+          key = toRaw(key);
+          hadKey = has.call(target, key);
+      }
+      const oldValue = get ? get.call(target, key) : undefined;
+      // forward the operation before queueing reactions
+      const result = target.delete(key);
+      if (hadKey) {
+          trigger(target, "delete" /* DELETE */, key, undefined);
+      }
+      return result;
+  }
+  function clear() {
+      const target = toRaw(this);
+      const hadItems = target.size !== 0;
+      // forward the operation before queueing reactions
+      const result = target.clear();
+      if (hadItems) {
+          trigger(target, "clear" /* CLEAR */, undefined, undefined);
+      }
+      return result;
+  }
+  function createForEach(isReadonly, isShallow) {
+      return function forEach(callback, thisArg) {
+          const observed = this;
+          const target = observed["__v_raw" /* RAW */];
+          const rawTarget = toRaw(target);
+          const wrap = isReadonly ? toReadonly : isShallow ? toShallow : toReactive;
+          !isReadonly && track(rawTarget, "iterate" /* ITERATE */, ITERATE_KEY);
+          return target.forEach((value, key) => {
+              // important: make sure the callback is
+              // 1. invoked with the reactive map as `this` and 3rd arg
+              // 2. the value received should be a corresponding reactive/readonly.
+              return callback.call(thisArg, wrap(value), wrap(key), observed);
+          });
+      };
+  }
+  function createIterableMethod(method, isReadonly, isShallow) {
+      return function (...args) {
+          const target = this["__v_raw" /* RAW */];
+          const rawTarget = toRaw(target);
+          const targetIsMap = isMap(rawTarget);
+          const isPair = method === 'entries' || (method === Symbol.iterator && targetIsMap);
+          const isKeyOnly = method === 'keys' && targetIsMap;
+          const innerIterator = target[method](...args);
+          const wrap = isReadonly ? toReadonly : isShallow ? toShallow : toReactive;
+          !isReadonly &&
+              track(rawTarget, "iterate" /* ITERATE */, isKeyOnly ? MAP_KEY_ITERATE_KEY : ITERATE_KEY);
+          // return a wrapped iterator which returns observed versions of the
+          // values emitted from the real iterator
+          return {
+              // iterator protocol
+              next() {
+                  const { value, done } = innerIterator.next();
+                  return done
+                      ? { value, done }
+                      : {
+                          value: isPair ? [wrap(value[0]), wrap(value[1])] : wrap(value),
+                          done
+                      };
+              },
+              // iterable protocol
+              [Symbol.iterator]() {
+                  return this;
+              }
+          };
+      };
+  }
+  function createReadonlyMethod(type) {
+      return function (...args) {
+          return type === "delete" /* DELETE */ ? false : this;
+      };
+  }
+  const mutableInstrumentations = {
+      get(key) {
+          return get$1(this, key);
+      },
+      get size() {
+          return size(this);
+      },
+      has: has$1,
+      add,
+      set: set$1,
+      delete: deleteEntry,
+      clear,
+      forEach: createForEach(false, false)
+  };
+  const shallowInstrumentations = {
+      get(key) {
+          return get$1(this, key, false, true);
+      },
+      get size() {
+          return size(this);
+      },
+      has: has$1,
+      add,
+      set: set$1,
+      delete: deleteEntry,
+      clear,
+      forEach: createForEach(false, true)
+  };
+  const readonlyInstrumentations = {
+      get(key) {
+          return get$1(this, key, true);
+      },
+      get size() {
+          return size(this, true);
+      },
+      has(key) {
+          return has$1.call(this, key, true);
+      },
+      add: createReadonlyMethod("add" /* ADD */),
+      set: createReadonlyMethod("set" /* SET */),
+      delete: createReadonlyMethod("delete" /* DELETE */),
+      clear: createReadonlyMethod("clear" /* CLEAR */),
+      forEach: createForEach(true, false)
+  };
+  const iteratorMethods = ['keys', 'values', 'entries', Symbol.iterator];
+  iteratorMethods.forEach(method => {
+      mutableInstrumentations[method] = createIterableMethod(method, false, false);
+      readonlyInstrumentations[method] = createIterableMethod(method, true, false);
+      shallowInstrumentations[method] = createIterableMethod(method, false, true);
+  });
+  function createInstrumentationGetter(isReadonly, shallow) {
+      const instrumentations = shallow
+          ? shallowInstrumentations
+          : isReadonly
+              ? readonlyInstrumentations
+              : mutableInstrumentations;
+      return (target, key, receiver) => {
+          if (key === "__v_isReactive" /* IS_REACTIVE */) {
+              return !isReadonly;
+          }
+          else if (key === "__v_isReadonly" /* IS_READONLY */) {
+              return isReadonly;
+          }
+          else if (key === "__v_raw" /* RAW */) {
+              return target;
+          }
+          return Reflect.get(hasOwn(instrumentations, key) && key in target
+              ? instrumentations
+              : target, key, receiver);
+      };
+  }
+  const mutableCollectionHandlers = {
+      get: createInstrumentationGetter(false, false)
+  };
+  const readonlyCollectionHandlers = {
+      get: createInstrumentationGetter(true, false)
   };
 
+  const reactiveMap = new WeakMap();
+  const readonlyMap = new WeakMap();
+  function targetTypeMap(rawType) {
+      switch (rawType) {
+          case 'Object':
+          case 'Array':
+              return 1 /* COMMON */;
+          case 'Map':
+          case 'Set':
+          case 'WeakMap':
+          case 'WeakSet':
+              return 2 /* COLLECTION */;
+          default:
+              return 0 /* INVALID */;
+      }
+  }
+  function getTargetType(value) {
+      return value["__v_skip" /* SKIP */] || !Object.isExtensible(value)
+          ? 0 /* INVALID */
+          : targetTypeMap(toRawType(value));
+  }
+  function reactive(target) {
+      // if trying to observe a readonly proxy, return the readonly version.
+      if (target && target["__v_isReadonly" /* IS_READONLY */]) {
+          return target;
+      }
+      return createReactiveObject(target, false, mutableHandlers, mutableCollectionHandlers);
+  }
+  function readonly(target) {
+      return createReactiveObject(target, true, readonlyHandlers, readonlyCollectionHandlers);
+  }
+  function createReactiveObject(target, isReadonly, baseHandlers, collectionHandlers) {
+      if (!isObject(target)) {
+          return target;
+      }
+      // target is already a Proxy, return it.
+      // exception: calling readonly() on a reactive object
+      if (target["__v_raw" /* RAW */] &&
+          !(isReadonly && target["__v_isReactive" /* IS_REACTIVE */])) {
+          return target;
+      }
+      // target already has corresponding Proxy
+      const proxyMap = isReadonly ? readonlyMap : reactiveMap;
+      const existingProxy = proxyMap.get(target);
+      if (existingProxy) {
+          return existingProxy;
+      }
+      // only a whitelist of value types can be observed.
+      const targetType = getTargetType(target);
+      if (targetType === 0 /* INVALID */) {
+          return target;
+      }
+      const proxy = new Proxy(target, targetType === 2 /* COLLECTION */ ? collectionHandlers : baseHandlers);
+      proxyMap.set(target, proxy);
+      return proxy;
+  }
+  function toRaw(observed) {
+      return ((observed && toRaw(observed["__v_raw" /* RAW */])) || observed);
+  }
+  function isRef(r) {
+      return Boolean(r && r.__v_isRef === true);
+  }
+
+  window.reactive = reactive;
+  window.effect = effect;
   let Alpine$1 = {
-    observe: hyperactiv.observe,
-    effect: hyperactiv.computed,
+    observe: reactive,
+    effect: effect,
     directives: {},
     magics: {},
     components: {},
@@ -374,7 +758,8 @@
       });
       observer.observe(document.querySelector('body'), {
         subtree: true,
-        childList: true
+        childList: true,
+        deep: false
       });
     }
 
@@ -439,6 +824,23 @@
 
     return name;
   }
+
+  window.Element.prototype._x_intersect = function ({
+    enter = () => {},
+    leave = () => {}
+  } = {}) {
+    let observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.intersectionRatio > 0) {
+          enter();
+        } else {
+          leave();
+        }
+      });
+    });
+    observer.observe(this);
+    return observer;
+  };
 
   window.Element.prototype._x_evaluator = function (expression, extras = {}, returns = true) {
     let farExtras = Alpine.getElementMagics(this);
@@ -523,7 +925,11 @@
       };
     };
 
-    return addClassesAndReturnUndo(missingClasses(classString));
+    return addClassesAndReturnUndo(missingClasses(classString || ''));
+  };
+
+  window.Element.prototype._x_hasFocus = function () {
+    return this === document.activeElement;
   };
 
   window.Element.prototype._x_init = function () {
@@ -697,7 +1103,7 @@
         if (modifiers.includes('prevent')) e.preventDefault();
         if (modifiers.includes('stop')) e.stopPropagation();
         if (modifiers.includes('self') && e.target !== el) return;
-        callback();
+        callback(e);
 
         if (modifiers.includes('once')) {
           listenerTarget.removeEventListener(event, handler, options);
@@ -708,6 +1114,12 @@
         let nextModifier = modifiers[modifiers.indexOf('debounce') + 1] || 'invalid-wait';
         let wait = isNumeric$1(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250;
         handler = debounce(handler, wait);
+      }
+
+      if (modifiers.includes('throttle')) {
+        let nextModifier = modifiers[modifiers.indexOf('throttle') + 1] || 'invalid-wait';
+        let wait = isNumeric$1(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250;
+        handler = throttle(handler, wait);
       }
 
       listenerTarget.addEventListener(event, handler, options);
@@ -726,7 +1138,7 @@
       if (el.offsetWidth < 1 && el.offsetHeight < 1) return; // Now that we are sure the element is visible, AND the click
       // is from outside it, let's run the expression.
 
-      callback();
+      callback(e);
 
       if (modifiers.includes('once')) {
         document.removeEventListener(event, handler, options);
@@ -750,6 +1162,20 @@
 
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
+    };
+  }
+
+  function throttle(func, limit) {
+    let inThrottle;
+    return function () {
+      let context = this,
+          args = arguments;
+
+      if (!inThrottle) {
+        func.apply(context, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
     };
   }
 
@@ -951,6 +1377,20 @@
       }
     };
   }
+
+  Alpine$1.directive('intersect', (el, value, modifiers, expression, effect) => {
+    let evaluate = el._x_evaluator(expression, {}, false);
+
+    if (value === 'leave') {
+      el._x_intersect({
+        leave: evaluate
+      });
+    } else {
+      el._x_intersect({
+        enter: evaluate
+      });
+    }
+  });
 
   Alpine$1.directive('model', (el, value, modifiers, expression, effect) => {
     let evaluate = el._x_evaluator(expression);

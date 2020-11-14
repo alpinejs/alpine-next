@@ -7,9 +7,11 @@ window.Alpine = Alpine
  * Register Element Prototype Utilities
  */
 import './utils/attributes'
+import './utils/intersect'
 import './utils/evaluate'
 import './utils/dispatch'
 import './utils/classes'
+import './utils/focus'
 import './utils/init'
 import './utils/root'
 import './utils/bind'
@@ -19,6 +21,7 @@ import './utils/on'
  * Register Directives
  */
 import './directives/x-transition'
+import './directives/x-intersect'
 import './directives/x-model'
 import './directives/x-cloak'
 import './directives/x-init'
