@@ -4,13 +4,19 @@ Alpine.directive('for', (el, value, modifiers, expression, effect) => {
     let iteratorNames = parseForExpression(expression)
 
     let evaluateItems = el._x_evaluator(iteratorNames.items)
+    let evaluateKey = el._x_evaluator(
+        // Look for a :key="..." expression
+        el._x_attributesByType('bind').filter(attribute => attribute.value === 'key')[0]?.expression
+        // Otherwise, use "index"
+        || 'index'
+    )
 
     effect(() => {
-        loop(el, iteratorNames, evaluateItems)
+        loop(el, iteratorNames, evaluateItems, evaluateKey)
     })
 })
 
-function loop(el, iteratorNames, evaluateItems) {
+function loop(el, iteratorNames, evaluateItems, evaluateKey) {
     let templateEl = el
 
     let items = evaluateItems()
@@ -21,8 +27,7 @@ function loop(el, iteratorNames, evaluateItems) {
     let currentEl = templateEl
     items.forEach((item, index) => {
         let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items)
-
-        let currentKey = index
+        let currentKey = evaluateKey({ index, ...iterationScopeVariables })
         let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey)
 
         // If we haven't found a matching key, insert the element at the current position.
@@ -32,8 +37,8 @@ function loop(el, iteratorNames, evaluateItems) {
             let newSet = new Set(closestParentContext)
             newSet.add(Alpine.observe(iterationScopeVariables))
             nextEl._x_dataStack = newSet
-            nextEl.__x_for = iterationScopeVariables
-            nextEl._x_initTree()
+            nextEl._x_for = iterationScopeVariables
+            Alpine.initTree(nextEl)
         } {
             // Refresh data
             Object.entries(iterationScopeVariables).forEach(([key, value]) => {
@@ -42,7 +47,7 @@ function loop(el, iteratorNames, evaluateItems) {
         }
 
         currentEl = nextEl
-        currentEl.__x_for_key = currentKey
+        currentEl._x_for_key = currentKey
     })
 
     removeAnyLeftOverElementsFromPreviousUpdate(currentEl)
@@ -101,23 +106,23 @@ function lookAheadForMatchingKeyedElementAndMoveItIfFound(nextEl, currentKey) {
     if (! nextEl) return
 
     // If the the key's DO match, no need to look ahead.
-    if (nextEl.__x_for_key === currentKey) return nextEl
+    if (nextEl._x_for_key === currentKey) return nextEl
 
     // If they don't, we'll look ahead for a match.
     // If we find it, we'll move it to the current position in the loop.
     let tmpNextEl = nextEl
 
     while(tmpNextEl) {
-        if (tmpNextEl.__x_for_key === currentKey) {
+        if (tmpNextEl._x_for_key === currentKey) {
             return tmpNextEl.parentElement.insertBefore(tmpNextEl, nextEl)
         }
 
-        tmpNextEl = (tmpNextEl.nextElementSibling && tmpNextEl.nextElementSibling.__x_for_key !== undefined) ? tmpNextEl.nextElementSibling : false
+        tmpNextEl = (tmpNextEl.nextElementSibling && tmpNextEl.nextElementSibling._x_for_key !== undefined) ? tmpNextEl.nextElementSibling : false
     }
 }
 
 function removeAnyLeftOverElementsFromPreviousUpdate(currentEl) {
-    var nextElementFromOldLoop = (currentEl.nextElementSibling && currentEl.nextElementSibling.__x_for_key !== undefined) ? currentEl.nextElementSibling : false
+    var nextElementFromOldLoop = (currentEl.nextElementSibling && currentEl.nextElementSibling._x_for_key !== undefined) ? currentEl.nextElementSibling : false
 
     while (nextElementFromOldLoop) {
         let nextElementFromOldLoopImmutable = nextElementFromOldLoop
@@ -125,7 +130,7 @@ function removeAnyLeftOverElementsFromPreviousUpdate(currentEl) {
 
         nextElementFromOldLoopImmutable.remove()
 
-        nextElementFromOldLoop = (nextSibling && nextSibling.__x_for_key !== undefined) ? nextSibling : false
+        nextElementFromOldLoop = (nextSibling && nextSibling._x_for_key !== undefined) ? nextSibling : false
     }
 }
 

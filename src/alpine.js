@@ -1,3 +1,4 @@
+import core from './core.js'
 import { reactive, effect } from '@vue/reactivity'
 window.reactive = reactive
 window.effect = effect
@@ -54,13 +55,24 @@ let Alpine = {
     start() {
         window.dispatchEvent(new CustomEvent('alpine:loading'), { bubbles: true })
 
-        document.querySelectorAll('[x-data]').forEach(el => {
-            el._x_initTree()
-        })
+        document.querySelectorAll('[x-data]').forEach(el => this.initTree(el))
 
         window.dispatchEvent(new CustomEvent('alpine:loaded'), { bubbles: true })
 
         this.listenForNewDomElementsToInitialize()
+    },
+
+    initTree(root) {
+        this.walk(root, el => this.init(el))
+    },
+
+    init(el, attributes) {
+        (attributes || el._x_attributes()).forEach(attr => {
+            let noop = () => {}
+            let run = Alpine.directives[attr.type] || noop
+
+            run(el, attr.value, attr.modifiers, attr.expression, Alpine.effect)
+        })
     },
 
     listenForNewDomElementsToInitialize() {
@@ -71,13 +83,27 @@ let Alpine = {
                 for(let node of mutation.addedNodes) {
                     if (node.nodeType !== 1 || node._x_skip_mutation_observer) return
 
-                    node._x_initTree()
+                    this.initTree(node)
                 }
             }
         })
 
         observer.observe(document.querySelector('body'), { subtree: true, childList: true, deep: false })
     },
+
+    walk(el, callback, forceFirst = true) {
+        if (! forceFirst && (el.hasAttribute('x-data') || el.__x_for)) return
+
+        callback(el)
+
+        let node = el.firstElementChild
+
+        while (node) {
+            this.walk(node, callback, false)
+
+            node = node.nextElementSibling
+        }
+    }
 }
 
 export default Alpine

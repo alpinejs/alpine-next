@@ -5,6 +5,9 @@ Alpine.directive('bind', (el, value, modifiers, expression, effect) => {
     let attrName = value
     let evaluate = el._x_evaluator(expression)
 
+    // Ignore :key bindings. (They are used by x-for)
+    if (value === 'key') return;
+
     effect(() => {
         let value = evaluate()
 

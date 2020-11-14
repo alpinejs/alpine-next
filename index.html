@@ -6,7 +6,9 @@
 
     <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline';"> -->
 
-    <div x-data yclass="'foo'" yclass="'bar'">me</div>
+    <div x-data x-init="console.log($refs.yo)">
+        <p x-ref="yo"></p>
+    </div>
 
     <div x-data="{ show: false }">
         <button @click="console.log(foo.bar.baz)">click mwe</button>
@@ -109,8 +111,8 @@
             <div>
                 <h1 x-text="item"></h1>
 
-                <template x-for="yo in item">
-                    <h1 x-init="console.log('inited')" x-text="yo"></h1>
+                <template x-for="(yo, hey) in item" :key="hey">
+                    <h1 x-init="" x-text="yo"></h1>
                 </template>
             </div>
         </template>
