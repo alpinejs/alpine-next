@@ -1,8 +1,14 @@
 
 export default {
-    isCollecting: false,
+    things: [],
 
-    collect() {
+    defer(callback) {
+        this.things.push(callback)
+    },
 
+    runThrough() {
+        while(this.things.length > 0) {
+            this.things.shift()()
+        }
     }
 }

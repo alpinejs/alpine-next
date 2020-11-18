@@ -52,6 +52,21 @@
     return target;
   }
 
+  var core = {
+    things: [],
+
+    defer(callback) {
+      this.things.push(callback);
+    },
+
+    runThrough() {
+      while (this.things.length > 0) {
+        this.things.shift()();
+      }
+    }
+
+  };
+
   /**
    * Make a map and return a function for checking if a key
    * is in that map.
@@ -684,7 +699,7 @@
 
   window.reactive = reactive;
   window.effect = effect;
-  let Alpine$1 = {
+  let Alpine = {
     observe: reactive,
     effect: effect,
     directives: {},
@@ -703,10 +718,9 @@
       this.components[name] = callback;
     },
 
-    getElementMagics(el) {
-      let magics = {};
+    injectMagics(obj, el) {
       Object.entries(this.magics).forEach(([name, callback]) => {
-        Object.defineProperty(magics, `$${name}`, {
+        Object.defineProperty(obj, `$${name}`, {
           get() {
             return callback(el);
           },
@@ -714,7 +728,6 @@
           enumerable: true
         });
       });
-      return magics;
     },
 
     clonedComponentAccessor() {
@@ -744,14 +757,19 @@
 
     initTree(root) {
       this.walk(root, el => this.init(el));
+      core.runThrough();
     },
 
     init(el, attributes) {
       (attributes || el._x_attributes()).forEach(attr => {
         let noop = () => {};
 
-        let run = Alpine$1.directives[attr.type] || noop;
-        run(el, attr.value, attr.modifiers, attr.expression, Alpine$1.effect);
+        let run = Alpine.directives[attr.type] || noop; // Run "x-ref/data/spread" on the initial sweep.
+
+        let defer = run.runImmediately ? callback => callback() : core.defer.bind(core);
+        defer(() => {
+          run(el, attr.value, attr.modifiers, attr.expression, Alpine.effect);
+        });
       });
     },
 
@@ -859,11 +877,12 @@
   };
 
   window.Element.prototype._x_evaluator = function (expression, extras = {}, returns = true) {
-    let farExtras = Alpine.getElementMagics(this);
+    let farExtras = {};
 
     let dataStack = this._x_closestDataStack();
 
     let closeExtras = extras;
+    Alpine.injectMagics(closeExtras, this);
     let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse();
 
     if (typeof expression === 'function') {
@@ -1214,7 +1233,7 @@
     }
   }
 
-  Alpine$1.directive('transition', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('transition', (el, value, modifiers, expression, effect) => {
     if (!el._x_transition) {
       el._x_transition = {
         enter: {
@@ -1351,7 +1370,7 @@
     };
   }
 
-  Alpine$1.directive('intersect', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('intersect', (el, value, modifiers, expression, effect) => {
     let evaluate = el._x_evaluator(expression, {}, false);
 
     if (value === 'leave') {
@@ -1365,7 +1384,7 @@
     }
   });
 
-  Alpine$1.directive('spread', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('spread', (el, value, modifiers, expression, effect) => {
     let spreadObject = el._x_evaluate(expression);
 
     let rawAttributes = Object.entries(spreadObject).map(([name, value]) => ({
@@ -1375,10 +1394,10 @@
 
     let attributes = el._x_attributes(rawAttributes);
 
-    Alpine$1.init(el, attributes);
+    Alpine.init(el, attributes);
   });
 
-  Alpine$1.directive('model', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('model', (el, value, modifiers, expression, effect) => {
     let evaluate = el._x_evaluator(expression);
 
     let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`;
@@ -1449,15 +1468,15 @@
     return valueA == valueB;
   }
 
-  Alpine$1.directive('cloak', el => {
+  Alpine.directive('cloak', el => {
     el.removeAttribute('x-cloak');
   });
 
-  Alpine$1.directive('init', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('init', (el, value, modifiers, expression, effect) => {
     el._x_evaluate(expression, {}, false);
   });
 
-  Alpine$1.directive('text', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('text', (el, value, modifiers, expression, effect) => {
     let evaluate = el._x_evaluator(expression);
 
     effect(() => {
@@ -1465,7 +1484,7 @@
     });
   });
 
-  Alpine$1.directive('bind', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('bind', (el, value, modifiers, expression, effect) => {
     let attrName = value;
 
     let evaluate = el._x_evaluator(expression); // Ignore :key bindings. (They are used by x-for)
@@ -1479,23 +1498,28 @@
     });
   });
 
-  Alpine$1.directive('data', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('data', (el, value, modifiers, expression, effect) => {
+    // Skip if already initialized
+    if (el._x_dataStack) return;
     expression = expression === '' ? '{}' : expression;
-    let components = Alpine$1.clonedComponentAccessor();
+    let components = Alpine.clonedComponentAccessor();
+    let data;
 
     if (Object.keys(components).includes(expression)) {
-      el._x_data = components[expression];
+      data = components[expression];
     } else {
-      el._x_data = el._x_evaluate(expression);
+      data = el._x_evaluate(expression);
     }
 
-    el._x_$data = Alpine$1.observe(el._x_data);
+    Alpine.injectMagics(data, el);
+    el._x_data = data;
+    el._x_$data = Alpine.observe(el._x_data);
     el._x_dataStack = new Set(el._x_closestDataStack());
 
     el._x_dataStack.add(el._x_$data);
   });
 
-  Alpine$1.directive('show', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('show', (el, value, modifiers, expression, effect) => {
     let evaluate = el._x_evaluator(expression);
 
     let hide = () => {
@@ -1567,7 +1591,7 @@
     return parent._x_do_hide ? parent : closestHide(parent);
   }
 
-  Alpine$1.directive('for', (el, value, modifiers, expression, effect) => {
+  Alpine.directive('for', (el, value, modifiers, expression, effect) => {
     var _el$_x_attributesByTy;
 
     let iteratorNames = parseForExpression(expression);
@@ -1601,10 +1625,10 @@
       if (!nextEl) {
         nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl);
         let newSet = new Set(closestParentContext);
-        newSet.add(Alpine$1.observe(iterationScopeVariables));
+        newSet.add(Alpine.observe(iterationScopeVariables));
         nextEl._x_dataStack = newSet;
         nextEl._x_for = iterationScopeVariables;
-        Alpine$1.initTree(nextEl);
+        Alpine.initTree(nextEl);
       }
 
       {
@@ -1690,14 +1714,17 @@
     }
   }
 
-  Alpine$1.directive('ref', (el, value, modifiers, expression, effect) => {
+  let refHandler = function refHandler(el, value, modifiers, expression, effect, before) {
     let root = el._x_root();
 
     if (!root._x_$refs) root._x_$refs = {};
     root._x_$refs[expression] = el;
-  });
+  };
 
-  Alpine$1.directive('on', (el, value, modifiers, expression) => {
+  refHandler.runImmediately = true;
+  Alpine.directive('ref', refHandler);
+
+  Alpine.directive('on', (el, value, modifiers, expression) => {
     let evaluate = el._x_evaluator(expression, {}, false);
 
     el._x_on(el, value, modifiers, e => {
@@ -1707,24 +1734,24 @@
     });
   });
 
-  Alpine$1.magic('nextTick', el => {
+  Alpine.magic('nextTick', el => {
     return callback => {
       setTimeout(callback);
     };
   });
 
-  Alpine$1.magic('dispatch', el => {
+  Alpine.magic('dispatch', el => {
     return (event, detail = {}) => {
       return el._x_dispatch(event, detail);
     };
   });
 
-  Alpine$1.magic('watch', el => {
+  Alpine.magic('watch', el => {
     return (key, callback) => {
       let evaluate = el._x_evaluator(key);
 
       let firstTime = true;
-      Alpine$1.effect(() => {
+      Alpine.effect(() => {
         let value = evaluate(); // This is a hack to force deep reactivity for things like "items.push()"
 
         let div = document.createElement('div');
@@ -1735,18 +1762,18 @@
     };
   });
 
-  Alpine$1.magic('root', el => el._x_root());
+  Alpine.magic('root', el => el._x_root());
 
-  Alpine$1.magic('refs', el => el._x_root()._x_$refs || {});
+  Alpine.magic('refs', el => el._x_root()._x_$refs || {});
 
-  Alpine$1.magic('el', el => el);
+  Alpine.magic('el', el => el);
 
-  window.Alpine = Alpine$1;
+  window.Alpine = Alpine;
   /**
    * Start It Up
    */
 
   if (!window.deferLoadingAlpine) window.deferLoadingAlpine = callback => callback();
-  window.deferLoadingAlpine(() => Alpine$1.start());
+  window.deferLoadingAlpine(() => Alpine.start());
 
 })));

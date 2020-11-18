@@ -26,17 +26,13 @@ let Alpine = {
         this.components[name] = callback
     },
 
-    getElementMagics(el) {
-        let magics = {}
-
+    injectMagics(obj, el) {
         Object.entries(this.magics).forEach(([name, callback]) => {
-            Object.defineProperty(magics, `$${name}`, {
+            Object.defineProperty(obj, `$${name}`, {
                 get() { return callback(el) },
                 enumerable: true,
             })
         })
-
-        return magics
     },
 
     clonedComponentAccessor() {
@@ -64,6 +60,8 @@ let Alpine = {
 
     initTree(root) {
         this.walk(root, el => this.init(el))
+
+        core.runThrough()
     },
 
     init(el, attributes) {
@@ -71,7 +69,14 @@ let Alpine = {
             let noop = () => {}
             let run = Alpine.directives[attr.type] || noop
 
-            run(el, attr.value, attr.modifiers, attr.expression, Alpine.effect)
+            // Run "x-ref/data/spread" on the initial sweep.
+            let defer = run.runImmediately
+                ? callback => callback()
+                : core.defer.bind(core)
+
+            defer(() => {
+                run(el, attr.value, attr.modifiers, attr.expression, Alpine.effect)
+            })
         })
     },
 
@@ -103,7 +108,7 @@ let Alpine = {
 
             node = node.nextElementSibling
         }
-    }
+    },
 }
 
 export default Alpine

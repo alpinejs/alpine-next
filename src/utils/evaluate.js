@@ -1,7 +1,12 @@
+import Alpine from '../alpine.js'
+
 window.Element.prototype._x_evaluator = function(expression, extras = {}, returns = true) {
-    let farExtras = Alpine.getElementMagics(this)
+    let farExtras = {}
     let dataStack = this._x_closestDataStack()
     let closeExtras = extras
+
+    Alpine.injectMagics(closeExtras, this)
+
     let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse()
 
     if (typeof expression === 'function') {
