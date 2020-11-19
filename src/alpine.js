@@ -51,11 +51,15 @@ let Alpine = {
     start() {
         document.dispatchEvent(new CustomEvent('alpine:initializing'), { bubbles: true })
 
-        document.querySelectorAll('[x-data]').forEach(el => this.initTree(el))
+        this.listenForNewDomElementsToInitialize()
+
+        let outNestedComponents = el => ! (el.parentElement || {_x_root() {}})._x_root()
+
+        Array.from(document.querySelectorAll('[x-data]'))
+            .filter(outNestedComponents)
+            .forEach(el => this.initTree(el))
 
         document.dispatchEvent(new CustomEvent('alpine:initialized'), { bubbles: true })
-
-        this.listenForNewDomElementsToInitialize()
     },
 
     initTree(root) {
@@ -82,11 +86,12 @@ let Alpine = {
 
     listenForNewDomElementsToInitialize() {
         let observer = new MutationObserver(mutations => {
+            console.log(mutations)
             for(let mutation of mutations) {
-                if (mutation.type !== 'childList') return
+                if (mutation.type !== 'childList') continue
 
                 for(let node of mutation.addedNodes) {
-                    if (node.nodeType !== 1 || node._x_skip_mutation_observer) return
+                    if (node.nodeType !== 1) continue
 
                     this.initTree(node)
                 }
@@ -97,7 +102,7 @@ let Alpine = {
     },
 
     walk(el, callback, forceFirst = true) {
-        if (! forceFirst && (el.hasAttribute('x-data') || el.__x_for)) return
+        // if (! forceFirst && el.__x_for) return
 
         callback(el)
 

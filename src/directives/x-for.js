@@ -43,7 +43,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             newSet.add(Alpine.observe(iterationScopeVariables))
             nextEl._x_dataStack = newSet
             nextEl._x_for = iterationScopeVariables
-            Alpine.initTree(nextEl)
+            // Alpine.initTree(nextEl)
         } {
             // Refresh data
             Object.entries(iterationScopeVariables).forEach(([key, value]) => {
@@ -97,12 +97,9 @@ function getIterationScopeVariables(iteratorNames, item, index, items) {
 function addElementInLoopAfterCurrentEl(templateEl, currentEl) {
     let clone = document.importNode(templateEl.content, true)
 
-
     currentEl.parentElement.insertBefore(clone, currentEl.nextElementSibling)
 
     let inserted = currentEl.nextElementSibling
-
-    inserted._x_skip_mutation_observer = true
 
     return inserted
 }
@@ -118,6 +115,8 @@ function lookAheadForMatchingKeyedElementAndMoveItIfFound(nextEl, currentKey) {
     let tmpNextEl = nextEl
 
     while(tmpNextEl) {
+        if (! tmpNextEl._x_for_key) return
+
         if (tmpNextEl._x_for_key === currentKey) {
             return tmpNextEl.parentElement.insertBefore(tmpNextEl, nextEl)
         }

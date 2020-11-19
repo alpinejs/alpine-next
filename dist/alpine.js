@@ -748,11 +748,17 @@
       document.dispatchEvent(new CustomEvent('alpine:initializing'), {
         bubbles: true
       });
-      document.querySelectorAll('[x-data]').forEach(el => this.initTree(el));
+      this.listenForNewDomElementsToInitialize();
+
+      let outNestedComponents = el => !(el.parentElement || {
+        _x_root() {}
+
+      })._x_root();
+
+      Array.from(document.querySelectorAll('[x-data]')).filter(outNestedComponents).forEach(el => this.initTree(el));
       document.dispatchEvent(new CustomEvent('alpine:initialized'), {
         bubbles: true
       });
-      this.listenForNewDomElementsToInitialize();
     },
 
     initTree(root) {
@@ -775,11 +781,13 @@
 
     listenForNewDomElementsToInitialize() {
       let observer = new MutationObserver(mutations => {
+        console.log(mutations);
+
         for (let mutation of mutations) {
-          if (mutation.type !== 'childList') return;
+          if (mutation.type !== 'childList') continue;
 
           for (let node of mutation.addedNodes) {
-            if (node.nodeType !== 1 || node._x_skip_mutation_observer) return;
+            if (node.nodeType !== 1) continue;
             this.initTree(node);
           }
         }
@@ -792,7 +800,7 @@
     },
 
     walk(el, callback, forceFirst = true) {
-      if (!forceFirst && (el.hasAttribute('x-data') || el.__x_for)) return;
+      // if (! forceFirst && el.__x_for) return
       callback(el);
       let node = el.firstElementChild;
 
@@ -974,6 +982,7 @@
 
   window.Element.prototype._x_root = function () {
     if (this.hasAttribute('x-data')) return this;
+    if (!this.parentElement) return;
     return this.parentElement._x_root();
   };
 
@@ -1004,10 +1013,11 @@
         el.value = value;
       } // @todo: removed this because getting "attrType" is tough.
       // We'll see what breaks
-      // if (attrType !== 'bind') {
-      //     el.checked = checkedAttrLooseCompare(el.value, value)
-      // }
 
+
+      if (window.fromModel) {
+        el.checked = checkedAttrLooseCompare(el.value, value);
+      }
     } else if (el.type === 'checkbox') {
       // If we are explicitly binding a string to the :value, set the string,
       // If the value is a boolean, leave it alone, it will be set to "on"
@@ -1427,9 +1437,13 @@
     effect(() => {
       let value = evaluate(); // If nested model key is undefined, set the default value to empty string.
 
-      if (value === undefined && expression.match(/\./)) value = '';
+      if (value === undefined && expression.match(/\./)) value = ''; // @todo: This is nasty
+
+      window.fromModel = true;
 
       el._x_bind('value', value);
+
+      delete window.fromModel;
     });
   });
 
@@ -1640,8 +1654,7 @@
         let newSet = new Set(closestParentContext);
         newSet.add(Alpine.observe(iterationScopeVariables));
         nextEl._x_dataStack = newSet;
-        nextEl._x_for = iterationScopeVariables;
-        Alpine.initTree(nextEl);
+        nextEl._x_for = iterationScopeVariables; // Alpine.initTree(nextEl)
       }
 
       {
@@ -1695,7 +1708,6 @@
     let clone = document.importNode(templateEl.content, true);
     currentEl.parentElement.insertBefore(clone, currentEl.nextElementSibling);
     let inserted = currentEl.nextElementSibling;
-    inserted._x_skip_mutation_observer = true;
     return inserted;
   }
 
@@ -1708,6 +1720,8 @@
     let tmpNextEl = nextEl;
 
     while (tmpNextEl) {
+      if (!tmpNextEl._x_for_key) return;
+
       if (tmpNextEl._x_for_key === currentKey) {
         return tmpNextEl.parentElement.insertBefore(tmpNextEl, nextEl);
       }
