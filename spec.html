@@ -54,6 +54,98 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
+                <div x-data="{ isOn: false }">
+                    <span class="foo" x-bind:class="isOn ? 'bar': ''"></span>
+
+                    <button @click="isOn = ! isOn"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are merged by string syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: false }">
+                    <span class="foo" x-bind:class="isOn ? ['bar', 'baz']: ['bar']"></span>
+
+                    <button @click="isOn = ! isOn"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are merged by array syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: false }">
+                    <span class="foo" x-bind:class="{ 'foo': isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are removed by object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ initialClass: 'foo' }">
+                    <span x-bind:class="initialClass"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by string syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: true }">
+                    <span x-bind:class="{ 'foo': isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: false }">
+                    <span class="foo bar" x-bind:class="{ 'foo bar': isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">multiple classes are removed by object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOn: true }">
+                    <span x-bind:class="{ 'foo bar': isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">multiple classes are added by object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ nested: { isOn: true } }">
+                    <span x-bind:class="{ 'foo': nested.isOn }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by nested object syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 'bar baz'}">
+                    <span class="" x-bind:class="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by array syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <span class="" x-bind:class="['foo']"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are synced by string syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <span class="" x-bind:class="['foo']"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">class attribute bindings are synced by string syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
                 <div x-data="{}">
                     <a href="#hello" x-bind:href="null">null</a>
                     <a href="#hello" x-bind:href="false">false</a>
@@ -110,6 +202,1910 @@
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">truthy boolean attribute values are set to their attribute name</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isSet: false }">
+                    <input x-bind:disabled="isSet"></input>
+                    <input x-bind:checked="isSet"></input>
+                    <input x-bind:required="isSet"></input>
+                    <input x-bind:readonly="isSet"></input>
+                    <input x-bind:hidden="isSet"></input>
+                    <details x-bind:open="isSet"></details>
+                    <select x-bind:multiple="isSet"></select>
+                    <option x-bind:selected="isSet"></option>
+                    <textarea x-bind:autofocus="isSet"></textarea>
+                    <dl x-bind:itemscope="isSet"></dl>
+                    <form x-bind:novalidate="isSet"></form>
+                    <iframe
+                        x-bind:allowfullscreen="isSet"
+                        x-bind:allowpaymentrequest="isSet"
+                    ></iframe>
+                    <button x-bind:formnovalidate="isSet"></button>
+                    <audio
+                        x-bind:autoplay="isSet"
+                        x-bind:controls="isSet"
+                        x-bind:loop="isSet"
+                        x-bind:muted="isSet"
+                    ></audio>
+                    <video x-bind:playsinline="isSet"></video>
+                    <track x-bind:default="isSet" />
+                    <img x-bind:ismap="isSet" />
+                    <ol x-bind:reversed="isSet"></ol>
+                    <script
+                        x-bind:async="isSet"
+                        x-bind:defer="isSet"
+                        x-bind:nomodule="isSet"
+                    ></script>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">null, undefined, or false boolean attribute values are removed</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <input x-bind:disabled="''">
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">boolean empty string attributes are not removed</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <span :class="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">binding supports short syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: {bar: 'baz'}}">
+                    <input type="checkbox" x-bind:value="''"></input>
+                    <input type="checkbox" x-bind:value="'test'"></input>
+                    <input type="checkbox" x-bind:value="foo.bar"></input>
+                    <input type="checkbox" x-bind:value="0"></input>
+                    <input type="checkbox" x-bind:value="10"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">checkbox is unchecked by default</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: {bar: 'baz'}}">
+                    <input type="radio" x-bind:value="''"></input>
+                    <input type="radio" x-bind:value="'test'"></input>
+                    <input type="radio" x-bind:value="foo.bar"></input>
+                    <input type="radio" x-bind:value="0"></input>
+                    <input type="radio" x-bind:value="10"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">radio is unchecked by default</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ stringValue: 'foo', trueValue: true, falseValue: false }">
+                    <input type="checkbox" name="stringCheckbox" :value="stringValue" />
+                    <input type="checkbox" name="trueCheckbox" :value="trueValue" />
+                    <input type="checkbox" name="falseCheckbox" :value="falseValue" />
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">checkbox values are set correctly</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{lists: [{id: 1}, {id: 8}], selectedListID: '8'}">
+                    <template x-for="list in lists" :key="list.id">
+                        <input x-model="selectedListID" type="radio" :value="list.id.toString()" :id="'list-' + list.id">
+                    </template>
+                    <input type="radio" id="list-test" value="test" x-model="selectedListID">
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">radio values are set correctly</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ isOpen: true }">
+                    <span :class="{ 'text-red block': isOpen, 'text-red hidden': !isOpen }">
+                        Span
+                    </span>
+                    <button @click="isOpen = !isOpen"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">classes are removed before being added</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <span x-bind:class="{ '  foo  bar  ': true }"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">extra whitespace in class binding object syntax is ignored</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <span x-bind:class="'  foo  bar  '"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">extra whitespace in class binding string syntax is ignored</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ errorClass: (hasError) => { if (hasError) { return 'red' } } }">
+                    <span id="error" x-bind:class="errorClass(true)">should be red</span>
+                    <span id="empty" x-bind:class="errorClass(false)">should be empty</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">undefined class binding resolves to empty string</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <svg x-bind:view-box.camel="'0 0 42 42'"></svg>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.camel modifier correctly sets name of attribute</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <svg x-data>
+                    <line x1="1" y1="2" :x2="3" x-bind:y2="4" />
+                </svg>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">attribute binding names can contain numbers</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ number: 100, zero: 0, bool: true, nullProp: null }">
+                    <input type="checkbox" id="number" :value="number">
+                    <input type="checkbox" id="zero" :value="zero">
+                    <input type="checkbox" id="boolean" :value="bool">
+                    <input type="checkbox" id="null" :value="nullProp">
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">non-string and non-boolean attributes are cast to string when bound to checkbox</td>
+        </tr>
+    </table>
+
+    <!-- x-cloak -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-cloak</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ hidden: true }">
+                    <span x-cloak></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-cloak is removed</td>
+        </tr>
+    </table>
+
+    <!-- custom-magic-properties -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">custom-magic-properties</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <span x-text="$foo.bar"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can register custom magic properties</td>
+        </tr>
+    </table>
+
+    <!-- x-data -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-data</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">data manipulated on component object is reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <span x-text="'foo'"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-data attribute value is optional</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="test()">
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-data can use attributes from a reusable function</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ text: $el.dataset.text }" data-text="test">
+                    <span x-text="text"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-data can use $el</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', getFoo() {return this.foo}}">
+                    <span x-text="getFoo()"></span>
+                    <button x-on:click="foo = 'baz'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">functions in x-data are reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ list: [ {name: 'foo'}, {name: 'bar'} ] }">
+                    <span x-text="list[0].name"></span>
+                    <button x-on:click="list.sort((a, b) => (a.name > b.name) ? 1 : -1)"></button>
+                    <h1 x-on:click="list.sort((a, b) => (a.name < b.name) ? 1 : -1)"></h1>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">Proxies are not nested and duplicated when manipulating an array</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar'], qux: 'quux', test() {return ++refreshCount} }">
+                    <span x-text="test()"></span>
+                    <button x-on:click="items.push('baz'); qux = 'corge';"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">component refresh one time per update whatever the number of mutations in the update</td>
+        </tr>
+    </table>
+
+    <!-- debounce -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">debounce</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:input.debounce="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-on with debounce modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:input.debounce.100="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-on with debounce modifier and specified wait</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ search: '' }">
+                    <input x-model.debounce="search" />
+                    <span x-text="search"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model with debounce modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:input.debounce.100ms="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-on with debounce modifier (with "ms" suffix)</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:keydown.a.debounce.10ms="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown with key modifier and debounce with 10ms wait</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 0}">
+                    <input x-on:keydown.a.debounce="foo++" />
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown with debounce modifier and no specified wait</td>
+        </tr>
+    </table>
+
+    <!-- $dispatch -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">$dispatch</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-on:custom-event="foo = $event.detail.newValue">
+                    <span x-text="foo"></span>
+
+                    <button x-on:click="$dispatch('custom-event', {newValue: 'baz'})"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$dispatch</td>
+        </tr>
+    </table>
+
+    <!-- $el -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">$el</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <button @click="$el.innerHTML = 'foo'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$el</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <button @click="setIsProxy($el)"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$el doesnt return a proxy</td>
+        </tr>
+    </table>
+
+    <!-- x-for -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-for</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <button x-on:click="items = ['foo', 'bar']"></button>
+
+                    <template x-for="item in items">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <button x-on:click="items = []"></button>
+
+                    <template x-for="item in items">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">removes all elements when array is empty and previously had one item</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar', 'world'] }">
+                    <button x-on:click="items = []"></button>
+
+                    <template x-for="item in items">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">removes all elements when array is empty and previously had multiple items</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['first'], foo: 'bar' }">
+                    <button x-on:click="foo = 'baz'"></button>
+
+                    <template x-for="item in items">
+                        <span>
+                            <h1 x-text="item"></h1>
+                            <h2 x-text="foo"></h2>
+                        </span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">elements inside of loop are reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['first'] }">
+                    <template x-for="item in items">
+                        <div x-data="{foo: 'bar'}" class="child">
+                            <span x-text="foo"></span>
+                            <button x-on:click="foo = 'bob'"></button>
+                        </div>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">components inside of loop are reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['first'] }">
+                    <template x-for="item in items">
+                        <ul>
+                            <div x-data="{foo: 'bar'}" class="child">
+                                <span x-text="foo"></span>
+                                <button x-on:click="foo = 'bob'"></button>
+                            </div>
+                        </ul>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">components inside a plain element of loop are reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar'] }">
+                    <button x-on:click="items = ['bar', 'foo', 'baz']"></button>
+
+                    <template x-for="item in items" :key="item">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">adding key attribute moves dom nodes properly</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar'] }">
+                    <button x-on:click="items = ['bar', 'foo', 'baz']"></button>
+
+                    <template x-for="(item, index) in items" :key="index">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can key by index</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <template x-for="(item, index) in items">
+                        <div>
+                            <h1 x-text="items.indexOf(item)"></h1>
+                            <h2 x-text="index"></h2>
+                        </div>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can use index inside of loop</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <template x-for="(item, index, things) in items">
+                        <div>
+                            <h1 x-text="items"></h1>
+                            <h2 x-text="things"></h2>
+                        </div>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can use third iterator param (collection) inside of loop</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo', 'bar'], show: false }">
+                    <button @click="show = ! show"></button>
+
+                    <template x-if="show" x-for="item in items">
+                        <span x-text="item"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can use x-if in conjunction with x-for</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'], output: '' }">
+                    <button x-on:click="items = ['bar']"></button>
+
+                    <template x-for="(item, index) in items">
+                        <span x-text="item" x-on:click="output = item"></span>
+                    </template>
+
+                    <h1 x-text="output"></h1>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">listeners in loop get fresh iteration data even though they are only registered initially</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [ {bars: ['bob', 'lob']} ] }">
+                    <button x-on:click="foos = [ {bars: ['bob', 'lob']}, {bars: ['law']} ]"></button>
+                    <template x-for="foo in foos">
+                        <h1>
+                            <template x-for="bar in foo.bars">
+                                <h2 x-text="bar"></h2>
+                            </template>
+                        </h1>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">nested x-for</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: [{name: 'one', key: '1'}, {name: 'two', key: '2'}] }">
+                    <button x-on:click="items = [{name: 'zero', key: '0'}, {name: 'one', key: '1'}, {name: 'two', key: '2'}]"></button>
+
+                    <template x-for="item in items" :key="item.key">
+                        <span x-text="item.name"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for updates the right elements when new item are inserted at the beginning of the list</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [ {name: 'foo', bars: ['bob', 'lob']}, {name: 'baz', bars: ['bab', 'lab']} ] }">
+                    <template x-for="foo in foos">
+                        <h1>
+                            <template x-for="bar in foo.bars">
+                                <h2 x-text="foo.name+': '+bar"></h2>
+                            </template>
+                        </h1>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">nested x-for access outer loop variable</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [1], bars: [1, 2] }">
+                    <template x-for="foo in foos">
+                        <h1 x-text="foo"></h1>
+                    </template>
+                    <template x-for="bar in bars">
+                        <h2 x-text="bar"></h2>
+                    </template>
+                    <button @click="foos = [1, 2];bars = [1, 2, 3]">Change</button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">sibling x-for do not interact with each other</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [
+                    {name: 'foo', bars: [{name: 'bob', count: 0}, {name: 'lob', count: 0}]},
+                    {name: 'baz', bars: [{name: 'bab', count: 0}, {name: 'lab', count: 0}]}
+                ], fnText: function(foo, bar) { return foo.name+': '+bar.name+' = '+bar.count; } }">
+                    <template x-for="foo in foos">
+                        <h1>
+                            <template x-for="bar in foo.bars">
+                                <h2 x-text="fnText(foo, bar)"
+                                    x-on:click="bar.count += 1; document._alerts.push(fnText(foo, bar))"
+                                ></h2>
+                            </template>
+                        </h1>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">nested x-for event listeners</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: ['foo'] }">
+                    <button @click="items = ['bar']">Change</button>
+
+                    <template x-for="item in items" :key="item">
+                        <h1 @click="registerClick()"></h1>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">make sure new elements with different keys added to the beginning of a loop are initialized instead of just updated</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data>
+                    <template x-for="i in 10">
+                        <span x-text="i"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for over range using i in x syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 10 }">
+                    <template x-for="i in count">
+                        <span x-text="i"></span>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for over range using i in x syntax with data property</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ items: [] }">
+                    <template x-for="i in items">
+                        <span x-text="i"></span>
+                    </template>
+                    <button id="push-2" @click="items.push(2)"></button>
+                    <button id="push-3" @click="items.push(3)"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-for with an array of numbers</td>
+        </tr>
+    </table>
+
+    <!-- x-html -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-html</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: '<h1>bar</h1>' }">
+                    <span x-html="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-html on init</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: '' }">
+                    <button x-on:click="foo = '<h1>bar</h1>'"></button>
+
+                    <span x-html="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-html on triggered update</td>
+        </tr>
+    </table>
+
+    <!-- x-if -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-if</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <template x-if="show">
+                        <p></p>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-if</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false, foo: 'bar' }">
+                    <h1 x-on:click="show = ! show"></h1>
+
+                    <template x-if="show">
+                        <h2 @click="foo = 'baz'"></h2>
+                    </template>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">elements inside x-if are still reactive</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foos: [{bar: 'baz'}, {bar: 'bop'}]}">
+                    <template x-for="foo in foos">
+                        <div>
+                            <template x-if="foo.bar === 'baz'">
+                                <div>
+                                    <span x-text="foo.bar"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-if works inside a loop</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <span x-text="count"></span>
+                    <template x-if="true">
+                        <button @click="count += 1">Click me</button>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">event listeners are attached once</td>
+        </tr>
+    </table>
+
+    <!-- lifecycle -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">lifecycle</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-init="window.setSpanValue($refs.foo)">
+                    <span x-text="foo" x-ref="foo">baz</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-init</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="window.data()" x-init="init()">
+                    <span x-text="foo" x-ref="foo">baz</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-init from data function with callback return for "x-mounted" functionality</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ bar: 'baz', foo() { this.$refs.foo.addEventListener('click', () => { this.bar = 'bob' }) } }" x-init="foo()">
+                    <button x-ref="foo"></button>
+
+                    <span x-text="bar"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">callbacks registered within x-init can affect reactive data changes</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ bar: 'baz', foo() { this.$refs.foo.addEventListener('click', () => { this.bar = 'bob' }) } }" x-init="() => { foo() }">
+                    <button x-ref="foo"></button>
+
+                    <span x-text="bar"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">callbacks registered within x-init callback can affect reactive data changes</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" @update-foo="foo = $event.detail.foo">
+                    <div x-data x-init="$dispatch('update-foo', { foo: 'baz' })"></div>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-init is capable of dispatching an event</td>
+        </tr>
+    </table>
+
+    <!-- x-model -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-model</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input x-model="foo"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model has value binding when initialized</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input x-model="foo"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model updates value when updated via input event</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input x-model="foo"></input>
+
+                    <button x-on:click="foo = 'baz'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model reflects data changed elsewhere</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: null }">
+                    <input type="number" x-model.number="foo"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model casts value to number if number modifier is present</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 0, bar: '' }">
+                    <input type="number" x-model.number="foo"></input>
+                    <input x-model.number="bar"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model with number modifier returns: null if empty, original value if casting fails, numeric value if casting passes</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: '' }">
+                    <input x-model.trim="foo"></input>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model trims value if trim modifier is present</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input x-model.lazy="foo"></input>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model updates value when updated via changed event when lazy modifier is present</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: true }">
+                    <input type="checkbox" x-model="foo"></input>
+
+                    <span x-bind:bar="JSON.stringify(foo)"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds checkbox value</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: ['bar'] }">
+                    <input type="checkbox" x-model="foo" value="bar"></input>
+                    <input type="checkbox" x-model="foo" value="baz"></input>
+
+                    <span x-bind:bar="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds checkbox value to array</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div
+                    x-data="{
+                        selected: [2]
+                    }"
+                >
+                    <input type="checkbox" value="1" x-model.number="selected" />
+                    <input type="checkbox" value="2" x-model.number="selected" />
+                    <input type="checkbox" value="3" x-model.number="selected" />
+
+                    <span x-bind:bar="JSON.stringify(selected)"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model checkbox array binding supports .number modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div
+                    x-data="{
+                        selected: [2]
+                    }"
+                >
+                    <input type="checkbox" value="2" x-model="selected" />
+
+                    <span x-bind:bar="JSON.stringify(selected)"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model checkbox array binding is consistent (if value is initially checked, it can be unchecked)</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <input type="radio" x-model="foo" value="bar"></input>
+                    <input type="radio" x-model="foo" value="baz"></input>
+
+                    <span x-bind:bar="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds radio value</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <select x-model="foo">
+                        <option disabled value="">Please select one</option>
+                        <option>bar</option>
+                        <option>baz</option>
+                    </select>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds select dropdown</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <select x-model="foo">
+                        <option disabled value="">Please select one</option>
+                        <option>bar</option>
+                        <option>baz</option>
+                    </select>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds select dropdown</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: ['bar'] }">
+                    <select x-model="foo" multiple>
+                        <option disabled value="">Please select one</option>
+                        <option>bar</option>
+                        <option>baz</option>
+                    </select>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds multiple select dropdown</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ some: { nested: { key: 'foo' } } }">
+                    <input type="text" x-model="some.nested.key">
+                    <span x-text="some.nested.key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model binds nested keys</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ some: { nested: {} } }">
+                    <input type="text" x-model="some.nested.key">
+                    <span x-text="some.nested.key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model undefined nested model key defaults to empty string</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-model="foo">
+                    <button @click="$dispatch('input', 'baz')"></button>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model can listen for custom input event dispatches</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '#ff0000' }">
+                    <input type="color" x-model="key">
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind color input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: 'foo' }">
+                    <input type="button" x-model="key">
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind button input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '2020-07-10' }">
+                    <input type="date" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind date input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '2020-01-01T20:00' }">
+                    <input type="datetime-local" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind datetime-local input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '2020-04' }">
+                    <input type="month" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind month input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '11' }">
+                    <input type="number" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind number input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: 'SecretKey' }">
+                    <input type="password" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind password input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '10' }">
+                    <input type="range" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind range input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '' }">
+                    <input type="search" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind search input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '+12345678901' }">
+                    <input type="tel" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind tel input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '22:00' }">
+                    <input type="time" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind time input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: '2020-W20' }">
+                    <input type="week" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind week input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ key: 'https://example.com' }">
+                    <input type="url" x-model="key" />
+                    <span x-text="key"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model bind url input</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ a: 'foo', b: 'foo' }">
+                    <select x-model="a" @change="window.selectValueA = a">
+                        <option>foo</option>
+                        <option>bar</option>
+                    </select>
+                    <select @change="window.selectValueB = b" x-model="b">
+                        <option>foo</option>
+                        <option>bar</option>
+                    </select>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-model sets value before x-on directive expression is processed</td>
+        </tr>
+    </table>
+
+    <!-- nesting -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">nesting</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <span x-text="foo"></span>
+
+                    <div x-data="{ foo: 'bob' }">
+                        <button x-on:click="foo = 'baz'">Something</button>
+                    </div>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can nest components</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <div x-data="{ foo: 'bob' }">
+                        <button x-on:click="foo = 'baz'">Something</button>
+                    </div>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can access parent properties after nested components</td>
+        </tr>
+    </table>
+
+    <!-- $nextTick -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">$nextTick</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{foo: 'bar'}">
+                    <span x-text="foo" x-ref="span"></span>
+
+                    <button x-on:click="foo = 'baz'; $nextTick(() => {$refs.span.textContent = 'bob'})"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$nextTick</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{list: ['one', 'two'], check: 2}">
+                    <template x-for="item in list">
+                        <span x-text="item"></span>
+                    </template>
+
+                    <p x-text="check"></p>
+
+                    <button x-on:click="list = ['one', 'two', 'three']; $nextTick(() => {check = document.querySelectorAll('span').length})"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$nextTick waits for x-for to finish rendering</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false, loggedDisplayStyle: null }" x-init="$nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })">
+                    <h1 x-show="show" x-transition:enter="animation-enter"></h1>
+
+                    <h2 x-text="loggedDisplayStyle"></h2>
+
+                    <button @click="show = true; $nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$nextTick works with transition</td>
+        </tr>
+    </table>
+
+    <!-- x-on -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-on</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <button x-on:click="foo = 'baz'"></button>
+
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">data modified in event listener updates affected attribute bindings</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ nested: { foo: 'bar' } }">
+                    <button x-on:click="nested.foo = 'baz'"></button>
+
+                    <span x-bind:foo="nested.foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">nested data modified in event listener updates affected attribute bindings</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ defaultPrevented: null }">
+                    <button
+                        x-on:mousedown.passive="
+                            $event.preventDefault();
+                            defaultPrevented = $event.defaultPrevented;
+                        "
+                    >
+                        <span></span>
+                    </button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.passive modifier should disable e.preventDefault()</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <button x-on:click="foo = 'baz'">
+                        <span></span>
+                    </button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.stop modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <div x-on:click.self="foo = 'baz'" id="selfTarget">
+                        <button></button>
+                    </div>
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.self modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <input type="checkbox" x-on:click.prevent>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.prevent modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <div x-on:click.window="foo = 'baz'"></div>
+
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.window modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <div x-on:click.window="document._callCount += 1"></div>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">unbind global event handler when element is removed</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <div x-on:click.document="foo = 'baz'"></div>
+
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.document modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <button x-on:click.once="count = count+1"></button>
+
+                    <span x-bind:foo="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.once modifier</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <button x-on:click.once="return ++count === 2"></button>
+
+                    <span x-bind:foo="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.once modifier does not remove listener if false is returned</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <input type="text" x-on:keydown="count++" x-on:keydown.enter="count++" x-on:keydown.space="count++">
+
+                    <span x-text="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown modifiers</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <input type="text" x-on:keydown.cmd.enter="count++">
+
+                    <span x-text="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown combo modifiers</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <article x-on:keydown="count++">
+                        <input type="text" x-on:keydown.enter.stop>
+                    </article>
+
+                    <span x-text="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">keydown with specified key and stop modifier only stops for specified key</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div id="outer">
+                    <div x-data="{ isOpen: true }">
+                        <button x-on:click="isOpen = true"></button>
+
+                        <ul x-bind:class="{ 'hidden': ! isOpen }" x-on:click.away="isOpen = false">
+                            <li>...</li>
+                        </ul>
+                    </div>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">click away</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ defaultPrevented: null }">
+                    <button
+                        x-on:mousedown.away.passive="
+                            $event.preventDefault();
+                            defaultPrevented = $event.defaultPrevented;
+                        "
+                    ></button>
+                    <span></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.passive + .away modifier still disables e.preventDefault()</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <button @click="foo = 'baz'"></button>
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">supports short syntax</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <div x-on:my:event.document="foo = 'baz'"></div>
+
+                    <span x-bind:foo="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">event with colon</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <input type="checkbox" x-on:click="return confirm('are you sure?')">
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">prevent default action when an event returns false</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', changeFoo() { this.foo = 'baz' } }">
+                    <button x-on:click="changeFoo"></button>
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">allow method reference to be passed to listeners</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', changeFoo(e) { this.foo = e.target.id } }">
+                    <button x-on:click="changeFoo" id="baz"></button>
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">event instance is passed to method reference</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ count: 0 }">
+                    <input type="text" x-on:keydown.?="count++">
+
+                    <span x-text="count"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">autocomplete event does not trigger keydown with modifier callback</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-on:event-name.camel.window="foo = 'bob'">
+                    <button x-on:click="$dispatch('eventName')"></button>
+                    <p x-text="foo"></p>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.camel modifier correctly binds event listener</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }" x-on:ns:event-name.camel.window="foo = 'bob'">
+                    <button x-on:click="$dispatch('ns:eventName')"></button>
+                    <p x-text="foo"></p>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">.camel modifier correctly binds event listener with namespace</td>
+        </tr>
+    </table>
+
+    <!-- readonly -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">readonly</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ files: [] }">
+                    <input type="file"
+                        multiple
+                        x-ref="files"
+                        x-on:change="files = [...$refs.files.files].filter(Boolean)">
+                    <span x-text="files.length"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">read-only properties do not break the proxy</td>
+        </tr>
+    </table>
+
+    <!-- refs -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">refs</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{}">
+                    <span x-ref="bob"></span>
+
+                    <button x-on:click="$refs['bob'].textContent = 'lob'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can reference elements from event listeners</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo() { this.$refs.bob.textContent = 'lob' } }">
+                    <span x-ref="bob"></span>
+
+                    <button x-on:click="foo()"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can reference elements from data object methods</td>
+        </tr>
+    </table>
+
+    <!-- x-show -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-show</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true }">
+                    <span x-show="show"></span>
+
+                    <button x-on:click="show = false"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-show toggles display: none; with no other style attributes</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true }">
+                    <span x-show="show" style="color: blue;"></span>
+
+                    <button x-on:click="show = false"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-show toggles display: none; with other style attributes</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true }">
+                    <span x-show="show">
+                        <h1 x-show="show" x-transition:leave="transition duration-75"></h1>
+                    </span>
+
+                    <button x-on:click="show = false"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-show waits for transitions within it to finish before hiding an elements</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true }">
+                    <span x-show.immediate="show">
+                        <h1 x-show="show" x-transition:leave="transition duration-75"></h1>
+                    </span>
+
+                    <button x-on:click="show = false"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-show does NOT wait for transitions to finish if .immediate is present</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show1: true, show2: true }">
+                    <span x-show="show1">
+                        <h1 x-show="show2"></h1>
+                    </span>
+
+                    <button x-on:click="show1 = false"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-show works with nested x-shows of different functions (hiding vs showing)</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{items: [{ cleared: false }, { cleared: false }]}">
+                    <template x-for="(item, index) in items" :key="index">
+                        <button x-show="! item.cleared"
+                            x-bind:style="'background: #999'"
+                            @click="item.cleared = true"
+                        >
+                        </button>
+                    </template>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-show with x-bind:style inside x-for works correctly</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false }">
+                    <span x-show="show" :style="'color: red;'"></span>
+                    <span :style="'color: red;'" x-show="show"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-show takes precedence over style bindings for display property</td>
+        </tr>
+    </table>
+
+    <!-- x-spread -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-spread</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="window.modal()">
+                    <button x-spread="trigger">Toggle</button>
+
+                    <span x-spread="dialogue">Modal Body</span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">can bind an object of directives</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="window.todos()">
+                    <ul>
+                        <template x-spread="outputForExpression">
+                            <li x-text="todo"></li>
+                        </template>
+                    </ul>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-spread supports x-for</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="transitions()">
+                    <button x-spread="outputClickExpression"></button>
+
+                    <span x-spread="outputTransitionExpression"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-spread syntax supports x-transition</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="window.data()">
+                    <button x-spread="button">click me<button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-spread event handlers defined as functions receive the event object as their first argument</td>
+        </tr>
+    </table>
+
+    <!-- strict-mode -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">strict-mode</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div class="my-48">
+                    <div x-data="statCounter()" x-init="init()">
+                        <span x-text="count"></span>
+                    </div>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">Proxy does not error in strict mode when reactivity is suspended</td>
+        </tr>
+    </table>
+
+    <!-- x-text -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">x-text</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-text on init</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: '' }">
+                    <button x-on:click="foo = 'bar'"></button>
+
+                    <span x-text="foo"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-text on triggered update</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar' }">
+                    <svg>
+                        <text x-text="foo"></text>
+                    </svg>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-text on SVG elements</td>
+        </tr>
+    </table>
+
+    <!-- transitions -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">transitions</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <span
+                        x-show="show"
+                        x-transition:enter="enter"
+                        x-transition:enter-start="enter-start"
+                        x-transition:enter-end="enter-end"
+                    ></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">transition in</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <span
+                        x-show="show"
+                        x-transition:leave="leave"
+                        x-transition:leave-start="leave-start"
+                        x-transition:leave-end="leave-end"
+                    ></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">transition out</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <span x-show="show"
+                        x-transition:leave="leave"
+                        x-transition:leave-start="leave-start"
+                        x-transition:leave-end="leave-end"
+                    ></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">if only transition leave directives are present, don't transition in at all</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <span x-show="show"
+                        x-transition:enter="enter"
+                        x-transition:enter-start="enter-start"
+                        x-transition:enter-end="enter-end"
+                    ></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">if only transition enter directives are present, don't transition out at all</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <span
+                        x-show="show"
+                        class="enter"
+                        x-transition:enter="enter"
+                    ></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">original class attribute classes are preserved after transition finishes</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true, foo: 'bar' }">
+                    <button x-on:click="foo = 'bob'"></button>
+
+                    <span
+                        x-show="show"
+                        x-transition:enter="enter"
+                        x-transition:enter-start="enter-start"
+                        x-transition:enter-end="enter-end"
+                    ></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">transition in not called when item is already visible</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false, foo: 'bar' }">
+                    <button x-on:click="foo = 'bob'"></button>
+
+                    <span
+                        x-show="show"
+                        x-transition:leave="leave"
+                        x-transition:leave-start="leave-start"
+                        x-transition:leave-end="leave-end"
+                    ></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">transition out not called when item is already hidden</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <span ${xShowDirective}="show"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">transition with x-show.transition helper</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: false }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <span
+                        x-show="show"
+                        x-transition:enter="animation-enter"
+                        x-transition:leave="animation-leave"
+                    ></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-transition supports css animation</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <span x-show.transition="show"></span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-transition do not overlap</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <span x-show="show"
+                        x-transition:enter="enter"
+                        x-transition:leave="leave">
+                    </span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-transition using classes do not overlap</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ show: true }">
+                    <button x-on:click="show = ! show"></button>
+
+                    <h1 x-show="show">
+                        <span x-show.transition="show"></span>
+                    </h1>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">x-transition with parent x-show does not overlap</td>
+        </tr>
+    </table>
+
+    <!-- $watch -->
+    <table class="table m-auto mt-8 text-sm">
+        <tr>
+            <th colspan="2" class="bg-gray-100 border text-base py-2">$watch</th>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', bob: 'lob' }" x-init="$watch('foo', value => { bob = value })">
+                    <h1 x-text="foo"></h1>
+                    <h2 x-text="bob"></h2>
+
+                    <button x-on:click="foo = 'baz'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: { bar: 'baz', bob: 'lob' } }" x-init="
+                    $watch('foo.bar', value => { foo.bob = value });
+                ">
+                    <h1 x-text="foo.bar"></h1>
+                    <h2 x-text="foo.bob"></h2>
+
+                    <button x-on:click="foo.bar = 'law'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch nested properties</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: ['one'], bob: 'lob' }" x-init="$watch('foo', value => { bob = value })">
+                    <h1 x-text="foo"></h1>
+                    <h2 x-text="bob"></h2>
+
+                    <button id="push" x-on:click="foo.push('two')"></button>
+                    <button id="pop" x-on:click="foo.pop()"></button>
+                    <button id="unshift" x-on:click="foo.unshift('zero')"></button>
+                    <button id="shift" x-on:click="foo.shift()"></button>
+                    <button id="assign" x-on:click="foo = [2,1,3]"></button>
+                    <button id="sort" x-on:click="foo.sort()"></button>
+                    <button id="reverse" x-on:click="foo.reverse()"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch arrays</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: {baz: ['one']}, bob: 'lob' }" x-init="$watch('foo.baz', value => { bob = value })">
+                    <h1 x-text="foo.baz"></h1>
+                    <h2 x-text="bob"></h2>
+
+                    <button id="push" x-on:click="foo.baz.push('two')"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch nested arrays</td>
+        </tr>
+        <tr>
+            <td class="border px-4 py-2">
+                <div x-data="{ foo: 'bar', bob: 'car' }" x-init="$watch('$self.foo', value => bob = value)">
+                    <span x-text="bob"></span>
+
+                    <button x-on:click="$self.foo = 'far'"></button>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-gray-700">$watch with magic properties</td>
         </tr>
     </table>
 
