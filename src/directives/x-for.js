@@ -21,6 +21,11 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
 
     let items = evaluateItems()
 
+    // This adds support for the `i in n` syntax.
+    if (isNumeric(items) && items > 0) {
+        items = Array.from(Array(items).keys(), i => i + 1)
+    }
+
     let closestParentContext = el._x_closestDataStack()
 
     // As we walk the array, we'll also walk the DOM (updating/creating as we go).

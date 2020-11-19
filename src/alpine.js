@@ -49,11 +49,11 @@ let Alpine = {
     },
 
     start() {
-        window.dispatchEvent(new CustomEvent('alpine:loading'), { bubbles: true })
+        document.dispatchEvent(new CustomEvent('alpine:initializing'), { bubbles: true })
 
         document.querySelectorAll('[x-data]').forEach(el => this.initTree(el))
 
-        window.dispatchEvent(new CustomEvent('alpine:loaded'), { bubbles: true })
+        document.dispatchEvent(new CustomEvent('alpine:initialized'), { bubbles: true })
 
         this.listenForNewDomElementsToInitialize()
     },

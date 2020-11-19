@@ -1,7 +1,7 @@
 <html>
-    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
-    <!-- <script src="http://alpine-next.test/dist/alpine.js" defer></script> -->
+    <script src="http://alpine-next.test/dist/alpine.js" defer></script>
     <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline';"> -->
 
     <!-- x-text -->
@@ -64,85 +64,11 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
-                <div x-data="{ isOn: false }">
-                    <span class="foo" x-bind:class="isOn ? ['bar', 'baz']: ['bar']"></span>
-
-                    <button @click="isOn = ! isOn"></button>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">class attribute bindings are merged by array syntax</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="{ isOn: false }">
-                    <span class="foo" x-bind:class="{ 'foo': isOn }"></span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">class attribute bindings are removed by object syntax</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
                 <div x-data="{ initialClass: 'foo' }">
                     <span x-bind:class="initialClass"></span>
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by string syntax</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="{ isOn: true }">
-                    <span x-bind:class="{ 'foo': isOn }"></span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by object syntax</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="{ isOn: false }">
-                    <span class="foo bar" x-bind:class="{ 'foo bar': isOn }"></span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">multiple classes are removed by object syntax</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="{ isOn: true }">
-                    <span x-bind:class="{ 'foo bar': isOn }"></span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">multiple classes are added by object syntax</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="{ nested: { isOn: true } }">
-                    <span x-bind:class="{ 'foo': nested.isOn }"></span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by nested object syntax</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="{foo: 'bar baz'}">
-                    <span class="" x-bind:class="foo"></span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">class attribute bindings are added by array syntax</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="{}">
-                    <span class="" x-bind:class="['foo']"></span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">class attribute bindings are synced by string syntax</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="{}">
-                    <span class="" x-bind:class="['foo']"></span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">class attribute bindings are synced by string syntax</td>
         </tr>
         <tr>
             <td class="border px-4 py-2">
@@ -305,21 +231,13 @@
         <tr>
             <td class="border px-4 py-2">
                 <div x-data="{ isOpen: true }">
-                    <span :class="{ 'text-red block': isOpen, 'text-red hidden': !isOpen }">
+                    <span class="text-red" :class="isOpen ? 'block' : 'hidden'">
                         Span
                     </span>
                     <button @click="isOpen = !isOpen"></button>
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">classes are removed before being added</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data>
-                    <span x-bind:class="{ '  foo  bar  ': true }"></span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">extra whitespace in class binding object syntax is ignored</td>
         </tr>
         <tr>
             <td class="border px-4 py-2">
@@ -382,7 +300,15 @@
         </tr>
     </table>
 
+
     <!-- custom-magic-properties -->
+    <script>
+        document.addEventListener('alpine:initializing', () => {
+            Alpine.magic('foo', (el) => {
+                return { bar: 'baz' }
+            })
+        })
+    </script>
     <table class="table m-auto mt-8 text-sm">
         <tr>
             <th colspan="2" class="bg-gray-100 border text-base py-2">custom-magic-properties</th>
@@ -420,6 +346,13 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
+                <script>
+                    function test() {
+                        return {
+                            foo: 'bar'
+                        }
+                    }
+                </script>
                 <div x-data="test()">
                     <span x-text="foo"></span>
                 </div>
@@ -452,15 +385,6 @@
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">Proxies are not nested and duplicated when manipulating an array</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="{ items: ['foo', 'bar'], qux: 'quux', test() {return ++refreshCount} }">
-                    <span x-text="test()"></span>
-                    <button x-on:click="items.push('baz'); qux = 'corge';"></button>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">component refresh one time per update whatever the number of mutations in the update</td>
         </tr>
     </table>
 
@@ -937,19 +861,11 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
-                <div x-data="{ foo: 'bar' }" x-init="window.setSpanValue($refs.foo)">
+                <div x-data="{ foo: 'bar' }" x-init="$refs.foo.innerText = 'yo'">
                     <span x-text="foo" x-ref="foo">baz</span>
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">x-init</td>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div x-data="window.data()" x-init="init()">
-                    <span x-text="foo" x-ref="foo">baz</span>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">x-init from data function with callback return for "x-mounted" functionality</td>
         </tr>
         <tr>
             <td class="border px-4 py-2">
@@ -1544,7 +1460,7 @@
                     <div x-data="{ isOpen: true }">
                         <button x-on:click="isOpen = true"></button>
 
-                        <ul x-bind:class="{ 'hidden': ! isOpen }" x-on:click.away="isOpen = false">
+                        <ul x-bind:class="isOpen || 'hidden'" x-on:click.away="isOpen = false">
                             <li>...</li>
                         </ul>
                     </div>
@@ -1780,6 +1696,19 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
+                <script>
+                    function modal() {
+                        return {
+                            foo: 'bar',
+                            trigger: {
+                                ['x-on:click']() { this.foo = 'baz' },
+                            },
+                            dialogue: {
+                                ['x-text']() { return this.foo },
+                            },
+                        }
+                    }
+                </script>
                 <div x-data="window.modal()">
                     <button x-spread="trigger">Toggle</button>
 
@@ -1790,6 +1719,14 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
+                <script>
+                    function todos() { return {
+                        todos: ['foo', 'bar'],
+                        outputForExpression: {
+                            ['x-for']: 'todo in todos',
+                        }
+                    }}
+                </script>
                 <div x-data="window.todos()">
                     <ul>
                         <template x-spread="outputForExpression">
@@ -1802,6 +1739,24 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
+                <script>
+                    function transitions() {return {
+                        show: false,
+                        outputClickExpression: {
+                            ['@click']() { this.show = ! this.show },
+                            ['x-text']() { return 'Click Me' },
+                        },
+                        outputTransitionExpression: {
+                            ['x-show']() { return this.show },
+                            ['x-transition:enter']: 'duration-1000',
+                            ['x-transition:enter-start']: 'opacity-0',
+                            ['x-transition:enter-end']: 'opacity-100',
+                            ['x-transition:leave']: 'duration-1000',
+                            ['x-transition:leave-start']: 'opacity-100',
+                            ['x-transition:leave-end']: 'opacity-0',
+                        },
+                    }}
+                </script>
                 <div x-data="transitions()">
                     <button x-spread="outputClickExpression"></button>
 
@@ -1812,28 +1767,18 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
+                <script>
+                    function data() {return {
+                        button: {
+                            ['@click'](e) {console.log(e)}
+                        }
+                    }}
+                </script>
                 <div x-data="window.data()">
                     <button x-spread="button">click me<button>
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">x-spread event handlers defined as functions receive the event object as their first argument</td>
-        </tr>
-    </table>
-
-    <!-- strict-mode -->
-    <table class="table m-auto mt-8 text-sm">
-        <tr>
-            <th colspan="2" class="bg-gray-100 border text-base py-2">strict-mode</th>
-        </tr>
-        <tr>
-            <td class="border px-4 py-2">
-                <div class="my-48">
-                    <div x-data="statCounter()" x-init="init()">
-                        <span x-text="count"></span>
-                    </div>
-                </div>
-            </td>
-            <td class="border px-4 py-2 text-gray-700">Proxy does not error in strict mode when reactivity is suspended</td>
         </tr>
     </table>
 
@@ -2099,10 +2044,15 @@
         </tr>
         <tr>
             <td class="border px-4 py-2">
+                <script>
+                    document.addEventListener('alpine:initializing', () => {
+                        Alpine.magic('self', el => el._x_$data)
+                    })
+                </script>
                 <div x-data="{ foo: 'bar', bob: 'car' }" x-init="$watch('$self.foo', value => bob = value)">
                     <span x-text="bob"></span>
 
-                    <button x-on:click="$self.foo = 'far'"></button>
+                    <button x-on:click="$self.foo = 'far'">click</button>
                 </div>
             </td>
             <td class="border px-4 py-2 text-gray-700">$watch with magic properties</td>

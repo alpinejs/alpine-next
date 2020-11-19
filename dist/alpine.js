@@ -745,11 +745,11 @@
     },
 
     start() {
-      window.dispatchEvent(new CustomEvent('alpine:loading'), {
+      document.dispatchEvent(new CustomEvent('alpine:initializing'), {
         bubbles: true
       });
       document.querySelectorAll('[x-data]').forEach(el => this.initTree(el));
-      window.dispatchEvent(new CustomEvent('alpine:loaded'), {
+      document.dispatchEvent(new CustomEvent('alpine:initialized'), {
         bubbles: true
       });
       this.listenForNewDomElementsToInitialize();
@@ -950,6 +950,11 @@
   };
 
   window.Element.prototype._x_classes = function (classString) {
+    let isInvalidType = subject => typeof subject === 'object' && !subject instanceof String || Array.isArray(subject);
+
+    if (isInvalidType(classString)) console.warn('Alpine: class bindings must return a string or a stringable type. Arrays and Objects are no longer supported.'); // This is to allow short ifs like: :class="show || 'hidden'"
+
+    if (classString === true) classString = '';
 
     let missingClasses = classString => classString.split(' ').filter(i => !this.classList.contains(i)).filter(Boolean);
 
@@ -997,9 +1002,12 @@
       // "checked" value since x-bind:value is processed before x-model.
       if (el.attributes.value === undefined) {
         el.value = value;
-      } else if (attrType !== 'bind') {
-        el.checked = checkedAttrLooseCompare(el.value, value);
-      }
+      } // @todo: removed this because getting "attrType" is tough.
+      // We'll see what breaks
+      // if (attrType !== 'bind') {
+      //     el.checked = checkedAttrLooseCompare(el.value, value)
+      // }
+
     } else if (el.type === 'checkbox') {
       // If we are explicitly binding a string to the :value, set the string,
       // If the value is a boolean, leave it alone, it will be set to "on"
@@ -1500,7 +1508,8 @@
 
   Alpine.directive('data', (el, value, modifiers, expression, effect) => {
     // Skip if already initialized
-    if (el._x_dataStack) return;
+    // @todo: I forgot why I added this, but it breaks nested x-data inside an x-for, so I'm commenting it out for now.
+    // if (el._x_dataStack) return
     expression = expression === '' ? '{}' : expression;
     let components = Alpine.clonedComponentAccessor();
     let data;
@@ -1609,7 +1618,11 @@
 
   function loop(el, iteratorNames, evaluateItems, evaluateKey) {
     let templateEl = el;
-    let items = evaluateItems();
+    let items = evaluateItems(); // This adds support for the `i in n` syntax.
+
+    if (isNumeric$2(items) && items > 0) {
+      items = Array.from(Array(items).keys(), i => i + 1);
+    }
 
     let closestParentContext = el._x_closestDataStack(); // As we walk the array, we'll also walk the DOM (updating/creating as we go).
 
@@ -1712,6 +1725,10 @@
       nextElementFromOldLoopImmutable.remove();
       nextElementFromOldLoop = nextSibling && nextSibling._x_for_key !== undefined ? nextSibling : false;
     }
+  }
+
+  function isNumeric$2(subject) {
+    return !Array.isArray(subject) && !isNaN(subject);
   }
 
   let refHandler = function refHandler(el, value, modifiers, expression, effect, before) {

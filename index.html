@@ -12,6 +12,8 @@
 
     <button x-data="{ foo() { console.log(this.$refs) } }" @click="foo()" x-ref="foo">Log this element</button>
 
+    <input type="text" class="border" x-data x-mask="(xxx) xxx-xxxx" placeholder="(xxx)">
+
     <div x-data="{ show: false }">
         <button @click="console.log(foo.bar.baz)">click mwe</button>
         <button @click="show = ! show">yo</button>
