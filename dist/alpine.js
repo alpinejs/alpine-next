@@ -52,17 +52,39 @@
     return target;
   }
 
-  var core = {
-    things: [],
+  var scheduler = {
+    tasks: [],
+    shouldFlush: false,
 
-    defer(callback) {
-      this.things.push(callback);
+    task(callback) {
+      this.tasks.push(callback);
     },
 
-    runThrough() {
-      while (this.things.length > 0) {
-        this.things.shift()();
-      }
+    pingFlush() {
+      this.shouldFlush = true;
+      queueMicrotask(() => {
+        if (this.shouldFlush) this.flush();
+        this.shouldFlush = false;
+      });
+    },
+
+    flush() {
+      setTimeout(() => {
+        let DEADLINE = performance.now() + 80;
+
+        while (this.tasks.length > 0) {
+          var _navigator, _navigator$scheduling;
+
+          //  || performance.now() >= DEADLINE
+          if ((_navigator = navigator) === null || _navigator === void 0 ? void 0 : (_navigator$scheduling = _navigator.scheduling) === null || _navigator$scheduling === void 0 ? void 0 : _navigator$scheduling.isInputPending()) {
+            // Yield if we have to handle an input event, or we're out of time.
+            setTimeout(this.flush.bind(this));
+            return;
+          }
+
+          this.tasks.shift()();
+        }
+      });
     }
 
   };
@@ -701,7 +723,21 @@
   window.effect = effect;
   let Alpine = {
     observe: reactive,
-    effect: effect,
+
+    get effect() {
+      return callback => {
+        effect(() => {
+          callback();
+        }, {
+          scheduler(run) {
+            scheduler.task(run);
+            scheduler.pingFlush();
+          }
+
+        });
+      };
+    },
+
     directives: {},
     magics: {},
     components: {},
@@ -763,7 +799,7 @@
 
     initTree(root) {
       this.walk(root, el => this.init(el));
-      core.runThrough();
+      scheduler.flush();
     },
 
     init(el, attributes) {
@@ -772,8 +808,8 @@
 
         let run = Alpine.directives[attr.type] || noop; // Run "x-ref/data/spread" on the initial sweep.
 
-        let defer = run.runImmediately ? callback => callback() : core.defer.bind(core);
-        defer(() => {
+        let task = run.runImmediately ? callback => callback() : scheduler.task.bind(scheduler);
+        task(() => {
           run(el, attr.value, attr.modifiers, attr.expression, Alpine.effect);
         });
       });
@@ -781,8 +817,6 @@
 
     listenForNewDomElementsToInitialize() {
       let observer = new MutationObserver(mutations => {
-        console.log(mutations);
-
         for (let mutation of mutations) {
           if (mutation.type !== 'childList') continue;
 
@@ -799,8 +833,7 @@
       });
     },
 
-    walk(el, callback, forceFirst = true) {
-      // if (! forceFirst && el.__x_for) return
+    walk(el, callback) {
       callback(el);
       let node = el.firstElementChild;
 

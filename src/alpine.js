@@ -1,4 +1,4 @@
-import core from './core.js'
+import scheduler from './scheduler.js'
 import { reactive, effect } from '@vue/reactivity'
 window.reactive = reactive
 window.effect = effect
@@ -6,7 +6,18 @@ window.effect = effect
 let Alpine = {
     observe: reactive,
 
-    effect: effect,
+    get effect() {
+        return callback => {
+            effect(() => {
+                callback()
+            }, {
+                scheduler(run) {
+                    scheduler.task(run)
+                    scheduler.pingFlush()
+                }
+            })
+        }
+    },
 
     directives: {},
 
@@ -65,7 +76,7 @@ let Alpine = {
     initTree(root) {
         this.walk(root, el => this.init(el))
 
-        core.runThrough()
+        scheduler.flush()
     },
 
     init(el, attributes) {
@@ -74,11 +85,11 @@ let Alpine = {
             let run = Alpine.directives[attr.type] || noop
 
             // Run "x-ref/data/spread" on the initial sweep.
-            let defer = run.runImmediately
+            let task = run.runImmediately
                 ? callback => callback()
-                : core.defer.bind(core)
+                : scheduler.task.bind(scheduler)
 
-            defer(() => {
+            task(() => {
                 run(el, attr.value, attr.modifiers, attr.expression, Alpine.effect)
             })
         })
@@ -86,7 +97,6 @@ let Alpine = {
 
     listenForNewDomElementsToInitialize() {
         let observer = new MutationObserver(mutations => {
-            console.log(mutations)
             for(let mutation of mutations) {
                 if (mutation.type !== 'childList') continue
 
@@ -101,9 +111,7 @@ let Alpine = {
         observer.observe(document.querySelector('body'), { subtree: true, childList: true, deep: false })
     },
 
-    walk(el, callback, forceFirst = true) {
-        // if (! forceFirst && el.__x_for) return
-
+    walk(el, callback) {
         callback(el)
 
         let node = el.firstElementChild
