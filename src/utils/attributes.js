@@ -13,7 +13,7 @@ window.Element.prototype._x_attributeByType = function(type) {
     return this._x_attributesByType()[0]
 }
 
-let xAttrRE = /^x-([^:]+)\b/
+let xAttrRE = /^x-([^:^.]+)\b/
 
 function isXAttr(attr) {
     const name = replaceAtAndColonWithStandardSyntax(attr.name)

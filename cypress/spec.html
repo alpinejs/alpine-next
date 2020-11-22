@@ -1,0 +1,21 @@
+<html>
+    <blockquote id="root">
+
+    </blockquote>
+
+    <script>
+        let root = document.querySelector('#root')
+
+        root.evalScripts = () => {
+            root.querySelectorAll('script').forEach(el => {
+                eval(el.innerHTML)
+                console.log(el.innerHTML)
+            })
+        }
+
+        window.deferLoadingAlpine = startAlpine => {
+            root.startAlpine = startAlpine
+        }
+    </script>
+    <script src="http://alpine-next.test/dist/alpine.js"></script>
+</html>

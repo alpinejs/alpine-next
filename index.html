@@ -6,20 +6,9 @@
 
     <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline';"> -->
 
-    <script>document._alerts = []</script>
-    <div x-data="{ foos: [
-        {name: 'foo', bars: [{name: 'bob', count: 0}, {name: 'lob', count: 0}]},
-        {name: 'baz', bars: [{name: 'bab', count: 0}, {name: 'lab', count: 0}]}
-    ], fnText: function(foo, bar) { return foo.name+': '+bar.name+' = '+bar.count; } }">
-        <template x-for="foo in foos">
-            <h1>
-                <template x-for="bar in foo.bars">
-                    <h2 x-text="fnText(foo, bar)"
-                        x-on:click="bar.count += 1; document._alerts.push(fnText(foo, bar))"
-                    ></h2>
-                </template>
-            </h1>
-        </template>
+    <div x-data="{ foo: 0, bar: '' }">
+        <input type="number" x-model.number="foo"></input>
+        <input x-model.number="bar"></input>
     </div>
 <!--
     <div x-data x-init="console.log($refs.yo)">

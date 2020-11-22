@@ -1,6 +1,20 @@
+import { test } from '../utils'
 
-it('can register custom magic properties', () => {
-    cy.visit('http://alpine-next.test/cypress/integration/custom-magics.html')
+test('can register custom magic properties',
+    `
+        <script>
+            document.addEventListener('alpine:initializing', () => {
+                Alpine.magic('foo', (el) => {
+                    return { bar: 'baz' }
+                })
+            })
+        </script>
 
-    cy.get('span').should('have.text', 'baz')
-})
+        <div x-data>
+            <span x-text="$foo.bar"></span>
+        </div>
+    `,
+    () => {
+        cy.get('span').should('have.text', 'baz')
+    }
+)

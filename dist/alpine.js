@@ -858,7 +858,7 @@
     return this._x_attributesByType()[0];
   };
 
-  let xAttrRE = /^x-([^:]+)\b/;
+  let xAttrRE = /^x-([^:^.]+)\b/;
 
   function isXAttr(attr) {
     const name = replaceAtAndColonWithStandardSyntax(attr.name);
@@ -1155,13 +1155,13 @@
 
       if (modifiers.includes('debounce')) {
         let nextModifier = modifiers[modifiers.indexOf('debounce') + 1] || 'invalid-wait';
-        let wait = isNumeric$1(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250;
+        let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250;
         handler = debounce(handler, wait);
       }
 
       if (modifiers.includes('throttle')) {
         let nextModifier = modifiers[modifiers.indexOf('throttle') + 1] || 'invalid-wait';
-        let wait = isNumeric$1(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250;
+        let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250;
         handler = throttle(handler, wait);
       }
 
@@ -1222,7 +1222,7 @@
     };
   }
 
-  function isNumeric$1(subject) {
+  function isNumeric(subject) {
     return !Array.isArray(subject) && !isNaN(subject);
   }
 
@@ -1241,7 +1241,7 @@
 
     if (keyModifiers.includes('debounce')) {
       let debounceIndex = keyModifiers.indexOf('debounce');
-      keyModifiers.splice(debounceIndex, isNumeric$1((keyModifiers[debounceIndex + 1] || 'invalid-wait').split('ms')[0]) ? 2 : 1);
+      keyModifiers.splice(debounceIndex, isNumeric((keyModifiers[debounceIndex + 1] || 'invalid-wait').split('ms')[0]) ? 2 : 1);
     } // If no modifier is specified, we'll call it a press.
 
 
@@ -1516,11 +1516,15 @@
 
   function safeParseNumber(rawValue) {
     let number = rawValue ? parseFloat(rawValue) : null;
-    return isNumeric(number) ? number : rawValue;
+    return isNumeric$1(number) ? number : rawValue;
   }
 
   function checkedAttrLooseCompare$1(valueA, valueB) {
     return valueA == valueB;
+  }
+
+  function isNumeric$1(subject) {
+    return !Array.isArray(subject) && !isNaN(subject);
   }
 
   Alpine.directive('cloak', el => {

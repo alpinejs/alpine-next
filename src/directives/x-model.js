@@ -81,3 +81,7 @@ function safeParseNumber(rawValue) {
 function checkedAttrLooseCompare(valueA, valueB) {
     return valueA == valueB
 }
+
+function isNumeric(subject){
+    return ! Array.isArray(subject) && ! isNaN(subject)
+}
