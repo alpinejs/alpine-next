@@ -24,3 +24,11 @@ export let haveAttribute = (name, value) => el => expect(el).to.have.attr(name, 
 export let haveText = text => el => expect(el).to.have.text(text)
 
 export let beChecked = () => el => expect(el).to.be.checked
+
+export let beVisible = () => el => expect(el).to.be.visible
+
+export let beHidden = () => el => expect(el).to.be.hidden
+
+export let haveClasses = classes => el => classes.forEach(aClass => expect(el).to.have.class(aClass))
+
+export let notHaveClasses = classes => el => classes.forEach(aClass => expect(el).not.to.have.class(aClass))

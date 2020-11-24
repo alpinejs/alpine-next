@@ -162,6 +162,23 @@ test('.once modifier',
     }
 )
 
+test('.debounce modifier',
+    `
+        <div x-data="{ count: 0 }">
+            <input x-on:input.debounce="count = count+1">
+
+            <span x-text="count"></span>
+        </div>
+    `,
+    get => {
+        get('span').should(haveText('0'))
+        get('input').type('f')
+        get('span').should(haveText('1'))
+        get('input').type('ffffffffffff')
+        get('span').should(haveText('2'))
+    }
+)
+
 test('keydown modifiers',
     `
         <div x-data="{ count: 0 }">
