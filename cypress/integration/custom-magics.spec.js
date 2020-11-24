@@ -1,4 +1,4 @@
-import { test } from '../utils'
+import { test, haveText } from '../utils'
 
 test('can register custom magic properties',
     `
@@ -14,7 +14,5 @@ test('can register custom magic properties',
             <span x-text="$foo.bar"></span>
         </div>
     `,
-    () => {
-        cy.get('span').should('have.text', 'baz')
-    }
+    get => get('span').should(haveText('baz'))
 )

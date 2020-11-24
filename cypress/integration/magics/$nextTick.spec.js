@@ -1,4 +1,4 @@
-import { test } from '../../utils'
+import { test, haveText } from '../../utils'
 
 test('$nextTick works',
     `
@@ -8,10 +8,10 @@ test('$nextTick works',
             <button x-on:click="foo = 'baz'; $nextTick(() => {$refs.span.textContent = 'bob'})">click</button>
         </div>
     `,
-    () => {
-        cy.get('span').should('have.text', 'bar')
-        cy.get('button').click()
-        cy.get('span').should('have.text', 'bob')
+    get => {
+        get('span').should(haveText('bar'))
+        get('button').click()
+        get('span').should(haveText('bob'))
     }
 )
 
@@ -27,10 +27,10 @@ test('$nextTick waits for x-for to finish rendering',
             <button x-on:click="list = ['one', 'two', 'three']; $nextTick(() => {check = document.querySelectorAll('span').length})">click</button>
         </div>
     `,
-    () => {
-        cy.get('p').should('have.text', '2')
-        cy.get('button').click()
-        cy.get('p').should('have.text', '3')
+    get => {
+        get('p').should(haveText('2'))
+        get('button').click()
+        get('p').should(haveText('3'))
     }
 )
 
@@ -44,9 +44,9 @@ test('$nextTick works with transition',
             <button @click="show = true; $nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })">click</button>
         </div>
     `,
-    () => {
-        cy.get('h2').should('have.text', 'none')
-        cy.get('button').click()
-        cy.get('h2').should('have.text', '')
+    get => {
+        get('h2').should(haveText('none'))
+        get('button').click()
+        get('h2').should(haveText(''))
     }
 )

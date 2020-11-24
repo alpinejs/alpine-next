@@ -1,4 +1,4 @@
-import { test } from '../../utils'
+import { test, haveText } from '../../utils'
 
 test('works',
     `
@@ -8,9 +8,9 @@ test('works',
             <button x-on:click="$dispatch('custom-event', {newValue: 'baz'})">click me</button>
         </div>
     `,
-    () => {
-        cy.get('span').should('have.text', 'bar')
-        cy.get('button').click()
-        cy.get('span').should('have.text', 'baz')
+    get => {
+        get('span').should(haveText('bar'))
+        get('button').click()
+        get('span').should(haveText('baz'))
     }
 )

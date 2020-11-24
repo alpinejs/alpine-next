@@ -1,4 +1,4 @@
-import { test } from '../../utils'
+import { test, haveText, notHaveText } from '../../utils'
 
 test('sets text on init',
     `
@@ -6,8 +6,8 @@ test('sets text on init',
             <span x-text="foo"></span>
         </div>
     `,
-    () => {
-        cy.get('span').should('contain', 'bar')
+    get => {
+        get('span').should(haveText('bar'))
     }
 )
 
@@ -19,10 +19,10 @@ test('sets text on update',
             <span x-text="foo"></span>
         </div>
     `,
-    () => {
-        cy.get('span').should('not.contain', 'bar')
-        cy.get('button').click()
-        cy.get('span').should('contain', 'bar')
+    get => {
+        get('span').should(notHaveText('bar'))
+        get('button').click()
+        get('span').should(haveText('bar'))
     }
 )
 
@@ -34,7 +34,7 @@ test('sets text on SVG elements',
             </svg>
         </div>
     `,
-    () => {
-        cy.get('svg text').should('contain', 'bar')
+    get => {
+        get('svg text').should(haveText('bar'))
     }
 )

@@ -10,12 +10,12 @@ test('works',
             </template>
         </div>
     `,
-    () => {
-        cy.get('span:nth-of-type(1)').should('contain', 'foo')
-        cy.get('span:nth-of-type(2)').should('not.be.visible')
-        cy.get('button').click()
-        cy.get('span:nth-of-type(1)').should('contain', 'foo')
-        cy.get('span:nth-of-type(2)').should('contain', 'bar')
+    get => {
+        get('span:nth-of-type(1)').should('contain', 'foo')
+        get('span:nth-of-type(2)').should('not.be.visible')
+        get('button').click()
+        get('span:nth-of-type(1)').should('contain', 'foo')
+        get('span:nth-of-type(2)').should('contain', 'bar')
     }
 )
 
@@ -29,10 +29,10 @@ test('removes all elements when array is empty and previously had one item',
             </template>
         </div>
     `,
-    () => {
-        cy.get('span').should('be.visible')
-        cy.get('button').click()
-        cy.get('span').should('not.be.visible')
+    get => {
+        get('span').should('be.visible')
+        get('button').click()
+        get('span').should('not.be.visible')
     }
 )
 
@@ -46,14 +46,14 @@ test('removes all elements when array is empty and previously had multiple items
             </template>
         </div>
     `,
-    () => {
-        cy.get('span:nth-of-type(1)').should('be.visible')
-        cy.get('span:nth-of-type(2)').should('be.visible')
-        cy.get('span:nth-of-type(3)').should('be.visible')
-        cy.get('button').click()
-        cy.get('span:nth-of-type(1)').should('not.be.visible')
-        cy.get('span:nth-of-type(2)').should('not.be.visible')
-        cy.get('span:nth-of-type(3)').should('not.be.visible')
+    get => {
+        get('span:nth-of-type(1)').should('be.visible')
+        get('span:nth-of-type(2)').should('be.visible')
+        get('span:nth-of-type(3)').should('be.visible')
+        get('button').click()
+        get('span:nth-of-type(1)').should('not.be.visible')
+        get('span:nth-of-type(2)').should('not.be.visible')
+        get('span:nth-of-type(3)').should('not.be.visible')
     }
 )
 
@@ -70,14 +70,14 @@ test('elements inside of loop are reactive',
             </template>
         </div>
     `,
-    () => {
-        cy.get('span').should('be.visible')
-        cy.get('h1').should('contain', 'first')
-        cy.get('h2').should('contain', 'bar')
-        cy.get('button').click()
-        cy.get('span').should('be.visible')
-        cy.get('h1').should('contain', 'first')
-        cy.get('h2').should('contain', 'baz')
+    get => {
+        get('span').should('be.visible')
+        get('h1').should('contain', 'first')
+        get('h2').should('contain', 'bar')
+        get('button').click()
+        get('span').should('be.visible')
+        get('h1').should('contain', 'first')
+        get('h2').should('contain', 'baz')
     }
 )
 
@@ -92,10 +92,10 @@ test('components inside of loop are reactive',
             </template>
         </div>
     `,
-    () => {
-        cy.get('span').should('contain', 'bar')
-        cy.get('button').click()
-        cy.get('span').should('contain', 'bob')
+    get => {
+        get('span').should('contain', 'bar')
+        get('button').click()
+        get('span').should('contain', 'bob')
     }
 )
 
@@ -112,10 +112,10 @@ test('components inside a plain element of loop are reactive',
             </template>
         </div>
     `,
-    () => {
-        cy.get('span').should('contain', 'bar')
-        cy.get('button').click()
-        cy.get('span').should('contain', 'bob')
+    get => {
+        get('span').should('contain', 'bar')
+        get('button').click()
+        get('span').should('contain', 'bob')
     }
 )
 
@@ -130,16 +130,16 @@ test('adding key attribute moves dom nodes properly',
             </template>
         </div>
     `,
-    () => {
+    get => {
         let haveOgIndex = index => el => expect(el[0].og_loop_index).to.equal(index)
 
-        cy.get('#assign').click()
-        cy.get('span:nth-of-type(1)').should(haveOgIndex(0))
-        cy.get('span:nth-of-type(2)').should(haveOgIndex(1))
-        cy.get('#reorder').click()
-        cy.get('span:nth-of-type(1)').should(haveOgIndex(1))
-        cy.get('span:nth-of-type(2)').should(haveOgIndex(0))
-        cy.get('span:nth-of-type(3)').should(haveOgIndex(undefined))
+        get('#assign').click()
+        get('span:nth-of-type(1)').should(haveOgIndex(0))
+        get('span:nth-of-type(2)').should(haveOgIndex(1))
+        get('#reorder').click()
+        get('span:nth-of-type(1)').should(haveOgIndex(1))
+        get('span:nth-of-type(2)').should(haveOgIndex(0))
+        get('span:nth-of-type(3)').should(haveOgIndex(undefined))
     }
 )
 
@@ -154,16 +154,16 @@ test('can key by index',
             </template>
         </div>
     `,
-    () => {
+    get => {
         let haveOgIndex = index => el => expect(el[0].og_loop_index).to.equal(index)
 
-        cy.get('#assign').click()
-        cy.get('span:nth-of-type(1)').should(haveOgIndex(0))
-        cy.get('span:nth-of-type(2)').should(haveOgIndex(1))
-        cy.get('#reorder').click()
-        cy.get('span:nth-of-type(1)').should(haveOgIndex(0))
-        cy.get('span:nth-of-type(2)').should(haveOgIndex(1))
-        cy.get('span:nth-of-type(3)').should(haveOgIndex(undefined))
+        get('#assign').click()
+        get('span:nth-of-type(1)').should(haveOgIndex(0))
+        get('span:nth-of-type(2)').should(haveOgIndex(1))
+        get('#reorder').click()
+        get('span:nth-of-type(1)').should(haveOgIndex(0))
+        get('span:nth-of-type(2)').should(haveOgIndex(1))
+        get('span:nth-of-type(3)').should(haveOgIndex(undefined))
     }
 )
 
@@ -178,9 +178,9 @@ test('can use index inside of loop',
             </template>
         </div>
     `,
-    () => {
-        cy.get('h1').should('contain', 0)
-        cy.get('h2').should('contain', 0)
+    get => {
+        get('h1').should('contain', 0)
+        get('h2').should('contain', 0)
     }
 )
 
@@ -195,9 +195,9 @@ test('can use third iterator param (collection) inside of loop',
             </template>
         </div>
     `,
-    () => {
-        cy.get('h1').should('contain', 'foo')
-        cy.get('h2').should('contain', 'foo')
+    get => {
+        get('h1').should('contain', 'foo')
+        get('h2').should('contain', 'foo')
     }
 )
 
@@ -213,13 +213,13 @@ test('listeners in loop get fresh iteration data even though they are only regis
             <h1 x-text="output"></h1>
         </div>
     `,
-    () => {
-        cy.get('h1').should('contain', '')
-        cy.get('span').click()
-        cy.get('h1').should('contain', 'foo')
-        cy.get('button').click()
-        cy.get('span').click()
-        cy.get('h1').should('contain', 'bar')
+    get => {
+        get('h1').should('contain', '')
+        get('span').click()
+        get('h1').should('contain', 'foo')
+        get('button').click()
+        get('span').click()
+        get('h1').should('contain', 'bar')
     }
 )
 
@@ -236,14 +236,14 @@ test('nested x-for',
             </template>
         </div>
     `,
-    () => {
-        cy.get('h1:nth-of-type(1) h2:nth-of-type(1)').should('be.visible')
-        cy.get('h1:nth-of-type(1) h2:nth-of-type(2)').should('be.visible')
-        cy.get('h1:nth-of-type(2) h2:nth-of-type(1)').should('not.be.visible')
-        cy.get('button').click()
-        cy.get('h1:nth-of-type(1) h2:nth-of-type(1)').should('be.visible')
-        cy.get('h1:nth-of-type(1) h2:nth-of-type(2)').should('be.visible')
-        cy.get('h1:nth-of-type(2) h2:nth-of-type(1)').should('be.visible')
+    get => {
+        get('h1:nth-of-type(1) h2:nth-of-type(1)').should('be.visible')
+        get('h1:nth-of-type(1) h2:nth-of-type(2)').should('be.visible')
+        get('h1:nth-of-type(2) h2:nth-of-type(1)').should('not.be.visible')
+        get('button').click()
+        get('h1:nth-of-type(1) h2:nth-of-type(1)').should('be.visible')
+        get('h1:nth-of-type(1) h2:nth-of-type(2)').should('be.visible')
+        get('h1:nth-of-type(2) h2:nth-of-type(1)').should('be.visible')
     }
 )
 
@@ -257,13 +257,13 @@ test('x-for updates the right elements when new item are inserted at the beginni
             </template>
         </div>
     `,
-    () => {
-        cy.get('span:nth-of-type(1)').should('contain', 'one')
-        cy.get('span:nth-of-type(2)').should('contain', 'two')
-        cy.get('button').click()
-        cy.get('span:nth-of-type(1)').should('contain', 'zero')
-        cy.get('span:nth-of-type(2)').should('contain', 'one')
-        cy.get('span:nth-of-type(3)').should('contain', 'two')
+    get => {
+        get('span:nth-of-type(1)').should('contain', 'one')
+        get('span:nth-of-type(2)').should('contain', 'two')
+        get('button').click()
+        get('span:nth-of-type(1)').should('contain', 'zero')
+        get('span:nth-of-type(2)').should('contain', 'one')
+        get('span:nth-of-type(3)').should('contain', 'two')
     }
 )
 
@@ -279,11 +279,11 @@ test('nested x-for access outer loop variable',
             </template>
         </div>
     `,
-    () => {
-        cy.get('h1:nth-of-type(1) h2:nth-of-type(1)').should('contain', 'foo: bob')
-        cy.get('h1:nth-of-type(1) h2:nth-of-type(2)').should('contain', 'foo: lob')
-        cy.get('h1:nth-of-type(2) h2:nth-of-type(1)').should('contain', 'baz: bab')
-        cy.get('h1:nth-of-type(2) h2:nth-of-type(2)').should('contain', 'baz: lab')
+    get => {
+        get('h1:nth-of-type(1) h2:nth-of-type(1)').should('contain', 'foo: bob')
+        get('h1:nth-of-type(1) h2:nth-of-type(2)').should('contain', 'foo: lob')
+        get('h1:nth-of-type(2) h2:nth-of-type(1)').should('contain', 'baz: bab')
+        get('h1:nth-of-type(2) h2:nth-of-type(2)').should('contain', 'baz: lab')
     }
 )
 
@@ -299,16 +299,16 @@ test('sibling x-for do not interact with each other',
             <button @click="foos = [1, 2];bars = [1, 2, 3]">Change</button>
         </div>
     `,
-    () => {
-        cy.get('h1:nth-of-type(1)').should('contain', '1')
-        cy.get('h2:nth-of-type(1)').should('contain', '1')
-        cy.get('h2:nth-of-type(2)').should('contain', '2')
-        cy.get('button').click()
-        cy.get('h1:nth-of-type(1)').should('contain', '1')
-        cy.get('h1:nth-of-type(2)').should('contain', '2')
-        cy.get('h2:nth-of-type(1)').should('contain', '1')
-        cy.get('h2:nth-of-type(2)').should('contain', '2')
-        cy.get('h2:nth-of-type(3)').should('contain', '3')
+    get => {
+        get('h1:nth-of-type(1)').should('contain', '1')
+        get('h2:nth-of-type(1)').should('contain', '1')
+        get('h2:nth-of-type(2)').should('contain', '2')
+        get('button').click()
+        get('h1:nth-of-type(1)').should('contain', '1')
+        get('h1:nth-of-type(2)').should('contain', '2')
+        get('h2:nth-of-type(1)').should('contain', '1')
+        get('h2:nth-of-type(2)').should('contain', '2')
+        get('h2:nth-of-type(3)').should('contain', '3')
     }
 )
 
@@ -320,8 +320,8 @@ test('x-for over range using i in x syntax',
             </template>
         </div>
     `,
-    () => {
-        cy.get('span').should('have.length', '10')
+    get => {
+        get('span').should('have.length', '10')
     }
 )
 
@@ -333,8 +333,8 @@ test('x-for over range using i in property syntax',
             </template>
         </div>
     `,
-    () => {
-        cy.get('span').should('have.length', '10')
+    get => {
+        get('span').should('have.length', '10')
     }
 )
 
@@ -348,11 +348,11 @@ test('x-for with an array of numbers',
             <button @click="items.push(3)" id="second">click me</button>
         </div>
     `,
-    () => {
-        cy.get('span').should('have.length', '0')
-        cy.get('#first').click()
-        cy.get('span').should('have.length', '1')
-        cy.get('#second').click()
-        cy.get('span').should('have.length', '2')
+    get => {
+        get('span').should('have.length', '0')
+        get('#first').click()
+        get('span').should('have.length', '1')
+        get('#second').click()
+        get('span').should('have.length', '2')
     }
 )

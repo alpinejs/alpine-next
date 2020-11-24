@@ -1,4 +1,4 @@
-import { test } from '../../utils'
+import { test, haveText } from '../../utils'
 
 test('sets text on init',
     `
@@ -6,8 +6,8 @@ test('sets text on init',
             <span x-text="foo"></span>
         </div>
     `,
-    () => {
-        cy.get('span').should('have.text', 'baz')
+    get => {
+        get('span').should(haveText('baz'))
     }
 )
 
@@ -17,8 +17,8 @@ test('changes made in x-init happen before the rest of the component',
             <span x-text="foo" x-ref="foo">baz</span>
         </div>
     `,
-    () => {
-        cy.get('span').should('have.text', 'bar')
+    get => {
+        get('span').should(haveText('bar'))
     }
 )
 
@@ -28,7 +28,7 @@ test('can make deferred changes with $nextTick',
             <span x-text="foo" x-ref="foo">baz</span>
         </div>
     `,
-    () => {
-        cy.get('span').should('have.text', 'yo')
+    get => {
+        get('span').should(haveText('yo'))
     }
 )

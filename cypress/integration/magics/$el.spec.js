@@ -1,4 +1,4 @@
-import { test } from '../../utils'
+import { test, haveText } from '../../utils'
 
 test('works',
     `
@@ -6,9 +6,9 @@ test('works',
             <button @click="$el.innerText = 'foo'">click me</button>
         </div>
     `,
-    () => {
-        cy.get('button').should('have.text', 'click me')
-        cy.get('button').click()
-        cy.get('button').should('have.text', 'foo')
+    get => {
+        get('button').should(haveText('click me'))
+        get('button').click()
+        get('button').should(haveText('foo'))
     }
 )

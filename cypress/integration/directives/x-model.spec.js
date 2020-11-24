@@ -1,8 +1,8 @@
-import { test, haveData } from '../../utils'
+import { test, haveData, haveText } from '../../utils'
 
 test('The name of the test',
     `<h1 x-data x-text="'HEY'"></h1>`,
-    () => cy.get('h1').should('have.text', 'HEY')
+    get => get('h1').should(haveText('HEY'))
 )
 
 test('x-model has value binding when initialized',
@@ -11,8 +11,8 @@ test('x-model has value binding when initialized',
         <input x-model="foo"></input>
     </div>
     `,
-    () => {
-        cy.get('input').should('have.value', 'bar')
+    get => {
+        get('input').should('have.value', 'bar')
     }
 )
 
@@ -23,10 +23,10 @@ test('x-model updates value when updated via input event',
         <span x-text="foo"></span>
     </div>
     `,
-    () => {
-        cy.get('span').should('have.text', 'bar')
-        cy.get('input').type('baz')
-        cy.get('span').should('have.text', 'barbaz')
+    get => {
+        get('span').should(haveText('bar'))
+        get('input').type('baz')
+        get('span').should(haveText('barbaz'))
     }
 )
 
@@ -38,10 +38,10 @@ test('x-model has value binding when updated',
         <button x-on:click="foo = 'baz'">click me</button>
     </div>
     `,
-    () => {
-        cy.get('input').should('have.value', 'bar')
-        cy.get('button').click()
-        cy.get('input').should('have.value', 'baz')
+    get => {
+        get('input').should('have.value', 'bar')
+        get('button').click()
+        get('input').should('have.value', 'baz')
     }
 )
 
@@ -51,9 +51,9 @@ test('x-model casts value to number if number modifier is present',
         <input type="number" x-model.number="foo"></input>
     </div>
     `,
-    () => {
-        cy.get('input').type('123')
-        cy.get('div').should(haveData('foo', 123))
+    get => {
+        get('input').type('123')
+        get('div').should(haveData('foo', 123))
 
     }
 )
@@ -65,19 +65,19 @@ test('x-model with number modifier returns: null if empty, original value if cas
         <input x-model.number="bar"></input>
     </div>
     `,
-    () => {
-        cy.get('input:nth-of-type(1)').clear()
-        cy.get('div').should(haveData('foo', null))
-        cy.get('input:nth-of-type(1)').clear().type('-')
-        cy.get('div').should(haveData('foo', null))
-        cy.get('input:nth-of-type(1)').clear().type('-123')
-        cy.get('div').should(haveData('foo', -123))
-        cy.get('input:nth-of-type(2)').type(123).clear()
-        cy.get('div').should(haveData('bar', null))
-        cy.get('input:nth-of-type(2)').clear().type('-')
-        cy.get('div').should(haveData('bar', '-'))
-        cy.get('input:nth-of-type(2)').clear().type('-123')
-        cy.get('div').should(haveData('bar', -123))
+    get => {
+        get('input:nth-of-type(1)').clear()
+        get('div').should(haveData('foo', null))
+        get('input:nth-of-type(1)').clear().type('-')
+        get('div').should(haveData('foo', null))
+        get('input:nth-of-type(1)').clear().type('-123')
+        get('div').should(haveData('foo', -123))
+        get('input:nth-of-type(2)').type(123).clear()
+        get('div').should(haveData('bar', null))
+        get('input:nth-of-type(2)').clear().type('-')
+        get('div').should(haveData('bar', '-'))
+        get('input:nth-of-type(2)').clear().type('-123')
+        get('div').should(haveData('bar', -123))
     }
 )
 
@@ -89,9 +89,9 @@ test('x-model trims value if trim modifier is present',
         <span x-text="foo"></span>
     </div>
     `,
-    () => {
-        cy.get('input').type('bar     ')
-        cy.get('div').should(haveData('foo', 'bar'))
+    get => {
+        get('input').type('bar     ')
+        get('div').should(haveData('foo', 'bar'))
     }
 )
 
@@ -101,9 +101,9 @@ test('x-model trims value if trim modifier is present',
 //     <input x-model.lazy="foo"></input>
 // </div>
 // `,
-// () => {
+// get => {
 //     let haveData = (key, value) => ([ el ]) => expect(el._x_root()._x_$data[key]).to.equal(value)
 
-//     cy.get('input').type('bar     ')
-//     cy.get('div').should(([ el ]) => expect(el._x_$data.foo).to.equal('bar'))
+//     get('input').type('bar     ')
+//     get('div').should(([ el ]) => expect(el._x_$data.foo).to.equal('bar'))
 // })
