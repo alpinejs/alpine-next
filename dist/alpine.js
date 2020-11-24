@@ -54,13 +54,32 @@
 
   var scheduler = {
     tasks: [],
+    nextTicks: [],
     shouldFlush: false,
 
     task(callback) {
       this.tasks.push(callback);
+      this.shouldFlushAtEndOfRequest();
     },
 
-    pingFlush() {
+    nextTick(callback) {
+      this.nextTicks.push(callback);
+      this.shouldFlushAtEndOfRequest();
+    },
+
+    holdNextTicks() {
+      this.holdNextTicksOver = true;
+    },
+
+    releaseNextTicks() {
+      while (this.nextTicks.length > 0) {
+        this.nextTicks.shift()();
+      }
+
+      this.holdNextTicksOver = false;
+    },
+
+    shouldFlushAtEndOfRequest() {
       this.shouldFlush = true;
       queueMicrotask(() => {
         if (this.shouldFlush) this.flush();
@@ -83,6 +102,13 @@
           }
 
           this.tasks.shift()();
+        }
+
+        if (!this.holdNextTicksOver) {
+          // Flush anything added by $nextTick
+          while (this.nextTicks.length > 0) {
+            this.nextTicks.shift()();
+          }
         }
       });
     }
@@ -731,7 +757,6 @@
         }, {
           scheduler(run) {
             scheduler.task(run);
-            scheduler.pingFlush();
           }
 
         });
@@ -1395,6 +1420,7 @@
     };
     stages.start();
     stages.during();
+    scheduler.holdNextTicks();
     requestAnimationFrame(() => {
       // Note: Safari's transitionDuration property will list out comma separated transition durations
       // for every single transition property. Let's grab the first one and call it a day.
@@ -1407,6 +1433,7 @@
       stages.before();
       requestAnimationFrame(() => {
         stages.end();
+        scheduler.releaseNextTicks();
         setTimeout(el._x_transitioning.finish, duration);
       });
     });
@@ -1539,7 +1566,7 @@
     let evaluate = el._x_evaluator(expression);
 
     effect(() => {
-      el.innerText = evaluate();
+      el.textContent = evaluate();
     });
   });
 
@@ -1802,11 +1829,7 @@
     });
   });
 
-  Alpine.magic('nextTick', el => {
-    return callback => {
-      setTimeout(callback);
-    };
-  });
+  Alpine.magic('nextTick', el => callback => scheduler.nextTick(callback));
 
   Alpine.magic('dispatch', el => {
     return (event, detail = {}) => {

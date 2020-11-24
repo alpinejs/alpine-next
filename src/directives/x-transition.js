@@ -1,4 +1,5 @@
 import Alpine from '../alpine'
+import scheduler from '../scheduler'
 
 Alpine.directive('transition', (el, value, modifiers, expression, effect) => {
     if (! el._x_transition) {
@@ -83,6 +84,8 @@ export function performTransition(el, stages) {
     stages.start()
     stages.during()
 
+    scheduler.holdNextTicks()
+
     requestAnimationFrame(() => {
         // Note: Safari's transitionDuration property will list out comma separated transition durations
         // for every single transition property. Let's grab the first one and call it a day.
@@ -96,6 +99,8 @@ export function performTransition(el, stages) {
 
         requestAnimationFrame(() => {
             stages.end()
+
+            scheduler.releaseNextTicks()
 
             setTimeout(el._x_transitioning.finish, duration)
         })

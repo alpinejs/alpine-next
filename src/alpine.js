@@ -13,7 +13,6 @@ let Alpine = {
             }, {
                 scheduler(run) {
                     scheduler.task(run)
-                    scheduler.pingFlush()
                 }
             })
         }
