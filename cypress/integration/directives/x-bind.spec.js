@@ -1,4 +1,4 @@
-import { haveAttribute, haveValue, haveClasses, test } from '../../utils'
+import { haveAttribute, haveClasses, haveValue, notHaveAttribute, notHaveClasses, test } from '../../utils'
 
 test('sets attribute bindings on initialize',
     `
@@ -6,11 +6,7 @@ test('sets attribute bindings on initialize',
             <span x-ref="me" x-bind:foo="foo">[Subject]</span>
         </div>
     `,
-    get => {
-        get('span').should(el => {
-            expect(el).to.have.attr('foo', 'bar')
-        })
-    }
+    get => get('span').should(haveAttribute('foo', 'bar'))
 )
 
 test('class attribute bindings are merged by string syntax',
@@ -22,11 +18,11 @@ test('class attribute bindings are merged by string syntax',
         </div>
     `,
     get => {
-        get('span').should('have.class', 'foo')
-        get('span').should('not.have.class', 'bar')
+        get('span').should(haveClasses(['foo']))
+        get('span').should(notHaveClasses(['bar']))
         get('button').click()
-        get('span').should('have.class', 'foo')
-        get('span').should('have.class', 'bar')
+        get('span').should(haveClasses(['foo']))
+        get('span').should(haveClasses(['bar']))
     }
 )
 
@@ -36,9 +32,7 @@ test('class attribute bindings are added by string syntax',
             <span x-bind:class="initialClass"></span>
         </div>
     `,
-    get => {
-        get('span').should(haveClasses(['foo']))
-    }
+    get => get('span').should(haveClasses(['foo']))
 )
 
 test('non-boolean attributes set to null/undefined/false are removed from the element',
@@ -54,15 +48,12 @@ test('non-boolean attributes set to null/undefined/false are removed from the el
         </div>
     `,
     get => {
-        let beMissingHref = el => expect(el).not.to.have.attr('href')
-        let beMissingVisible = el => expect(el).not.to.have.attr('visible')
-
-        get('a:nth-child(1)').should(beMissingHref)
-        get('a:nth-child(2)').should(beMissingHref)
-        get('a:nth-child(3)').should(beMissingHref)
-        get('span:nth-child(1)').should(beMissingVisible)
-        get('span:nth-child(2)').should(beMissingVisible)
-        get('span:nth-child(3)').should(beMissingVisible)
+        get('a:nth-child(1)').should(notHaveAttribute('href'))
+        get('a:nth-child(2)').should(notHaveAttribute('href'))
+        get('a:nth-child(3)').should(notHaveAttribute('href'))
+        get('span:nth-child(1)').should(notHaveAttribute('visible'))
+        get('span:nth-child(2)').should(notHaveAttribute('visible'))
+        get('span:nth-child(3)').should(notHaveAttribute('visible'))
     }
 )
 
@@ -72,11 +63,7 @@ test('non-boolean empty string attributes are not removed',
             <a href="#hello" x-bind:href="''"></a>
         </div>
     `,
-    get => {
-        let haveEmptyHref = el => expect(el).to.have.attr('href', '')
-
-        get('a').should(haveEmptyHref)
-    }
+    get => get('a').should(haveAttribute('href', ''))
 )
 
 test('boolean attribute values are set to their attribute name if true and removed if false',
@@ -112,57 +99,54 @@ test('boolean attribute values are set to their attribute name if true and remov
         </div>
     `,
     get => {
-        let haveAttrNameAndValue = attr => el => expect(el).to.have.attr(attr, attr)
-        let beMissingAttribute = attr => el => expect(el).not.to.have.attr(attr)
-
-        get('input:nth-of-type(1)').should(haveAttrNameAndValue('disabled'))
-        get('input:nth-of-type(2)').should(haveAttrNameAndValue('checked'))
-        get('input:nth-of-type(3)').should(haveAttrNameAndValue('required'))
-        get('input:nth-of-type(4)').should(haveAttrNameAndValue('readonly'))
-        get('details').should(haveAttrNameAndValue('open'))
-        get('select').should(haveAttrNameAndValue('multiple'))
-        get('option').should(haveAttrNameAndValue('selected'))
-        get('textarea').should(haveAttrNameAndValue('autofocus'))
-        get('dl').should(haveAttrNameAndValue('itemscope'))
-        get('form').should(haveAttrNameAndValue('novalidate'))
-        get('iframe').should(haveAttrNameAndValue('allowfullscreen'))
-        get('iframe').should(haveAttrNameAndValue('allowpaymentrequest'))
-        get('button').should(haveAttrNameAndValue('formnovalidate'))
-        get('audio').should(haveAttrNameAndValue('autoplay'))
-        get('audio').should(haveAttrNameAndValue('controls'))
-        get('audio').should(haveAttrNameAndValue('loop'))
-        get('audio').should(haveAttrNameAndValue('muted'))
-        get('video').should(haveAttrNameAndValue('playsinline'))
-        get('track').should(haveAttrNameAndValue('default'))
-        get('img').should(haveAttrNameAndValue('ismap'))
-        get('ol').should(haveAttrNameAndValue('reversed'))
+        get('input:nth-of-type(1)').should(haveAttribute('disabled', 'disabled'))
+        get('input:nth-of-type(2)').should(haveAttribute('checked', 'checked'))
+        get('input:nth-of-type(3)').should(haveAttribute('required', 'required'))
+        get('input:nth-of-type(4)').should(haveAttribute('readonly', 'readonly'))
+        get('details').should(haveAttribute('open', 'open'))
+        get('select').should(haveAttribute('multiple', 'multiple'))
+        get('option').should(haveAttribute('selected', 'selected'))
+        get('textarea').should(haveAttribute('autofocus', 'autofocus'))
+        get('dl').should(haveAttribute('itemscope', 'itemscope'))
+        get('form').should(haveAttribute('novalidate', 'novalidate'))
+        get('iframe').should(haveAttribute('allowfullscreen', 'allowfullscreen'))
+        get('iframe').should(haveAttribute('allowpaymentrequest', 'allowpaymentrequest'))
+        get('button').should(haveAttribute('formnovalidate', 'formnovalidate'))
+        get('audio').should(haveAttribute('autoplay', 'autoplay'))
+        get('audio').should(haveAttribute('controls', 'controls'))
+        get('audio').should(haveAttribute('loop', 'loop'))
+        get('audio').should(haveAttribute('muted', 'muted'))
+        get('video').should(haveAttribute('playsinline', 'playsinline'))
+        get('track').should(haveAttribute('default', 'default'))
+        get('img').should(haveAttribute('ismap', 'ismap'))
+        get('ol').should(haveAttribute('reversed', 'reversed'))
 
         get('#setToFalse').click()
 
-        get('input:nth-of-type(1)').should(beMissingAttribute('disabled'))
-        get('input:nth-of-type(2)').should(beMissingAttribute('checked'))
-        get('input:nth-of-type(3)').should(beMissingAttribute('required'))
-        get('input:nth-of-type(4)').should(beMissingAttribute('readonly'))
-        get('details').should(beMissingAttribute('open'))
-        get('select').should(beMissingAttribute('multiple'))
-        get('option').should(beMissingAttribute('selected'))
-        get('textarea').should(beMissingAttribute('autofocus'))
-        get('dl').should(beMissingAttribute('itemscope'))
-        get('form').should(beMissingAttribute('novalidate'))
-        get('iframe').should(beMissingAttribute('allowfullscreen'))
-        get('iframe').should(beMissingAttribute('allowpaymentrequest'))
-        get('button').should(beMissingAttribute('formnovalidate'))
-        get('audio').should(beMissingAttribute('autoplay'))
-        get('audio').should(beMissingAttribute('controls'))
-        get('audio').should(beMissingAttribute('loop'))
-        get('audio').should(beMissingAttribute('muted'))
-        get('video').should(beMissingAttribute('playsinline'))
-        get('track').should(beMissingAttribute('default'))
-        get('img').should(beMissingAttribute('ismap'))
-        get('ol').should(beMissingAttribute('reversed'))
-        get('script').should(beMissingAttribute('async'))
-        get('script').should(beMissingAttribute('defer'))
-        get('script').should(beMissingAttribute('nomodule'))
+        get('input:nth-of-type(1)').should(notHaveAttribute('disabled'))
+        get('input:nth-of-type(2)').should(notHaveAttribute('checked'))
+        get('input:nth-of-type(3)').should(notHaveAttribute('required'))
+        get('input:nth-of-type(4)').should(notHaveAttribute('readonly'))
+        get('details').should(notHaveAttribute('open'))
+        get('select').should(notHaveAttribute('multiple'))
+        get('option').should(notHaveAttribute('selected'))
+        get('textarea').should(notHaveAttribute('autofocus'))
+        get('dl').should(notHaveAttribute('itemscope'))
+        get('form').should(notHaveAttribute('novalidate'))
+        get('iframe').should(notHaveAttribute('allowfullscreen'))
+        get('iframe').should(notHaveAttribute('allowpaymentrequest'))
+        get('button').should(notHaveAttribute('formnovalidate'))
+        get('audio').should(notHaveAttribute('autoplay'))
+        get('audio').should(notHaveAttribute('controls'))
+        get('audio').should(notHaveAttribute('loop'))
+        get('audio').should(notHaveAttribute('muted'))
+        get('video').should(notHaveAttribute('playsinline'))
+        get('track').should(notHaveAttribute('default'))
+        get('img').should(notHaveAttribute('ismap'))
+        get('ol').should(notHaveAttribute('reversed'))
+        get('script').should(notHaveAttribute('async'))
+        get('script').should(notHaveAttribute('defer'))
+        get('script').should(notHaveAttribute('nomodule'))
     }
 )
 
@@ -172,11 +156,7 @@ test('boolean empty string attributes are not removed',
             <input x-bind:disabled="''">
         </div>
     `,
-    get => {
-        let haveDisabledAttr = el => expect(el).to.have.attr('disabled', 'disabled')
-
-        get('input').should(haveDisabledAttr)
-    }
+    get => get('input').should(haveAttribute('disabled', 'disabled'))
 )
 
 test('binding supports short syntax',
@@ -185,9 +165,7 @@ test('binding supports short syntax',
             <span :class="foo"></span>
         </div>
     `,
-    get => {
-        get('span').should('have.class', 'bar')
-    }
+    get => get('span').should(haveClasses(['bar']))
 )
 
 test('checkbox is unchecked by default',
@@ -201,11 +179,11 @@ test('checkbox is unchecked by default',
         </div>
     `,
     get => {
-        get('input:nth-of-type(1)').should('not.be.checked')
-        get('input:nth-of-type(2)').should('not.be.checked')
-        get('input:nth-of-type(3)').should('not.be.checked')
-        get('input:nth-of-type(4)').should('not.be.checked')
-        get('input:nth-of-type(5)').should('not.be.checked')
+        get('input:nth-of-type(1)').should(notBeChecked())
+        get('input:nth-of-type(2)').should(notBeChecked())
+        get('input:nth-of-type(3)').should(notBeChecked())
+        get('input:nth-of-type(4)').should(notBeChecked())
+        get('input:nth-of-type(5)').should(notBeChecked())
     }
 )
 
@@ -220,11 +198,11 @@ test('radio is unchecked by default',
         </div>
     `,
     get => {
-        get('input:nth-of-type(1)').should('not.be.checked')
-        get('input:nth-of-type(2)').should('not.be.checked')
-        get('input:nth-of-type(3)').should('not.be.checked')
-        get('input:nth-of-type(4)').should('not.be.checked')
-        get('input:nth-of-type(5)').should('not.be.checked')
+        get('input:nth-of-type(1)').should(notBeChecked())
+        get('input:nth-of-type(2)').should(notBeChecked())
+        get('input:nth-of-type(3)').should(notBeChecked())
+        get('input:nth-of-type(4)').should(notBeChecked())
+        get('input:nth-of-type(5)').should(notBeChecked())
     }
 )
 
@@ -237,8 +215,6 @@ test('checkbox values are set correctly',
         </div>
     `,
     get => {
-        let haveValue = value => el => expect(el).to.have.value(value)
-
         get('input:nth-of-type(1)').should(haveValue('foo'))
         get('input:nth-of-type(2)').should(haveValue('on'))
         get('input:nth-of-type(3)').should(haveValue('on'))
@@ -255,16 +231,12 @@ test('radio values are set correctly',
         </div>
     `,
     get => {
-        let haveValue = value => el => expect(el).to.have.value(value)
-        let beChecked = el => expect(el[0].checked).to.be.true
-        let beUnChecked = el => expect(el[0].checked).to.be.false
-
         get('#list-1').should(haveValue('1'))
-        get('#list-1').should(beUnChecked)
+        get('#list-1').should(beUnChecked())
         get('#list-8').should(haveValue('8'))
-        get('#list-8').should(beChecked)
+        get('#list-8').should(beChecked())
         get('#list-test').should(haveValue('test'))
-        get('#list-test').should(beUnChecked)
+        get('#list-test').should(beUnChecked())
     }
 )
 
@@ -278,9 +250,6 @@ test('classes are removed before being added',
         </div>
     `,
     get => {
-        let haveClasses = classes => el => classes.forEach(aClass => expect(el).to.have.class(aClass))
-        let notHaveClasses = classes => el => classes.forEach(aClass => expect(el).not.to.have.class(aClass))
-
         get('span').should(haveClasses(['block', 'text-red']))
         get('button').click()
         get('span').should(haveClasses(['hidden', 'text-red']))
@@ -294,11 +263,7 @@ test('extra whitespace in class binding string syntax is ignored',
             <span x-bind:class="'  foo  bar  '"></span>
         </div>
     `,
-    get => {
-        let haveClasses = classes => el => classes.forEach(aClass => expect(el).to.have.class(aClass))
-
-        get('span').should(haveClasses(['foo', 'bar']))
-    }
+    get => get('span').should(haveClasses(['foo', 'bar']))
 )
 
 test('undefined class binding resolves to empty string',
@@ -309,9 +274,6 @@ test('undefined class binding resolves to empty string',
         </div>
     `,
     get => {
-        let haveClasses = classes => el => classes.forEach(aClass => expect(el).to.have.class(aClass))
-        let notHaveClasses = classes => el => classes.forEach(aClass => expect(el).not.to.have.class(aClass))
-
         get('span:nth-of-type(1)').should(haveClasses(['red']))
         get('span:nth-of-type(2)').should(notHaveClasses(['red']))
     }
@@ -323,11 +285,7 @@ test('.camel modifier correctly sets name of attribute',
             <svg x-bind:view-box.camel="'0 0 42 42'"></svg>
         </div>
     `,
-    get => {
-        let haveAttribute = (name, value) => el => expect(el).to.have.attr(name, value)
-
-        get('svg').should(haveAttribute('viewBox', '0 0 42 42'))
-    }
+    get => get('svg').should(haveAttribute('viewBox', '0 0 42 42'))
 )
 
 test('attribute binding names can contain numbers',

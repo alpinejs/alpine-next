@@ -1,6 +1,6 @@
-import { test } from '../../utils'
+import { beVisible, haveLength, haveText, notBeVisible, test } from '../../utils'
 
-test('works',
+test('renders loops with x-for',
     `
         <div x-data="{ items: ['foo'] }">
             <button x-on:click="items = ['foo', 'bar']">click me</button>
@@ -11,11 +11,11 @@ test('works',
         </div>
     `,
     get => {
-        get('span:nth-of-type(1)').should('contain', 'foo')
-        get('span:nth-of-type(2)').should('not.be.visible')
+        get('span:nth-of-type(1)').should(haveText('foo'))
+        get('span:nth-of-type(2)').should(notBeVisible())
         get('button').click()
-        get('span:nth-of-type(1)').should('contain', 'foo')
-        get('span:nth-of-type(2)').should('contain', 'bar')
+        get('span:nth-of-type(1)').should(haveText('foo'))
+        get('span:nth-of-type(2)').should(haveText('bar'))
     }
 )
 
@@ -30,9 +30,9 @@ test('removes all elements when array is empty and previously had one item',
         </div>
     `,
     get => {
-        get('span').should('be.visible')
+        get('span').should(beVisible())
         get('button').click()
-        get('span').should('not.be.visible')
+        get('span').should(notBeVisible())
     }
 )
 
@@ -47,13 +47,13 @@ test('removes all elements when array is empty and previously had multiple items
         </div>
     `,
     get => {
-        get('span:nth-of-type(1)').should('be.visible')
-        get('span:nth-of-type(2)').should('be.visible')
-        get('span:nth-of-type(3)').should('be.visible')
+        get('span:nth-of-type(1)').should(beVisible())
+        get('span:nth-of-type(2)').should(beVisible())
+        get('span:nth-of-type(3)').should(beVisible())
         get('button').click()
-        get('span:nth-of-type(1)').should('not.be.visible')
-        get('span:nth-of-type(2)').should('not.be.visible')
-        get('span:nth-of-type(3)').should('not.be.visible')
+        get('span:nth-of-type(1)').should(notBeVisible())
+        get('span:nth-of-type(2)').should(notBeVisible())
+        get('span:nth-of-type(3)').should(notBeVisible())
     }
 )
 
@@ -71,13 +71,13 @@ test('elements inside of loop are reactive',
         </div>
     `,
     get => {
-        get('span').should('be.visible')
-        get('h1').should('contain', 'first')
-        get('h2').should('contain', 'bar')
+        get('span').should(beVisible())
+        get('h1').should(haveText('first'))
+        get('h2').should(haveText('bar'))
         get('button').click()
-        get('span').should('be.visible')
-        get('h1').should('contain', 'first')
-        get('h2').should('contain', 'baz')
+        get('span').should(beVisible())
+        get('h1').should(haveText('first'))
+        get('h2').should(haveText('baz'))
     }
 )
 
@@ -93,9 +93,9 @@ test('components inside of loop are reactive',
         </div>
     `,
     get => {
-        get('span').should('contain', 'bar')
+        get('span').should(haveText('bar'))
         get('button').click()
-        get('span').should('contain', 'bob')
+        get('span').should(haveText('bob'))
     }
 )
 
@@ -113,9 +113,9 @@ test('components inside a plain element of loop are reactive',
         </div>
     `,
     get => {
-        get('span').should('contain', 'bar')
+        get('span').should(haveText('bar'))
         get('button').click()
-        get('span').should('contain', 'bob')
+        get('span').should(haveText('bob'))
     }
 )
 
@@ -179,8 +179,8 @@ test('can use index inside of loop',
         </div>
     `,
     get => {
-        get('h1').should('contain', 0)
-        get('h2').should('contain', 0)
+        get('h1').should(haveText(0))
+        get('h2').should(haveText(0))
     }
 )
 
@@ -196,8 +196,8 @@ test('can use third iterator param (collection) inside of loop',
         </div>
     `,
     get => {
-        get('h1').should('contain', 'foo')
-        get('h2').should('contain', 'foo')
+        get('h1').should(haveText('foo'))
+        get('h2').should(haveText('foo'))
     }
 )
 
@@ -214,12 +214,12 @@ test('listeners in loop get fresh iteration data even though they are only regis
         </div>
     `,
     get => {
-        get('h1').should('contain', '')
+        get('h1').should(haveText(''))
         get('span').click()
-        get('h1').should('contain', 'foo')
+        get('h1').should(haveText('foo'))
         get('button').click()
         get('span').click()
-        get('h1').should('contain', 'bar')
+        get('h1').should(haveText('bar'))
     }
 )
 
@@ -237,13 +237,13 @@ test('nested x-for',
         </div>
     `,
     get => {
-        get('h1:nth-of-type(1) h2:nth-of-type(1)').should('be.visible')
-        get('h1:nth-of-type(1) h2:nth-of-type(2)').should('be.visible')
-        get('h1:nth-of-type(2) h2:nth-of-type(1)').should('not.be.visible')
+        get('h1:nth-of-type(1) h2:nth-of-type(1)').should(beVisible())
+        get('h1:nth-of-type(1) h2:nth-of-type(2)').should(beVisible())
+        get('h1:nth-of-type(2) h2:nth-of-type(1)').should(notBeVisible())
         get('button').click()
-        get('h1:nth-of-type(1) h2:nth-of-type(1)').should('be.visible')
-        get('h1:nth-of-type(1) h2:nth-of-type(2)').should('be.visible')
-        get('h1:nth-of-type(2) h2:nth-of-type(1)').should('be.visible')
+        get('h1:nth-of-type(1) h2:nth-of-type(1)').should(beVisible())
+        get('h1:nth-of-type(1) h2:nth-of-type(2)').should(beVisible())
+        get('h1:nth-of-type(2) h2:nth-of-type(1)').should(beVisible())
     }
 )
 
@@ -258,12 +258,12 @@ test('x-for updates the right elements when new item are inserted at the beginni
         </div>
     `,
     get => {
-        get('span:nth-of-type(1)').should('contain', 'one')
-        get('span:nth-of-type(2)').should('contain', 'two')
+        get('span:nth-of-type(1)').should(haveText('one'))
+        get('span:nth-of-type(2)').should(haveText('two'))
         get('button').click()
-        get('span:nth-of-type(1)').should('contain', 'zero')
-        get('span:nth-of-type(2)').should('contain', 'one')
-        get('span:nth-of-type(3)').should('contain', 'two')
+        get('span:nth-of-type(1)').should(haveText('zero'))
+        get('span:nth-of-type(2)').should(haveText('one'))
+        get('span:nth-of-type(3)').should(haveText('two'))
     }
 )
 
@@ -280,10 +280,10 @@ test('nested x-for access outer loop variable',
         </div>
     `,
     get => {
-        get('h1:nth-of-type(1) h2:nth-of-type(1)').should('contain', 'foo: bob')
-        get('h1:nth-of-type(1) h2:nth-of-type(2)').should('contain', 'foo: lob')
-        get('h1:nth-of-type(2) h2:nth-of-type(1)').should('contain', 'baz: bab')
-        get('h1:nth-of-type(2) h2:nth-of-type(2)').should('contain', 'baz: lab')
+        get('h1:nth-of-type(1) h2:nth-of-type(1)').should(haveText('foo: bob'))
+        get('h1:nth-of-type(1) h2:nth-of-type(2)').should(haveText('foo: lob'))
+        get('h1:nth-of-type(2) h2:nth-of-type(1)').should(haveText('baz: bab'))
+        get('h1:nth-of-type(2) h2:nth-of-type(2)').should(haveText('baz: lab'))
     }
 )
 
@@ -300,15 +300,15 @@ test('sibling x-for do not interact with each other',
         </div>
     `,
     get => {
-        get('h1:nth-of-type(1)').should('contain', '1')
-        get('h2:nth-of-type(1)').should('contain', '1')
-        get('h2:nth-of-type(2)').should('contain', '2')
+        get('h1:nth-of-type(1)').should(haveText('1'))
+        get('h2:nth-of-type(1)').should(haveText('1'))
+        get('h2:nth-of-type(2)').should(haveText('2'))
         get('button').click()
-        get('h1:nth-of-type(1)').should('contain', '1')
-        get('h1:nth-of-type(2)').should('contain', '2')
-        get('h2:nth-of-type(1)').should('contain', '1')
-        get('h2:nth-of-type(2)').should('contain', '2')
-        get('h2:nth-of-type(3)').should('contain', '3')
+        get('h1:nth-of-type(1)').should(haveText('1'))
+        get('h1:nth-of-type(2)').should(haveText('2'))
+        get('h2:nth-of-type(1)').should(haveText('1'))
+        get('h2:nth-of-type(2)').should(haveText('2'))
+        get('h2:nth-of-type(3)').should(haveText('3'))
     }
 )
 
@@ -320,9 +320,7 @@ test('x-for over range using i in x syntax',
             </template>
         </div>
     `,
-    get => {
-        get('span').should('have.length', '10')
-    }
+    get => get('span').should(haveLength('10'))
 )
 
 test('x-for over range using i in property syntax',
@@ -333,9 +331,7 @@ test('x-for over range using i in property syntax',
             </template>
         </div>
     `,
-    get => {
-        get('span').should('have.length', '10')
-    }
+    get => get('span').should(haveLength('10'))
 )
 
 test('x-for with an array of numbers',
@@ -349,10 +345,10 @@ test('x-for with an array of numbers',
         </div>
     `,
     get => {
-        get('span').should('have.length', '0')
+        get('span').should(haveLength('0'))
         get('#first').click()
-        get('span').should('have.length', '1')
+        get('span').should(haveLength('1'))
         get('#second').click()
-        get('span').should('have.length', '2')
+        get('span').should(haveLength('2'))
     }
 )

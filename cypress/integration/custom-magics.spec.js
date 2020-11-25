@@ -1,4 +1,4 @@
-import { test, haveText } from '../utils'
+import { haveText, test } from '../utils'
 
 test('can register custom magic properties',
     `

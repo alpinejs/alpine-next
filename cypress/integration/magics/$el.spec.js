@@ -1,6 +1,6 @@
-import { test, haveText } from '../../utils'
+import { haveText, test } from '../../utils'
 
-test('works',
+test('$el returns the current element',
     `
         <div x-data>
             <button @click="$el.innerText = 'foo'">click me</button>

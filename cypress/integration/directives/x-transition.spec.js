@@ -1,4 +1,4 @@
-import { beHidden, beVisible, haveAttribute, haveClasses, notHaveClasses, test } from '../../utils'
+import { beHidden, beVisible, haveClasses, notHaveClasses, test } from '../../utils'
 
 test('transition in',
     `

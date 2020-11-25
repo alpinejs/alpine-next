@@ -1,4 +1,4 @@
-import { test, haveAttribute, haveData, haveText, beChecked } from '../../utils'
+import { beChecked, haveAttribute, haveData, haveText, test } from '../../utils'
 
 test('data modified in event listener updates affected attribute bindings',
     `

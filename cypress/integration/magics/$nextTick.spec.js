@@ -1,6 +1,6 @@
-import { test, haveText } from '../../utils'
+import { haveText, test } from '../../utils'
 
-test('$nextTick works',
+test('$nextTick runs code on the next available managed tick',
     `
         <div x-data="{foo: 'bar'}">
             <span x-text="foo" x-ref="span"></span>

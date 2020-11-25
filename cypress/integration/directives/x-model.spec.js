@@ -1,4 +1,4 @@
-import { test, haveData, haveText } from '../../utils'
+import { haveData, haveText, haveValue, test } from '../../utils'
 
 test('The name of the test',
     `<h1 x-data x-text="'HEY'"></h1>`,
@@ -11,9 +11,7 @@ test('x-model has value binding when initialized',
         <input x-model="foo"></input>
     </div>
     `,
-    get => {
-        get('input').should('have.value', 'bar')
-    }
+    get => get('input').should(haveValue('bar'))
 )
 
 test('x-model updates value when updated via input event',
@@ -39,9 +37,9 @@ test('x-model has value binding when updated',
     </div>
     `,
     get => {
-        get('input').should('have.value', 'bar')
+        get('input').should(haveValue('bar'))
         get('button').click()
-        get('input').should('have.value', 'baz')
+        get('input').should(haveValue('baz'))
     }
 )
 
@@ -94,16 +92,3 @@ test('x-model trims value if trim modifier is present',
         get('div').should(haveData('foo', 'bar'))
     }
 )
-
-// test('x-model updates value when updated via change event when lazy modifier is present',
-// `
-// <div x-data="{ foo: 'bar' }">
-//     <input x-model.lazy="foo"></input>
-// </div>
-// `,
-// get => {
-//     let haveData = (key, value) => ([ el ]) => expect(el._x_root()._x_$data[key]).to.equal(value)
-
-//     get('input').type('bar     ')
-//     get('div').should(([ el ]) => expect(el._x_$data.foo).to.equal('bar'))
-// })

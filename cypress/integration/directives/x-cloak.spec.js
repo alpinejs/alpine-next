@@ -1,4 +1,4 @@
-import { test, beMissingAttribute } from '../../utils'
+import { notHaveAttribute, test } from '../../utils'
 
 test('x-cloak is removed',
     `
@@ -6,7 +6,5 @@ test('x-cloak is removed',
             <span x-cloak></span>
         </div>
     `,
-    get => {
-        get('span').should(beMissingAttribute('x-cloak'))
-    }
+    get => get('span').should(notHaveAttribute('x-cloak'))
 )

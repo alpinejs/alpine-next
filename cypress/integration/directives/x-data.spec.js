@@ -6,9 +6,7 @@ test('x-data attribute value is optional',
             <span x-text="'foo'"></span>
         </div>
     `,
-    get => {
-        get('span').should(haveText('foo'))
-    }
+    get => get('span').should(haveText('foo'))
 )
 
 test('x-data can be nested',
@@ -58,9 +56,7 @@ test('x-data can use attributes from a reusable function',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
-        get('span').should(haveText('bar'))
-    }
+    get => get('span').should(haveText('bar'))
 )
 
 test('x-data can use $el',
@@ -69,9 +65,7 @@ test('x-data can use $el',
             <span x-text="text"></span>
         </div>
     `,
-    get => {
-        get('span').should(haveText('test'))
-    }
+    get => get('span').should(haveText('test'))
 )
 
 test('functions in x-data are reactive',
