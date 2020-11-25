@@ -1,4 +1,4 @@
-import { haveAttribute, haveClasses, haveValue, notHaveAttribute, notHaveClasses, test } from '../../utils'
+import { beChecked, haveAttribute, haveClasses, haveValue, notBeChecked, notHaveAttribute, notHaveClasses, test } from '../../utils'
 
 test('sets attribute bindings on initialize',
     `
@@ -232,11 +232,11 @@ test('radio values are set correctly',
     `,
     get => {
         get('#list-1').should(haveValue('1'))
-        get('#list-1').should(beUnChecked())
+        get('#list-1').should(notBeChecked())
         get('#list-8').should(haveValue('8'))
         get('#list-8').should(beChecked())
         get('#list-test').should(haveValue('test'))
-        get('#list-test').should(beUnChecked())
+        get('#list-test').should(notBeChecked())
     }
 )
 
