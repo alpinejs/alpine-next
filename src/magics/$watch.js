@@ -6,9 +6,7 @@ Alpine.magic('watch', el => {
 
         let firstTime = true
 
-        Alpine.effect(() => {
-            let value = evaluateSync()
-
+        Alpine.effect(() => evaluate()(value => {
             // This is a hack to force deep reactivity for things like "items.push()"
             let div = document.createElement('div')
             div.dataset.hey = value
@@ -16,6 +14,6 @@ Alpine.magic('watch', el => {
             if (! firstTime) callback(value)
 
             firstTime = false
-        })
+        }))
     }
 })

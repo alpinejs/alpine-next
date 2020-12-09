@@ -1,13 +1,39 @@
 <html>
-    <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
-    <script src="http://alpine-next.test/dist/alpine.js" defer></script>
+    <!-- <script src="http://alpine-next.test/dist/alpine.js" defer></script> -->
     <!-- <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet"> -->
 
-    <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline';"> -->
+    <!-- <div x-data x-morph="await $get('/')">
+        Loading...
+    </div> -->
 
-    <div x-data="{ word: 'hey' }" x-morph="await $get('http://alpine-next.test/partial.html')">
+    <script>
+        let biSync = async (run, receiver) => {
+            let thing = () => { thing.result = run(); thing.finished = true; return thing.result }
 
-    </div>
+            thing.result = undefined
+            thing.finished = false
+
+            let promise = thing()
+
+            if (thing.finished) {
+                // Return the immediate result.
+                receiver(thing.result)
+            } else {
+                // If not, return the result when the promise resolves.
+                promise.then(result => receiver(result))
+            }
+        }
+
+        let standard = () => {return 'hey'}
+        let func = async () => { return 'hey' }
+        let nonStandard = async () => { return await func() }
+
+        biSync(() => standard(), value => console.log('first: '+value))
+        biSync(() => nonStandard(), value => console.log('last: '+value))
+
+        console.log('second')
+
+    </script>
 
 <!--
     <div x-data x-init="console.log($refs.yo)">

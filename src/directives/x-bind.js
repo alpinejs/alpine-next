@@ -8,13 +8,11 @@ Alpine.directive('bind', (el, value, modifiers, expression, effect) => {
     // Ignore :key bindings. (They are used by x-for)
     if (attrName === 'key') return;
 
-    effect(async () => {
-        let value = await evaluate()
-
+    effect(() => evaluate()(value => {
         if (attrName === 'class' && typeof value === 'object') {
             console.warn(`Alpine Expression Error: Invalid class binding: "${expression}".\n\nArray and Object syntax for class bindings is no longer supported in version 3.0.0 and later.\n\n`, el)
         }
 
         el._x_bind(attrName, value, modifiers)
-    })
+    }))
 })

@@ -21,13 +21,11 @@ Alpine.directive('show', (el, value, modifiers, expression, effect) => {
 
     let isFirstRun = true
 
-    effect(() => {
-        let value = evaluate()
-
+    effect(() => evaluate()(value => {
         isFirstRun ? toggleImmediately(el, value, show, hide) : toggleWithTransitions(el, value, show, hide)
 
         isFirstRun = false
-    })
+    }))
 })
 
 function toggleImmediately(el, value, show, hide) {

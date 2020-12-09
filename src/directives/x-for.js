@@ -16,46 +16,49 @@ Alpine.directive('for', (el, value, modifiers, expression, effect) => {
     })
 })
 
-async function loop(el, iteratorNames, evaluateItems, evaluateKey) {
+function loop(el, iteratorNames, evaluateItems, evaluateKey) {
     let templateEl = el
 
-    let items = await evaluateItems()
-
-    // This adds support for the `i in n` syntax.
-    if (isNumeric(items) && items > 0) {
-        items = Array.from(Array(items).keys(), i => i + 1)
-    }
-
-    let closestParentContext = el._x_closestDataStack()
-
-    // As we walk the array, we'll also walk the DOM (updating/creating as we go).
-    let currentEl = templateEl
-    items.forEach(async (item, index) => {
-        let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items)
-        let currentKey = await evaluateKey({ index, ...iterationScopeVariables })
-        let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey)
-
-        // If we haven't found a matching key, insert the element at the current position.
-        if (! nextEl) {
-            nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl)
-
-            let newSet = new Set(closestParentContext)
-            newSet.add(Alpine.observe(iterationScopeVariables))
-            nextEl._x_dataStack = newSet
-            nextEl._x_for = iterationScopeVariables
-            // Alpine.initTree(nextEl)
-        } {
-            // Refresh data
-            Object.entries(iterationScopeVariables).forEach(([key, value]) => {
-                Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value
-            })
+    evaluateItems()(items => {
+        // This adds support for the `i in n` syntax.
+        if (isNumeric(items) && items > 0) {
+            items = Array.from(Array(items).keys(), i => i + 1)
         }
 
-        currentEl = nextEl
-        currentEl._x_for_key = currentKey
-    })
+        let closestParentContext = el._x_closestDataStack()
 
-    removeAnyLeftOverElementsFromPreviousUpdate(currentEl)
+        // As we walk the array, we'll also walk the DOM (updating/creating as we go).
+        let currentEl = templateEl
+        items.forEach((item, index) => {
+            let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items)
+
+            let currentKey
+            evaluateKey({ index, ...iterationScopeVariables })(result => currentKey = result)
+
+            let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey)
+
+            // If we haven't found a matching key, insert the element at the current position.
+            if (! nextEl) {
+                nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl)
+
+                let newSet = new Set(closestParentContext)
+                newSet.add(Alpine.observe(iterationScopeVariables))
+                nextEl._x_dataStack = newSet
+                nextEl._x_for = iterationScopeVariables
+                // Alpine.initTree(nextEl)
+            } {
+                // Refresh data
+                Object.entries(iterationScopeVariables).forEach(([key, value]) => {
+                    Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value
+                })
+            }
+
+            currentEl = nextEl
+            currentEl._x_for_key = currentKey
+        })
+
+        removeAnyLeftOverElementsFromPreviousUpdate(currentEl)
+    })
 }
 
 

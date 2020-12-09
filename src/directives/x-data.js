@@ -2,10 +2,6 @@
 import Alpine from '../alpine'
 
 let handler = (el, value, modifiers, expression, effect) => {
-    // Skip if already initialized
-    // @todo: I forgot why I added this, but it breaks nested x-data inside an x-for, so I'm commenting it out for now.
-    // if (el._x_dataStack) return
-
     expression = expression === '' ? '{}' : expression
 
     let components = Alpine.clonedComponentAccessor()

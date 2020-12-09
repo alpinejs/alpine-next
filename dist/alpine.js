@@ -991,11 +991,26 @@
     let closeExtras = extras;
     Alpine.injectMagics(closeExtras, this); // Now we smush em all together into one stack and reverse it so we can give proper scoping priority later.
 
-    let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse(); // If we weren't given a string expression (in the case of x-spread), evaluate the function directly.
+    let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse(); // We're going to use Async functions for evaluation to allow for the use of "await" in expressions.
+
+    let AsyncFunction = Object.getPrototypeOf(async function () {}).constructor; // If we weren't given a string expression (in the case of x-spread), evaluate the function directly.
 
     if (typeof expression === 'function') {
       let mergedObject = mergeProxies(...reversedDataStack);
-      return expression.bind(mergedObject);
+      let expressionWithContext = expression.bind(mergedObject);
+
+      if (expression instanceof AsyncFunction) {
+        return (...args) => {
+          return receiver => {
+            expressionWithContext(...args).then(result => receiver(result));
+          };
+        };
+      } else {
+        return (...args) => {
+          let result = expressionWithContext(...args);
+          return receiver => receiver(result);
+        };
+      }
     }
 
     let names = reversedDataStack.map((data, index) => `$data${index}`);
@@ -1006,10 +1021,8 @@
     }, `${assignmentPrefix}${expression}`);
     let namesWithPlaceholderAndDefault = names.concat(['$dataPlaceholder = {}']);
 
-    let evaluator = () => {}; // We're going to use Async functions for evaluation to allow for the use of "await" in expressions.
+    let evaluator = () => {}; // We wrap this in a try catch right now so we can catch errors when constructing the evaluator and handle them nicely.
 
-
-    let AsyncFunction = Object.getPrototypeOf(async function () {}).constructor; // We wrap this in a try catch right now so we can catch errors when constructing the evaluator and handle them nicely.
 
     evaluator = tryCatch(this, expression, () => (...args) => {
       // We build the async function from the expression and arguments we constructed already.
@@ -1924,7 +1937,7 @@
     let evaluate = el._x_evaluator(expression);
 
     effect(() => {
-      evaluate(value => {
+      evaluate()(value => {
         el.textContent = value;
       });
     });
@@ -1937,21 +1950,16 @@
 
 
     if (attrName === 'key') return;
-    effect(async () => {
-      let value = await evaluate();
-
+    effect(() => evaluate()(value => {
       if (attrName === 'class' && typeof value === 'object') {
         console.warn(`Alpine Expression Error: Invalid class binding: "${expression}".\n\nArray and Object syntax for class bindings is no longer supported in version 3.0.0 and later.\n\n`, el);
       }
 
       el._x_bind(attrName, value, modifiers);
-    });
+    }));
   });
 
   let handler$2 = (el, value, modifiers, expression, effect) => {
-    // Skip if already initialized
-    // @todo: I forgot why I added this, but it breaks nested x-data inside an x-for, so I'm commenting it out for now.
-    // if (el._x_dataStack) return
     expression = expression === '' ? '{}' : expression;
     let components = Alpine.clonedComponentAccessor();
     let data;
@@ -1997,11 +2005,10 @@
     };
 
     let isFirstRun = true;
-    effect(() => {
-      let value = evaluate();
+    effect(() => evaluate()(value => {
       isFirstRun ? toggleImmediately(el, value, show, hide) : toggleWithTransitions(el, value, show, hide);
       isFirstRun = false;
-    });
+    }));
   });
 
   function toggleImmediately(el, value, show, hide) {
@@ -2069,43 +2076,45 @@
     });
   });
 
-  async function loop(el, iteratorNames, evaluateItems, evaluateKey) {
+  function loop(el, iteratorNames, evaluateItems, evaluateKey) {
     let templateEl = el;
-    let items = await evaluateItems(); // This adds support for the `i in n` syntax.
-
-    if (isNumeric$2(items) && items > 0) {
-      items = Array.from(Array(items).keys(), i => i + 1);
-    }
-
-    let closestParentContext = el._x_closestDataStack(); // As we walk the array, we'll also walk the DOM (updating/creating as we go).
-
-
-    let currentEl = templateEl;
-    items.forEach(async (item, index) => {
-      let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items);
-      let currentKey = await evaluateKey(_objectSpread2({
-        index
-      }, iterationScopeVariables));
-      let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey); // If we haven't found a matching key, insert the element at the current position.
-
-      if (!nextEl) {
-        nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl);
-        let newSet = new Set(closestParentContext);
-        newSet.add(Alpine.observe(iterationScopeVariables));
-        nextEl._x_dataStack = newSet;
-        nextEl._x_for = iterationScopeVariables; // Alpine.initTree(nextEl)
+    evaluateItems()(items => {
+      // This adds support for the `i in n` syntax.
+      if (isNumeric$2(items) && items > 0) {
+        items = Array.from(Array(items).keys(), i => i + 1);
       }
 
-      {
-        // Refresh data
-        Object.entries(iterationScopeVariables).forEach(([key, value]) => {
-          Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value;
-        });
-      }
-      currentEl = nextEl;
-      currentEl._x_for_key = currentKey;
+      let closestParentContext = el._x_closestDataStack(); // As we walk the array, we'll also walk the DOM (updating/creating as we go).
+
+
+      let currentEl = templateEl;
+      items.forEach((item, index) => {
+        let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items);
+        let currentKey;
+        evaluateKey(_objectSpread2({
+          index
+        }, iterationScopeVariables))(result => currentKey = result);
+        let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey); // If we haven't found a matching key, insert the element at the current position.
+
+        if (!nextEl) {
+          nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl);
+          let newSet = new Set(closestParentContext);
+          newSet.add(Alpine.observe(iterationScopeVariables));
+          nextEl._x_dataStack = newSet;
+          nextEl._x_for = iterationScopeVariables; // Alpine.initTree(nextEl)
+        }
+
+        {
+          // Refresh data
+          Object.entries(iterationScopeVariables).forEach(([key, value]) => {
+            Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value;
+          });
+        }
+        currentEl = nextEl;
+        currentEl._x_for_key = currentKey;
+      });
+      removeAnyLeftOverElementsFromPreviousUpdate(currentEl);
     });
-    removeAnyLeftOverElementsFromPreviousUpdate(currentEl);
   } // This was taken from VueJS 2.* core. Thanks Vue!
 
 
@@ -2224,14 +2233,13 @@
       let evaluate = el._x_evaluator(key);
 
       let firstTime = true;
-      Alpine.effect(() => {
-        let value = evaluateSync(); // This is a hack to force deep reactivity for things like "items.push()"
-
+      Alpine.effect(() => evaluate()(value => {
+        // This is a hack to force deep reactivity for things like "items.push()"
         let div = document.createElement('div');
         div.dataset.hey = value;
         if (!firstTime) callback(value);
         firstTime = false;
-      });
+      }));
     };
   });
 

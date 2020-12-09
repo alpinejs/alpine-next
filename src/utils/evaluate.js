@@ -13,10 +13,28 @@ window.Element.prototype._x_evaluator = function(expression, extras = {}, return
     // Now we smush em all together into one stack and reverse it so we can give proper scoping priority later.
     let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse()
 
+    // We're going to use Async functions for evaluation to allow for the use of "await" in expressions.
+    let AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
+
     // If we weren't given a string expression (in the case of x-spread), evaluate the function directly.
     if (typeof expression === 'function') {
         let mergedObject = mergeProxies(...reversedDataStack)
-        return expression.bind(mergedObject)
+
+        let expressionWithContext = expression.bind(mergedObject)
+
+        if (expression instanceof AsyncFunction) {
+            return (...args) => {
+                return (receiver) => {
+                    expressionWithContext(...args).then(result => receiver(result))
+                }
+            }
+        } else {
+            return (...args) => {
+                let result = expressionWithContext(...args)
+
+                return (receiver) => receiver(result)
+            }
+        }
     }
 
     let names = reversedDataStack.map((data, index) => `$data${index}`)
@@ -30,9 +48,6 @@ window.Element.prototype._x_evaluator = function(expression, extras = {}, return
     let namesWithPlaceholderAndDefault = names.concat(['$dataPlaceholder = {}'])
 
     let evaluator = () => {}
-
-    // We're going to use Async functions for evaluation to allow for the use of "await" in expressions.
-    let AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
 
     // We wrap this in a try catch right now so we can catch errors when constructing the evaluator and handle them nicely.
     evaluator = tryCatch(this, expression, () => (...args) => {
@@ -62,6 +77,7 @@ window.Element.prototype._x_evaluator = function(expression, extras = {}, return
             }
         }
     })
+
 
     let boundEvaluator = evaluator.bind(null, ...reversedDataStack)
 
