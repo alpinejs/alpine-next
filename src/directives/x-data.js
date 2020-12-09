@@ -1,7 +1,7 @@
 
 import Alpine from '../alpine'
 
-Alpine.directive('data', (el, value, modifiers, expression, effect) => {
+let handler = (el, value, modifiers, expression, effect) => {
     // Skip if already initialized
     // @todo: I forgot why I added this, but it breaks nested x-data inside an x-for, so I'm commenting it out for now.
     // if (el._x_dataStack) return
@@ -13,8 +13,9 @@ Alpine.directive('data', (el, value, modifiers, expression, effect) => {
 
     if (Object.keys(components).includes(expression)) {
         data = components[expression]
+        data._x_canonical = true
     } else {
-        data = el._x_evaluate(expression)
+        data = el._x_evaluateSync(expression)
     }
 
     Alpine.injectMagics(data, el)
@@ -23,4 +24,12 @@ Alpine.directive('data', (el, value, modifiers, expression, effect) => {
     el._x_$data = Alpine.observe(el._x_data)
     el._x_dataStack = new Set(el._x_closestDataStack())
     el._x_dataStack.add(el._x_$data)
-})
+
+    if (data['init']) {
+        el._x_evaluateSync(data['init'])
+    }
+}
+
+handler.initOnly = true
+
+Alpine.directive('data', handler)

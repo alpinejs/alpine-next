@@ -1,10 +1,12 @@
 import Alpine from '../alpine'
 
 Alpine.directive('show', (el, value, modifiers, expression, effect) => {
-    let evaluate = el._x_evaluator(expression)
+    let evaluate = el._x_evaluator(expression, {}, true, true)
 
     let hide = () => {
         el.style.display = 'none'
+
+        el._x_is_shown = false
     }
 
     let show = () => {
@@ -13,6 +15,8 @@ Alpine.directive('show', (el, value, modifiers, expression, effect) => {
         } else {
             el.style.removeProperty('display')
         }
+
+        el._x_is_shown = true
     }
 
     let isFirstRun = true

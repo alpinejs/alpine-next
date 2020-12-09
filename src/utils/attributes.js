@@ -10,7 +10,7 @@ window.Element.prototype._x_attributesByType = function(type) {
 }
 
 window.Element.prototype._x_attributeByType = function(type) {
-    return this._x_attributesByType()[0]
+    return this._x_attributesByType(type)[0]
 }
 
 let xAttrRE = /^x-([^:^.]+)\b/

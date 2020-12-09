@@ -56,8 +56,16 @@
     tasks: [],
     nextTicks: [],
     shouldFlush: false,
+    ignore: false,
+
+    ignore(callback) {
+      this.ignore = true;
+      callback();
+      this.ignore = false;
+    },
 
     task(callback) {
+      if (this.ignore === true) return;
       this.tasks.push(callback);
       this.shouldFlushAtEndOfRequest();
     },
@@ -85,6 +93,12 @@
         if (this.shouldFlush) this.flush();
         this.shouldFlush = false;
       });
+    },
+
+    flushImmediately() {
+      while (this.tasks.length > 0) this.tasks.shift()();
+
+      if (!this.holdNextTicksOver) while (this.nextTicks.length > 0) this.nextTicks.shift()();
     },
 
     flush() {
@@ -752,7 +766,7 @@
 
     get effect() {
       return callback => {
-        effect(() => {
+        return effect(() => {
           callback();
         }, {
           scheduler(run) {
@@ -822,20 +836,34 @@
       });
     },
 
+    copyTree(originalEl, newEl) {
+      newEl._x_data = originalEl._x_data;
+      newEl._x_$data = originalEl._x_$data;
+      newEl._x_dataStack = originalEl._x_dataStack;
+      let root = true;
+      this.walk(newEl, (el, skipSubTree) => {
+        if (!root && !!el._x_attributeByType('data')) return skipSubTree();
+        root = false;
+        this.init(el, false, (attr, handler) => handler.initOnly);
+      });
+      scheduler.flushImmediately();
+    },
+
     initTree(root) {
       this.walk(root, el => this.init(el));
       scheduler.flush();
     },
 
-    init(el, attributes) {
+    init(el, attributes, exceptAttribute = () => false) {
       (attributes || el._x_attributes()).forEach(attr => {
         let noop = () => {};
 
-        let run = Alpine.directives[attr.type] || noop; // Run "x-ref/data/spread" on the initial sweep.
+        let handler = Alpine.directives[attr.type] || noop;
+        if (exceptAttribute(attr, handler)) return; // Run "x-ref/data/spread" on the initial sweep.
 
-        let task = run.runImmediately ? callback => callback() : scheduler.task.bind(scheduler);
+        let task = handler.immediate ? callback => callback() : scheduler.task.bind(scheduler);
         task(() => {
-          run(el, attr.value, attr.modifiers, attr.expression, Alpine.effect);
+          handler(el, attr.value, attr.modifiers, attr.expression, Alpine.effect);
         });
       });
     },
@@ -859,7 +887,9 @@
     },
 
     walk(el, callback) {
-      callback(el);
+      let skip = false;
+      callback(el, () => skip = true);
+      if (skip) return;
       let node = el.firstElementChild;
 
       while (node) {
@@ -880,7 +910,7 @@
   };
 
   window.Element.prototype._x_attributeByType = function (type) {
-    return this._x_attributesByType()[0];
+    return this._x_attributesByType(type)[0];
   };
 
   let xAttrRE = /^x-([^:^.]+)\b/;
@@ -925,31 +955,43 @@
     return name;
   }
 
-  window.Element.prototype._x_intersect = function ({
-    enter = () => {},
-    leave = () => {}
-  } = {}) {
+  window.Element.prototype._x_intersectEnter = function (callback, modifiers) {
+    this._x_intersect((entry, observer) => {
+      if (entry.intersectionRatio > 0) {
+        callback();
+        modifiers.includes('once') && observer.unobserve(this);
+      }
+    });
+  };
+
+  window.Element.prototype._x_intersectLeave = function (callback, modifiers) {
+    this._x_intersect((entry, observer) => {
+      if (!entry.intersectionRatio > 0) {
+        callback();
+        modifiers.includes('once') && observer.unobserve(this);
+      }
+    });
+  };
+
+  window.Element.prototype._x_intersect = function (callback) {
     let observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.intersectionRatio > 0) {
-          enter();
-        } else {
-          leave();
-        }
-      });
+      entries.forEach(entry => callback(entry, observer));
     });
     observer.observe(this);
     return observer;
   };
 
   window.Element.prototype._x_evaluator = function (expression, extras = {}, returns = true) {
+    // Ok, gear up for this method. It's a bit of a bumpy ride.
+    // First, we establish all data we want made available to the function/expression.
     let farExtras = {};
 
     let dataStack = this._x_closestDataStack();
 
     let closeExtras = extras;
-    Alpine.injectMagics(closeExtras, this);
-    let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse();
+    Alpine.injectMagics(closeExtras, this); // Now we smush em all together into one stack and reverse it so we can give proper scoping priority later.
+
+    let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse(); // If we weren't given a string expression (in the case of x-spread), evaluate the function directly.
 
     if (typeof expression === 'function') {
       let mergedObject = mergeProxies(...reversedDataStack);
@@ -958,23 +1000,54 @@
 
     let names = reversedDataStack.map((data, index) => `$data${index}`);
     let namesWithPlaceholder = ['$dataPlaceholder'].concat(names);
-    let assignmentPrefix = returns ? '_x_result = ' : '';
+    let assignmentPrefix = returns ? '__self.result = ' : '';
     let withExpression = namesWithPlaceholder.reduce((carry, current) => {
       return `with (${current}) { ${carry} }`;
     }, `${assignmentPrefix}${expression}`);
     let namesWithPlaceholderAndDefault = names.concat(['$dataPlaceholder = {}']);
 
-    let evaluator = () => {};
+    let evaluator = () => {}; // We're going to use Async functions for evaluation to allow for the use of "await" in expressions.
 
-    evaluator = tryCatch(this, () => {
-      return new Function(namesWithPlaceholderAndDefault, `var _x_result; ${withExpression}; return _x_result;`);
+
+    let AsyncFunction = Object.getPrototypeOf(async function () {}).constructor; // We wrap this in a try catch right now so we can catch errors when constructing the evaluator and handle them nicely.
+
+    evaluator = tryCatch(this, expression, () => (...args) => {
+      // We build the async function from the expression and arguments we constructed already.
+      let func = new AsyncFunction(['__self', ...namesWithPlaceholderAndDefault], `${withExpression}; __self.finished = true; return __self.result;`); // The following rigamerol is to handle the AsyncFunction both synchronously AND asynchronously at the SAME TIME. What a rush.
+      // Because the async/promise body is evaluated immediately (synchronously), we can store any results and check
+      // if they are set synchronously.
+
+      func.result = undefined;
+      func.finished = false; // Run the function.
+
+      let promise = func(...[func, ...args]);
+      return receiver => {
+        // Check if the function ran synchronously,
+        if (func.finished) {
+          // Return the immediate result.
+          receiver(func.result);
+        } else {
+          // If not, return the result when the promise resolves.
+          promise.then(result => {
+            receiver(result);
+          });
+        }
+      };
     });
     let boundEvaluator = evaluator.bind(null, ...reversedDataStack);
-    return tryCatch.bind(null, this, boundEvaluator);
+    return tryCatch.bind(null, this, expression, boundEvaluator);
   };
 
   window.Element.prototype._x_evaluate = function (expression, extras = {}, returns = true) {
     return this._x_evaluator(expression, extras, returns)();
+  };
+
+  window.Element.prototype._x_evaluateSync = function (expression, extras = {}, returns = true) {
+    let result;
+
+    this._x_evaluator(expression, extras, returns)()(value => result = value);
+
+    return result;
   };
 
   window.Element.prototype._x_closestDataStack = function () {
@@ -987,11 +1060,11 @@
     return mergeProxies(...this._x_closestDataStack());
   };
 
-  function tryCatch(el, callback, ...args) {
+  function tryCatch(el, expression, callback, ...args) {
     try {
       return callback(...args);
     } catch (e) {
-      console.warn('Alpine Expression Error: ' + e.message, el);
+      console.warn(`Alpine Expression Error: ${e.message}\n\nExpression: "${expression}"\n\n`, el);
       throw e;
     }
   }
@@ -1002,7 +1075,17 @@
         return (objects.find(object => Object.keys(object).includes(name)) || {})[name];
       },
       set: (target, name, value) => {
-        (objects.find(object => Object.keys(object).includes(name)) || {})[name] = value;
+        let closestObjectWithKey = objects.find(object => Object.keys(object).includes(name));
+        let closestCanonicalObject = objects.find(object => object['_x_canonical']);
+
+        if (closestObjectWithKey) {
+          closestObjectWithKey[name] = value;
+        } else if (closestCanonicalObject) {
+          closestCanonicalObject[name] = value;
+        } else {
+          objects[objects.length - 1][name] = value;
+        }
+
         return true;
       }
     });
@@ -1309,7 +1392,7 @@
     }
   }
 
-  Alpine.directive('transition', (el, value, modifiers, expression, effect) => {
+  let handler = (el, value, modifiers, expression, effect) => {
     if (!el._x_transition) {
       el._x_transition = {
         enter: {
@@ -1363,7 +1446,10 @@
       }
     };
     directiveStorageMap[value](expression);
-  });
+  }; // handler.initOnly = true
+
+
+  Alpine.directive('transition', handler);
   function transitionClasses(el, {
     during = '',
     start = '',
@@ -1451,19 +1537,15 @@
   Alpine.directive('intersect', (el, value, modifiers, expression, effect) => {
     let evaluate = el._x_evaluator(expression, {}, false);
 
-    if (value === 'leave') {
-      el._x_intersect({
-        leave: evaluate
-      });
+    if (['in', 'leave'].includes(value)) {
+      el._x_intersectLeave(evaluate, modifiers);
     } else {
-      el._x_intersect({
-        enter: evaluate
-      });
+      el._x_intersectEnter(evaluate, modifiers);
     }
   });
 
   Alpine.directive('spread', (el, value, modifiers, expression, effect) => {
-    let spreadObject = el._x_evaluate(expression);
+    let spreadObject = el._x_evaluateSync(expression);
 
     let rawAttributes = Object.entries(spreadObject).map(([name, value]) => ({
       name,
@@ -1495,15 +1577,16 @@
     });
 
     effect(() => {
-      let value = evaluate(); // If nested model key is undefined, set the default value to empty string.
+      evaluate()(value => {
+        // If nested model key is undefined, set the default value to empty string.
+        if (value === undefined && expression.match(/\./)) value = ''; // @todo: This is nasty
 
-      if (value === undefined && expression.match(/\./)) value = ''; // @todo: This is nasty
+        window.fromModel = true;
 
-      window.fromModel = true;
+        el._x_bind('value', value);
 
-      el._x_bind('value', value);
-
-      delete window.fromModel;
+        delete window.fromModel;
+      });
     });
   });
 
@@ -1558,15 +1641,292 @@
     el.removeAttribute('x-cloak');
   });
 
-  Alpine.directive('init', (el, value, modifiers, expression, effect) => {
-    el._x_evaluate(expression, {}, false);
+  function morph(dom, toHtml, options) {
+    assignOptions(options);
+    patch(dom, createElement(toHtml));
+    return dom;
+  }
+  let key, lookahead, updating, updated, removing, removed, adding, added;
+
+  let noop = () => {};
+
+  function assignOptions(options = {}) {
+    let defaultGetKey = el => el.getAttribute('key');
+
+    key = options.key || defaultGetKey;
+    lookahead = options.lookahead || false;
+    updating = options.updating || noop;
+    updated = options.updated || noop;
+    removing = options.removing || noop;
+    removed = options.removed || noop;
+    adding = options.adding || noop;
+    added = options.added || noop;
+  }
+
+  function createElement(html) {
+    return document.createRange().createContextualFragment(html).firstElementChild;
+  }
+
+  function patch(dom, to) {
+    if (dom.isEqualNode(to)) return;
+
+    if (differentElementNamesTypesOrKeys(dom, to)) {
+      return patchElement(dom, to);
+    }
+
+    let updateChildrenOnly = false;
+    if (shouldSkip(updating, dom, to, () => updateChildrenOnly = true)) return;
+    initializeAlpineOnTo(dom, to, () => updateChildrenOnly = true);
+
+    if (textOrComment(to)) {
+      patchNodeValue(dom, to);
+      updated(dom, to);
+      return;
+    }
+
+    if (!updateChildrenOnly) {
+      patchAttributes(dom, to);
+    }
+
+    updated(dom, to);
+    patchChildren(dom, to);
+  }
+
+  function differentElementNamesTypesOrKeys(dom, to) {
+    return dom.nodeType != to.nodeType || dom.nodeName != to.nodeName || getKey(dom) != getKey(to);
+  }
+
+  function textOrComment(el) {
+    return el.nodeType === 3 || el.nodeType === 8;
+  }
+
+  function patchElement(dom, to) {
+    if (shouldSkip(removing, dom)) return;
+    let toCloned = to.cloneNode(true);
+    if (shouldSkip(adding, toCloned)) return;
+    dom.parentNode.replaceChild(toCloned, dom);
+    removed(dom);
+    added(toCloned);
+  }
+
+  function patchNodeValue(dom, to) {
+    let value = to.nodeValue;
+    if (dom.nodeValue !== value) dom.nodeValue = value;
+  }
+
+  function patchAttributes(dom, to) {
+    let domAttributes = Array.from(dom.attributes);
+    let toAttributes = Array.from(to.attributes);
+
+    for (let i = domAttributes.length - 1; i >= 0; i--) {
+      let name = domAttributes[i].name;
+      if (!to.hasAttribute(name)) dom.removeAttribute(name);
+    }
+
+    for (let i = toAttributes.length - 1; i >= 0; i--) {
+      let name = toAttributes[i].name;
+      let value = toAttributes[i].value;
+      if (dom.getAttribute(name) !== value) dom.setAttribute(name, value);
+    }
+  }
+
+  function patchChildren(dom, to) {
+    let domChildren = dom.childNodes;
+    let toChildren = to.childNodes;
+    let toKeyToNodeMap = keyToMap(toChildren);
+    let domKeyDomNodeMap = keyToMap(domChildren);
+    let currentTo = to.firstChild;
+    let currentFrom = dom.firstChild;
+    let domKeyHoldovers = {};
+
+    while (currentTo) {
+      let toKey = getKey(currentTo);
+      let domKey = getKey(currentFrom); // Add new elements
+
+      if (!currentFrom) {
+        if (toKey && domKeyHoldovers[toKey]) {
+          let holdover = domKeyHoldovers[toKey];
+          dom.appendChild(holdover);
+          currentFrom = holdover;
+        } else {
+          addNodeTo(currentTo, dom);
+          currentTo = currentTo.nextSibling;
+          continue;
+        }
+      }
+
+      if (lookahead) {
+        let nextToElementSibling = currentTo.nextElementSibling;
+
+        if (nextToElementSibling && currentFrom.isEqualNode(nextToElementSibling)) {
+          currentFrom = addNodeBefore(currentTo, currentFrom);
+          domKey = getKey(currentFrom);
+        }
+      }
+
+      if (toKey !== domKey) {
+        if (!toKey && domKey) {
+          domKeyHoldovers[domKey] = currentFrom;
+          currentFrom = addNodeBefore(currentTo, currentFrom);
+          domKeyHoldovers[domKey].remove();
+          currentFrom = currentFrom.nextSibling;
+          currentTo = currentTo.nextSibling;
+          continue;
+        }
+
+        if (toKey && !domKey) {
+          if (domKeyDomNodeMap[toKey]) {
+            currentFrom.parentElement.replaceChild(domKeyDomNodeMap[toKey], currentFrom);
+            currentFrom = domKeyDomNodeMap[toKey];
+          }
+        }
+
+        if (toKey && domKey) {
+          domKeyHoldovers[domKey] = currentFrom;
+          let domKeyNode = domKeyDomNodeMap[toKey];
+
+          if (domKeyNode) {
+            currentFrom.parentElement.replaceChild(domKeyNode, currentFrom);
+            currentFrom = domKeyNode;
+          } else {
+            domKeyHoldovers[domKey] = currentFrom;
+            currentFrom = addNodeBefore(currentTo, currentFrom);
+            domKeyHoldovers[domKey].remove();
+            currentFrom = currentFrom.nextSibling;
+            currentTo = currentTo.nextSibling;
+            continue;
+          }
+        }
+      } // Patch elements
+
+
+      patch(currentFrom, currentTo);
+      currentTo = currentTo && currentTo.nextSibling;
+      currentFrom = currentFrom && currentFrom.nextSibling;
+    } // cleanup extra froms
+
+
+    while (currentFrom) {
+      if (!shouldSkip(removing, currentFrom)) {
+        let domForRemoval = currentFrom;
+        dom.removeChild(domForRemoval);
+        removed(domForRemoval);
+      }
+
+      currentFrom = currentFrom.nextSibling;
+    }
+  }
+
+  function getKey(el) {
+    return el && el.nodeType === 1 && key(el);
+  }
+
+  function keyToMap(els) {
+    let map = {};
+    els.forEach(el => {
+      let theKey = getKey(el);
+
+      if (theKey) {
+        map[theKey] = el;
+      }
+    });
+    return map;
+  }
+
+  function shouldSkip(hook, ...args) {
+    let skip = false;
+    hook(...args, () => skip = true);
+    return skip;
+  }
+
+  function addNodeTo(node, parent) {
+    if (!shouldSkip(adding, node)) {
+      let clone = node.cloneNode(true);
+      parent.appendChild(clone);
+      added(clone);
+    }
+  }
+
+  function addNodeBefore(node, beforeMe) {
+    if (!shouldSkip(adding, node)) {
+      let clone = node.cloneNode(true);
+      beforeMe.parentElement.insertBefore(clone, beforeMe);
+      added(clone);
+      return clone;
+    }
+
+    return beforeMe;
+  }
+
+  function initializeAlpineOnTo(from, to, childrenOnly) {
+    if (from.nodeType !== 1) return; // If the element we are updating is an Alpine component...
+
+    if (from._x_dataStack) {
+      // Then temporarily clone it (with it's data) to the "to" element.
+      // This should simulate backend Livewire being aware of Alpine changes.
+      window.Alpine.copyTree(from, to);
+    } // x-show elements require care because of transitions.
+
+
+    if (Array.from(from.attributes).map(attr => attr.name).some(name => /x-show/.test(name))) {
+      if (from._x_transitioning) {
+        // This covers @entangle('something')
+        childrenOnly();
+      } else {
+        // This covers x-show="$wire.something"
+        //
+        // If the element has x-show, we need to "reverse" the damage done by "clone",
+        // so that if/when the element has a transition on it, it will occur naturally.
+        if (isHiding(from, to)) {
+          let style = to.getAttribute('style');
+          to.setAttribute('style', style.replace('display: none;', ''));
+        } else if (isShowing(from, to)) {
+          to.style.display = from.style.display;
+        }
+      }
+    }
+  }
+
+  function isHiding(from, to) {
+    return from._x_is_shown && !to._x_is_shown;
+  }
+
+  function isShowing(from, to) {
+    return !from._x_is_shown && to._x_is_shown;
+  }
+
+  Alpine.directive('morph', (el, value, modifiers, expression, effect) => {
+    let evaluate = el._x_evaluator(expression);
+
+    effect(() => {
+      evaluate()(value => {
+        if (!el.firstElementChild) {
+          if (el.firstChild) {
+            el.firstChild.remove();
+          }
+
+          el.appendChild(document.createElement('div'));
+        }
+
+        morph(el.firstElementChild, value);
+      });
+    });
   });
+
+  let handler$1 = (el, value, modifiers, expression, effect) => {
+    el._x_evaluate(expression, {}, false);
+  };
+
+  handler$1.initOnly = true;
+  Alpine.directive('init', handler$1);
 
   Alpine.directive('text', (el, value, modifiers, expression, effect) => {
     let evaluate = el._x_evaluator(expression);
 
     effect(() => {
-      el.textContent = evaluate();
+      evaluate(value => {
+        el.textContent = value;
+      });
     });
   });
 
@@ -1576,15 +1936,19 @@
     let evaluate = el._x_evaluator(expression); // Ignore :key bindings. (They are used by x-for)
 
 
-    if (value === 'key') return;
-    effect(() => {
-      let value = evaluate();
+    if (attrName === 'key') return;
+    effect(async () => {
+      let value = await evaluate();
+
+      if (attrName === 'class' && typeof value === 'object') {
+        console.warn(`Alpine Expression Error: Invalid class binding: "${expression}".\n\nArray and Object syntax for class bindings is no longer supported in version 3.0.0 and later.\n\n`, el);
+      }
 
       el._x_bind(attrName, value, modifiers);
     });
   });
 
-  Alpine.directive('data', (el, value, modifiers, expression, effect) => {
+  let handler$2 = (el, value, modifiers, expression, effect) => {
     // Skip if already initialized
     // @todo: I forgot why I added this, but it breaks nested x-data inside an x-for, so I'm commenting it out for now.
     // if (el._x_dataStack) return
@@ -1594,8 +1958,9 @@
 
     if (Object.keys(components).includes(expression)) {
       data = components[expression];
+      data._x_canonical = true;
     } else {
-      data = el._x_evaluate(expression);
+      data = el._x_evaluateSync(expression);
     }
 
     Alpine.injectMagics(data, el);
@@ -1604,13 +1969,21 @@
     el._x_dataStack = new Set(el._x_closestDataStack());
 
     el._x_dataStack.add(el._x_$data);
-  });
+
+    if (data['init']) {
+      el._x_evaluateSync(data['init']);
+    }
+  };
+
+  handler$2.initOnly = true;
+  Alpine.directive('data', handler$2);
 
   Alpine.directive('show', (el, value, modifiers, expression, effect) => {
-    let evaluate = el._x_evaluator(expression);
+    let evaluate = el._x_evaluator(expression, {}, true, true);
 
     let hide = () => {
       el.style.display = 'none';
+      el._x_is_shown = false;
     };
 
     let show = () => {
@@ -1619,6 +1992,8 @@
       } else {
         el.style.removeProperty('display');
       }
+
+      el._x_is_shown = true;
     };
 
     let isFirstRun = true;
@@ -1694,9 +2069,9 @@
     });
   });
 
-  function loop(el, iteratorNames, evaluateItems, evaluateKey) {
+  async function loop(el, iteratorNames, evaluateItems, evaluateKey) {
     let templateEl = el;
-    let items = evaluateItems(); // This adds support for the `i in n` syntax.
+    let items = await evaluateItems(); // This adds support for the `i in n` syntax.
 
     if (isNumeric$2(items) && items > 0) {
       items = Array.from(Array(items).keys(), i => i + 1);
@@ -1706,9 +2081,9 @@
 
 
     let currentEl = templateEl;
-    items.forEach((item, index) => {
+    items.forEach(async (item, index) => {
       let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items);
-      let currentKey = evaluateKey(_objectSpread2({
+      let currentKey = await evaluateKey(_objectSpread2({
         index
       }, iterationScopeVariables));
       let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey); // If we haven't found a matching key, insert the element at the current position.
@@ -1809,15 +2184,15 @@
     return !Array.isArray(subject) && !isNaN(subject);
   }
 
-  let refHandler = function refHandler(el, value, modifiers, expression, effect, before) {
+  let handler$3 = function handler(el, value, modifiers, expression, effect, before) {
     let root = el._x_root();
 
     if (!root._x_$refs) root._x_$refs = {};
     root._x_$refs[expression] = el;
   };
 
-  refHandler.runImmediately = true;
-  Alpine.directive('ref', refHandler);
+  handler$3.immediate = true;
+  Alpine.directive('ref', handler$3);
 
   Alpine.directive('on', (el, value, modifiers, expression) => {
     let evaluate = el._x_evaluator(expression, {}, false);
@@ -1837,13 +2212,20 @@
     };
   });
 
+  Alpine.magic('ignore', el => {
+    return callback => {
+      console.log(scheduler);
+      scheduler.ignore(() => callback());
+    };
+  });
+
   Alpine.magic('watch', el => {
     return (key, callback) => {
       let evaluate = el._x_evaluator(key);
 
       let firstTime = true;
       Alpine.effect(() => {
-        let value = evaluate(); // This is a hack to force deep reactivity for things like "items.push()"
+        let value = evaluateSync(); // This is a hack to force deep reactivity for things like "items.push()"
 
         let div = document.createElement('div');
         div.dataset.hey = value;
@@ -1853,9 +2235,35 @@
     };
   });
 
+  Alpine.magic('morph', el => (el, html) => morph(el, html));
+
   Alpine.magic('root', el => el._x_root());
 
   Alpine.magic('refs', el => el._x_root()._x_$refs || {});
+
+  Alpine.magic('get', () => {
+    return (url, params) => new Promise(resolve => {
+      if (params) {
+        url = url + '?' + Object.entries(params).map(([key, value]) => key + '=' + value).join('&');
+      }
+
+      fetch(url, {
+        method: 'GET',
+        // This enables "cookies".
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/html, application/xhtml+xml'
+        }
+      }).then(response => {
+        if (response.ok) {
+          response.text().then(response => {
+            resolve(response);
+          });
+        }
+      });
+    });
+  });
 
   Alpine.magic('el', el => el);
 

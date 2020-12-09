@@ -1,7 +1,7 @@
 import Alpine from '../alpine'
 import scheduler from '../scheduler'
 
-Alpine.directive('transition', (el, value, modifiers, expression, effect) => {
+let handler = (el, value, modifiers, expression, effect) => {
     if (! el._x_transition) {
         el._x_transition = {
             enter: { during: '', start: '', end: '' },
@@ -36,7 +36,11 @@ Alpine.directive('transition', (el, value, modifiers, expression, effect) => {
     }
 
     directiveStorageMap[value](expression)
-})
+}
+
+// handler.initOnly = true
+
+Alpine.directive('transition', handler)
 
 export function transitionClasses(el, { during = '', start = '', end = '' } = {}, before = () => {}, after = () => {}) {
     if (el._x_transitioning) el._x_transitioning.cancel()

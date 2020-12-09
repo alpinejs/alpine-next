@@ -16,10 +16,10 @@ Alpine.directive('for', (el, value, modifiers, expression, effect) => {
     })
 })
 
-function loop(el, iteratorNames, evaluateItems, evaluateKey) {
+async function loop(el, iteratorNames, evaluateItems, evaluateKey) {
     let templateEl = el
 
-    let items = evaluateItems()
+    let items = await evaluateItems()
 
     // This adds support for the `i in n` syntax.
     if (isNumeric(items) && items > 0) {
@@ -30,9 +30,9 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
 
     // As we walk the array, we'll also walk the DOM (updating/creating as we go).
     let currentEl = templateEl
-    items.forEach((item, index) => {
+    items.forEach(async (item, index) => {
         let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items)
-        let currentKey = evaluateKey({ index, ...iterationScopeVariables })
+        let currentKey = await evaluateKey({ index, ...iterationScopeVariables })
         let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey)
 
         // If we haven't found a matching key, insert the element at the current position.

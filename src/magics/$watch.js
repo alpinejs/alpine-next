@@ -7,7 +7,7 @@ Alpine.magic('watch', el => {
         let firstTime = true
 
         Alpine.effect(() => {
-            let value = evaluate()
+            let value = evaluateSync()
 
             // This is a hack to force deep reactivity for things like "items.push()"
             let div = document.createElement('div')

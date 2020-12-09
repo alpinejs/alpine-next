@@ -24,6 +24,7 @@ import './directives/x-intersect'
 import './directives/x-spread'
 import './directives/x-model'
 import './directives/x-cloak'
+import './directives/x-morph'
 import './directives/x-init'
 import './directives/x-text'
 import './directives/x-bind'
@@ -36,12 +37,15 @@ import './directives/x-on'
 /**
  * Register Magics
  */
-import './magics/nextTick'
-import './magics/dispatch'
-import './magics/watch'
-import './magics/root'
-import './magics/refs'
-import './magics/el'
+import './magics/$nextTick'
+import './magics/$dispatch'
+import './magics/$ignore'
+import './magics/$watch'
+import './magics/$morph'
+import './magics/$root'
+import './magics/$refs'
+import './magics/$get'
+import './magics/$el'
 
 /**
  * Start It Up

@@ -3,8 +3,17 @@ export default {
     tasks: [],
     nextTicks: [],
     shouldFlush: false,
+    ignore: false,
+
+    ignore(callback) {
+        this.ignore = true
+        callback()
+        this.ignore = false
+    },
 
     task(callback) {
+        if (this.ignore === true) return
+
         this.tasks.push(callback)
         this.shouldFlushAtEndOfRequest()
     },
@@ -34,6 +43,13 @@ export default {
 
             this.shouldFlush = false
         })
+    },
+
+    flushImmediately() {
+        while (this.tasks.length > 0) this.tasks.shift()()
+
+        if (! this.holdNextTicksOver) while (this.nextTicks.length > 0) this.nextTicks.shift()()
+
     },
 
     flush() {

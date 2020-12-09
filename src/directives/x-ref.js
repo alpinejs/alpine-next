@@ -1,6 +1,6 @@
 import Alpine from '../alpine'
 
-let refHandler = function (el, value, modifiers, expression, effect, before) {
+let handler = function (el, value, modifiers, expression, effect, before) {
     let root = el._x_root()
 
     if (! root._x_$refs) root._x_$refs = {}
@@ -8,6 +8,6 @@ let refHandler = function (el, value, modifiers, expression, effect, before) {
     root._x_$refs[expression] = el
 }
 
-refHandler.runImmediately = true
+handler.immediate = true
 
-Alpine.directive('ref', refHandler)
+Alpine.directive('ref', handler)

@@ -22,15 +22,15 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
     })
 
     effect(() => {
-        let value = evaluate()
+        evaluate()(value => {
+            // If nested model key is undefined, set the default value to empty string.
+            if (value === undefined && expression.match(/\./)) value = ''
 
-        // If nested model key is undefined, set the default value to empty string.
-        if (value === undefined && expression.match(/\./)) value = ''
-
-        // @todo: This is nasty
-        window.fromModel = true
-        el._x_bind('value', value)
-        delete window.fromModel
+            // @todo: This is nasty
+            window.fromModel = true
+            el._x_bind('value', value)
+            delete window.fromModel
+        })
     })
 })
 

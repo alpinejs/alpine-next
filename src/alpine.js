@@ -8,7 +8,7 @@ let Alpine = {
 
     get effect() {
         return callback => {
-            effect(() => {
+            return effect(() => {
                 callback()
             }, {
                 scheduler(run) {
@@ -72,24 +72,44 @@ let Alpine = {
         document.dispatchEvent(new CustomEvent('alpine:initialized'), { bubbles: true })
     },
 
+    copyTree(originalEl, newEl) {
+        newEl._x_data = originalEl._x_data
+        newEl._x_$data = originalEl._x_$data
+        newEl._x_dataStack = originalEl._x_dataStack
+
+        let root = true
+
+        this.walk(newEl, (el, skipSubTree) => {
+            if (! root && !! el._x_attributeByType('data')) return skipSubTree()
+
+            root = false
+
+            this.init(el, false, (attr, handler) => handler.initOnly)
+        })
+
+        scheduler.flushImmediately()
+    },
+
     initTree(root) {
         this.walk(root, el => this.init(el))
 
         scheduler.flush()
     },
 
-    init(el, attributes) {
+    init(el, attributes, exceptAttribute = () => false) {
         (attributes || el._x_attributes()).forEach(attr => {
             let noop = () => {}
-            let run = Alpine.directives[attr.type] || noop
+            let handler = Alpine.directives[attr.type] || noop
+
+            if (exceptAttribute(attr, handler)) return
 
             // Run "x-ref/data/spread" on the initial sweep.
-            let task = run.runImmediately
+            let task = handler.immediate
                 ? callback => callback()
                 : scheduler.task.bind(scheduler)
 
             task(() => {
-                run(el, attr.value, attr.modifiers, attr.expression, Alpine.effect)
+                handler(el, attr.value, attr.modifiers, attr.expression, Alpine.effect)
             })
         })
     },
@@ -111,7 +131,9 @@ let Alpine = {
     },
 
     walk(el, callback) {
-        callback(el)
+        let skip = false
+        callback(el, () => skip = true)
+        if (skip) return
 
         let node = el.firstElementChild
 
