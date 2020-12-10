@@ -1,7 +1,6 @@
 import Alpine from '../alpine'
 
 Alpine.magic('get', () => {
-
     return (url, params) => new Promise(resolve => {
         if (params) {
             url = url + '?' + Object.entries(params).map(([key, value]) => key+'='+value).join('&')

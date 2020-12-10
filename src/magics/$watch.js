@@ -1,4 +1,5 @@
 import Alpine from '../alpine'
+import { stop } from '@vue/reactivity'
 
 Alpine.magic('watch', el => {
     return (key, callback) => {
@@ -6,12 +7,19 @@ Alpine.magic('watch', el => {
 
         let firstTime = true
 
-        Alpine.effect(() => evaluate()(value => {
+        let effect = Alpine.effect(() => evaluate()(value => {
             // This is a hack to force deep reactivity for things like "items.push()"
             let div = document.createElement('div')
             div.dataset.hey = value
 
-            if (! firstTime) callback(value)
+            if (! firstTime) {
+                stop(effect)
+
+                // Stop reactivity while running the watcher.
+                callback(value)
+
+                effect()
+            }
 
             firstTime = false
         }))

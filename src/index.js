@@ -48,6 +48,12 @@ import './magics/$get'
 import './magics/$el'
 
 /**
+ * Register Attribute Interceptors
+ */
+import './interceptors/colon'
+import './interceptors/at'
+
+/**
  * Start It Up
  */
 if (! window.deferLoadingAlpine) window.deferLoadingAlpine = callback => callback()

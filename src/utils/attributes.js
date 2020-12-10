@@ -1,6 +1,11 @@
+import Alpine from './../alpine.js'
 
 window.Element.prototype._x_attributes = function(attributes) {
-    let directives = Array.from(attributes || this.attributes).filter(isXAttr).map(parseHtmlAttribute)
+    let attributeNamesAndValues = attributes || Array.from(this.attributes).map(attr => ({name: attr.name, value: attr.value}))
+
+    attributeNamesAndValues = attributeNamesAndValues.map(({name, value}) => interceptNameAndValue({ name, value}))
+
+    let directives = attributeNamesAndValues.filter(isXAttr).map(parseHtmlAttribute)
 
     return sortDirectives(directives)
 }
@@ -15,9 +20,7 @@ window.Element.prototype._x_attributeByType = function(type) {
 
 let xAttrRE = /^x-([^:^.]+)\b/
 
-function isXAttr(attr) {
-    const name = replaceAtAndColonWithStandardSyntax(attr.name)
-
+function isXAttr({ name, value }) {
     return xAttrRE.test(name)
 }
 
@@ -33,11 +36,9 @@ function sortDirectives(directives) {
 }
 
 function parseHtmlAttribute({ name, value }) {
-    const normalizedName = replaceAtAndColonWithStandardSyntax(name)
-
-    const typeMatch = normalizedName.match(xAttrRE)
-    const valueMatch = normalizedName.match(/:([a-zA-Z0-9\-:]+)/)
-    const modifiers = normalizedName.match(/\.[^.\]]+(?=[^\]]*$)/g) || []
+    const typeMatch = name.match(xAttrRE)
+    const valueMatch = name.match(/:([a-zA-Z0-9\-:]+)/)
+    const modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || []
 
     return {
         type: typeMatch ? typeMatch[1] : null,
@@ -47,12 +48,8 @@ function parseHtmlAttribute({ name, value }) {
     }
 }
 
-function replaceAtAndColonWithStandardSyntax(name) {
-    if (name.startsWith('@')) {
-        return name.replace('@', 'x-on:')
-    } else if (name.startsWith(':')) {
-        return name.replace(':', 'x-bind:')
-    }
-
-    return name
+function interceptNameAndValue({ name, value }, addAttributes) {
+    return Alpine.interceptors.reduce((carry, interceptor) => {
+        return interceptor(carry, addAttributes)
+    }, { name, value })
 }

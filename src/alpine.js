@@ -1,10 +1,10 @@
 import scheduler from './scheduler.js'
 import { reactive, effect } from '@vue/reactivity'
-window.reactive = reactive
-window.effect = effect
 
 let Alpine = {
-    observe: reactive,
+    reactive: reactive,
+
+    interceptors: [],
 
     get effect() {
         return callback => {
@@ -36,6 +36,10 @@ let Alpine = {
         this.components[name] = callback
     },
 
+    intercept(callback) {
+        this.interceptors.push(callback)
+    },
+
     injectMagics(obj, el) {
         Object.entries(this.magics).forEach(([name, callback]) => {
             Object.defineProperty(obj, `$${name}`, {
@@ -45,19 +49,6 @@ let Alpine = {
         })
     },
 
-    clonedComponentAccessor() {
-        let components = {}
-
-        Object.entries(this.components).forEach(([name, componentObject]) => {
-            Object.defineProperty(components, name, {
-                get() { return {...componentObject} },
-                enumerable: true,
-            })
-        })
-
-        return components
-    },
-
     start() {
         document.dispatchEvent(new CustomEvent('alpine:initializing'), { bubbles: true })
 
@@ -65,7 +56,7 @@ let Alpine = {
 
         let outNestedComponents = el => ! (el.parentElement || {_x_root() {}})._x_root()
 
-        Array.from(document.querySelectorAll('[x-data]'))
+        Array.from(document.querySelectorAll('[x-data], [x-data\\.append]'))
             .filter(outNestedComponents)
             .forEach(el => this.initTree(el))
 

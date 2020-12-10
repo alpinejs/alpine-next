@@ -42,7 +42,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
                 nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl)
 
                 let newSet = new Set(closestParentContext)
-                newSet.add(Alpine.observe(iterationScopeVariables))
+                newSet.add(Alpine.reactive(iterationScopeVariables))
                 nextEl._x_dataStack = newSet
                 nextEl._x_for = iterationScopeVariables
                 // Alpine.initTree(nextEl)
