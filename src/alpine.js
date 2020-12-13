@@ -1,5 +1,5 @@
 import scheduler from './scheduler.js'
-import { reactive, effect } from '@vue/reactivity'
+import { reactive, effect, pauseTracking, enableTracking, resetTracking } from '@vue/reactivity'
 
 let Alpine = {
     reactive: reactive,
@@ -7,6 +7,8 @@ let Alpine = {
     interceptors: [],
 
     get effect() {
+        if (this.skipEffects) return () => {}
+
         return callback => {
             return effect(() => {
                 callback()
@@ -78,7 +80,9 @@ let Alpine = {
             this.init(el, false, (attr, handler) => handler.initOnly)
         })
 
+        this.skipEffects = true
         scheduler.flushImmediately()
+        delete this.skipEffects
     },
 
     initTree(root) {

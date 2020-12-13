@@ -127,15 +127,6 @@
         }
         return effect;
     }
-    function stop(effect) {
-        if (effect.active) {
-            cleanup(effect);
-            if (effect.options.onStop) {
-                effect.options.onStop();
-            }
-            effect.active = false;
-        }
-    }
     let uid = 0;
     function createReactiveEffect(fn, options) {
         const effect = function reactiveEffect() {
@@ -724,6 +715,7 @@
       interceptors: [],
 
       get effect() {
+        if (this.skipEffects) return () => {};
         return callback => {
           return effect(() => {
             callback();
@@ -795,7 +787,9 @@
           root = false;
           this.init(el, false, (attr, handler) => handler.initOnly);
         });
+        this.skipEffects = true;
         scheduler.flushImmediately();
+        delete this.skipEffects;
       },
 
       initTree(root) {
@@ -1555,7 +1549,8 @@
       effect(() => {
         evaluate()(value => {
           // If nested model key is undefined, set the default value to empty string.
-          if (value === undefined && expression.match(/\./)) value = ''; // @todo: This is nasty
+          if (value === undefined && expression.match(/\./)) value = '';
+          if (modifiers.includes('unintrusive') && document.activeElement.isSameNode(el)) return; // @todo: This is nasty
 
           window.fromModel = true;
 
@@ -2253,10 +2248,10 @@
           div.dataset.hey = value;
 
           if (!firstTime) {
-            stop(effect); // Stop reactivity while running the watcher.
-
+            // Stop reactivity while running the watcher.
+            pauseTracking();
             callback(value);
-            effect();
+            enableTracking();
           }
 
           firstTime = false;

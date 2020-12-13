@@ -1,5 +1,5 @@
 import Alpine from '../alpine'
-import { stop } from '@vue/reactivity'
+import { stop, pauseTracking, enableTracking } from '@vue/reactivity'
 
 Alpine.magic('watch', el => {
     return (key, callback) => {
@@ -13,12 +13,12 @@ Alpine.magic('watch', el => {
             div.dataset.hey = value
 
             if (! firstTime) {
-                stop(effect)
-
                 // Stop reactivity while running the watcher.
+                pauseTracking()
+
                 callback(value)
 
-                effect()
+                enableTracking()
             }
 
             firstTime = false
