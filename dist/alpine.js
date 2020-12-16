@@ -70,10 +70,12 @@
           }
 
           if (!this.holdNextTicksOver) {
-            // Flush anything added by $nextTick
-            while (this.nextTicks.length > 0) {
-              this.nextTicks.shift()();
-            }
+            setTimeout(() => {
+              // Flush anything added by $nextTick
+              while (this.nextTicks.length > 0) {
+                this.nextTicks.shift()();
+              }
+            });
           }
         });
       }
@@ -934,7 +936,7 @@
       let observer = new IntersectionObserver(entries => {
         entries.forEach(entry => callback(entry, observer));
       });
-      observer.observe(this);
+      observer.observe(this, [0, 1]);
       return observer;
     };
 
@@ -1034,6 +1036,7 @@
       try {
         return callback(...args);
       } catch (e) {
+        console.log(callback.toString());
         console.warn(`Alpine Expression Error: ${e.message}\n\nExpression: "${expression}"\n\n`, el);
         throw e;
       }
@@ -1609,7 +1612,9 @@
     }
 
     Alpine.directive('cloak', el => {
-      el.removeAttribute('x-cloak');
+      scheduler.nextTick(() => {
+        el.removeAttribute('x-cloak');
+      });
     });
 
     function morph(dom, toHtml, options) {

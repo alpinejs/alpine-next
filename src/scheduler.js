@@ -68,10 +68,12 @@ export default {
             }
 
             if (! this.holdNextTicksOver) {
-                // Flush anything added by $nextTick
-                while (this.nextTicks.length > 0) {
-                    this.nextTicks.shift()()
-                }
+                setTimeout(() => {
+                    // Flush anything added by $nextTick
+                    while (this.nextTicks.length > 0) {
+                        this.nextTicks.shift()()
+                    }
+                })
             }
         })
     }
