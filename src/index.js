@@ -25,7 +25,6 @@ import './directives/x-on'
  */
 import './magics/$nextTick'
 import './magics/$dispatch'
-import './magics/$ignore'
 import './magics/$watch'
 import './magics/$morph'
 import './magics/$root'

@@ -2243,13 +2243,6 @@
       }));
     };
 
-    Alpine.magic('ignore', el => {
-      return callback => {
-        console.log(scheduler);
-        scheduler.ignore(() => callback());
-      };
-    });
-
     Alpine.magic('watch', el => {
       return (key, callback) => {
         let evaluate = evaluator(el, key);
