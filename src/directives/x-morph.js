@@ -1,8 +1,9 @@
 import Alpine from '../alpine'
 import morph from '../morph'
+import { evaluator } from '../utils/evaluate'
 
 Alpine.directive('morph', (el, value, modifiers, expression, effect) => {
-    let evaluate = el._x_evaluator(expression)
+    let evaluate = evaluator(el, expression)
 
     effect(() => {
         evaluate()(value => {

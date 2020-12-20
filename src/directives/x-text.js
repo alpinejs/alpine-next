@@ -1,7 +1,8 @@
 import Alpine from '../alpine'
+import { evaluator } from '../utils/evaluate'
 
 Alpine.directive('text', (el, value, modifiers, expression, effect) => {
-    let evaluate = el._x_evaluator(expression)
+    let evaluate = evaluator(el, expression)
 
     effect(() => {
         evaluate()(value => {

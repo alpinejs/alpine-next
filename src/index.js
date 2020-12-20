@@ -1,21 +1,6 @@
 
 import Alpine from './alpine'
 
-window.Alpine = Alpine
-
-/**
- * Register Element Prototype Utilities
- */
-import './utils/attributes'
-import './utils/intersect'
-import './utils/evaluate'
-import './utils/dispatch'
-import './utils/classes'
-import './utils/focus'
-import './utils/root'
-import './utils/bind'
-import './utils/on'
-
 /**
  * Register Directives
  */
@@ -25,6 +10,7 @@ import './directives/x-spread'
 import './directives/x-model'
 import './directives/x-cloak'
 import './directives/x-morph'
+import './directives/x-watch'
 import './directives/x-init'
 import './directives/x-text'
 import './directives/x-bind'
@@ -48,14 +34,8 @@ import './magics/$get'
 import './magics/$el'
 
 /**
- * Register Attribute Interceptors
- */
-import './interceptors/colon'
-import './interceptors/at'
-
-/**
  * Start It Up
  */
-if (! window.deferLoadingAlpine) window.deferLoadingAlpine = callback => callback()
+window.Alpine = Alpine
 
-window.deferLoadingAlpine(() => Alpine.start())
+Alpine.start()

@@ -1,10 +1,17 @@
 import scheduler from './scheduler.js'
-import { reactive, effect, pauseTracking, enableTracking, resetTracking } from '@vue/reactivity'
+import { reactive, effect, markRaw, toRaw, pauseTracking, enableTracking, resetTracking } from '@vue/reactivity'
+import { directiveByType, directives } from './utils/directives'
+import { root } from './utils/root.js'
 
 let Alpine = {
-    reactive: reactive,
+    reactive,
+
+    markRaw,
+    toRaw,
 
     interceptors: [],
+
+    scheduler,
 
     get effect() {
         if (this.skipEffects) return () => {}
@@ -56,7 +63,7 @@ let Alpine = {
 
         this.listenForNewDomElementsToInitialize()
 
-        let outNestedComponents = el => ! (el.parentElement || {_x_root() {}})._x_root()
+        let outNestedComponents = el => ! root(el.parentElement || root(el))
 
         Array.from(document.querySelectorAll('[x-data], [x-data\\.append]'))
             .filter(outNestedComponents)
@@ -73,7 +80,7 @@ let Alpine = {
         let root = true
 
         this.walk(newEl, (el, skipSubTree) => {
-            if (! root && !! el._x_attributeByType('data')) return skipSubTree()
+            if (! root && !! directiveByType(el, 'data')) return skipSubTree()
 
             root = false
 
@@ -81,18 +88,18 @@ let Alpine = {
         })
 
         this.skipEffects = true
-        scheduler.flushImmediately()
+        this.scheduler.flushImmediately()
         delete this.skipEffects
     },
 
     initTree(root) {
         this.walk(root, el => this.init(el))
 
-        scheduler.flush()
+        this.scheduler.flush()
     },
 
     init(el, attributes, exceptAttribute = () => false) {
-        (attributes || el._x_attributes()).forEach(attr => {
+        (attributes || directives(el)).forEach(attr => {
             let noop = () => {}
             let handler = Alpine.directives[attr.type] || noop
 
@@ -101,7 +108,7 @@ let Alpine = {
             // Run "x-ref/data/spread" on the initial sweep.
             let task = handler.immediate
                 ? callback => callback()
-                : scheduler.task.bind(scheduler)
+                : this.scheduler.task.bind(this.scheduler)
 
             task(() => {
                 handler(el, attr.value, attr.modifiers, attr.expression, Alpine.effect)

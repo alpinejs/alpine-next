@@ -1,9 +1,12 @@
 import Alpine from '../alpine'
+import bind from '../utils/bind'
+import { evaluator } from '../utils/evaluate'
+import on from '../utils/on'
 
 Alpine.directive('model', (el, value, modifiers, expression, effect) => {
-    let evaluate = el._x_evaluator(expression)
+    let evaluate = evaluator(el, expression)
     let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`
-    let evaluateAssignment = el._x_evaluator(assignmentExpression)
+    let evaluateAssignment = evaluator(el, assignmentExpression)
 
     // If the element we are binding to is a select, a radio, or checkbox
     // we'll listen for the change event instead of the "input" event.
@@ -14,26 +17,32 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
 
     let assigmentFunction = generateAssignmentFunction(el, modifiers, expression)
 
-    el._x_on(el, event, modifiers, (e) => {
+    on(el, event, modifiers, (e) => {
         evaluateAssignment({
             '$event': e,
             rightSideOfExpression: assigmentFunction
         })
     })
 
-    effect(() => {
+    if (! window.hey) window.hey = []
+
+    el._x_forceModelUpdate = () => {
         evaluate()(value => {
             // If nested model key is undefined, set the default value to empty string.
             if (value === undefined && expression.match(/\./)) value = ''
 
-            if (modifiers.includes('unintrusive') && document.activeElement.isSameNode(el)) return
-
             // @todo: This is nasty
             window.fromModel = true
-            el._x_bind('value', value)
+            bind(el, 'value', value)
             delete window.fromModel
         })
-    })
+    }
+
+    window.hey.push(effect(() => {
+        if (modifiers.includes('unintrusive') && document.activeElement.isSameNode(el)) return
+
+        el._x_forceModelUpdate()
+    }))
 })
 
 function generateAssignmentFunction(el, modifiers, expression) {

@@ -1,9 +1,10 @@
 import Alpine from '../alpine'
 import { stop, pauseTracking, enableTracking } from '@vue/reactivity'
+import { evaluator } from '../utils/evaluate'
 
 Alpine.magic('watch', el => {
     return (key, callback) => {
-        let evaluate = el._x_evaluator(key)
+        let evaluate = evaluator(el, key)
 
         let firstTime = true
 

@@ -110,6 +110,13 @@
         '' + parseInt(key, 10) === key;
     // compare whether a value has changed, accounting for NaN.
     const hasChanged = (value, oldValue) => value !== oldValue && (value === value || oldValue === oldValue);
+    const def = (obj, key, value) => {
+        Object.defineProperty(obj, key, {
+            configurable: true,
+            enumerable: false,
+            value
+        });
+    };
 
     const targetMap = new WeakMap();
     const effectStack = [];
@@ -708,13 +715,112 @@
     function toRaw(observed) {
         return ((observed && toRaw(observed["__v_raw" /* RAW */])) || observed);
     }
+    function markRaw(value) {
+        def(value, "__v_skip" /* SKIP */, true);
+        return value;
+    }
     function isRef(r) {
         return Boolean(r && r.__v_isRef === true);
     }
 
+    function directives(el, attributes) {
+      let attributeNamesAndValues = attributes || Array.from(el.attributes).map(attr => ({
+        name: attr.name,
+        value: attr.value
+      }));
+      attributeNamesAndValues = attributeNamesAndValues.map(({
+        name,
+        value
+      }) => interceptNameAndValue({
+        name,
+        value
+      }));
+      let directives = attributeNamesAndValues.filter(isXAttr).map(parseHtmlAttribute);
+      return sortDirectives(directives);
+    }
+    function directivesByType(el, type) {
+      return directives(el).filter(attribute => attribute.type === type);
+    }
+    function directiveByType(el, type) {
+      return directivesByType(el, type)[0];
+    }
+    let xAttrRE = /^x-([^:^.]+)\b/;
+
+    function isXAttr({
+      name,
+      value
+    }) {
+      return xAttrRE.test(name);
+    }
+
+    function sortDirectives(directives) {
+      let directiveOrder = ['data', 'spread', 'ref', 'init', 'bind', 'for', 'model', 'transition', 'show', 'catch-all'];
+      return directives.sort((a, b) => {
+        let typeA = directiveOrder.indexOf(a.type) === -1 ? 'catch-all' : a.type;
+        let typeB = directiveOrder.indexOf(b.type) === -1 ? 'catch-all' : b.type;
+        return directiveOrder.indexOf(typeA) - directiveOrder.indexOf(typeB);
+      });
+    }
+
+    function parseHtmlAttribute({
+      name,
+      value
+    }) {
+      const typeMatch = name.match(xAttrRE);
+      const valueMatch = name.match(/:([a-zA-Z0-9\-:]+)/);
+      const modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || [];
+      return {
+        type: typeMatch ? typeMatch[1] : null,
+        value: valueMatch ? valueMatch[1] : null,
+        modifiers: modifiers.map(i => i.replace('.', '')),
+        expression: value
+      };
+    }
+
+    function interceptNameAndValue({
+      name,
+      value
+    }, addAttributes) {
+      Alpine.intercept(({
+        name,
+        value
+      }) => {
+        if (name.startsWith('@')) name = name.replace('@', 'x-on:');
+        return {
+          name,
+          value
+        };
+      });
+      Alpine.intercept(({
+        name,
+        value
+      }) => {
+        if (name.startsWith(':')) name = name.replace(':', 'x-bind:');
+        return {
+          name,
+          value
+        };
+      });
+      return Alpine.interceptors.reduce((carry, interceptor) => {
+        return interceptor(carry, addAttributes);
+      }, {
+        name,
+        value
+      });
+    }
+
+    function root(el) {
+      if (el.hasAttribute('x-data') || el.hasAttribute('x-data.append')) return el;
+      if (!el.parentElement) return;
+      return root(el.parentElement);
+    }
+
     let Alpine = {
-      reactive: reactive,
+      reactive,
+      markRaw,
+      toRaw,
       interceptors: [],
+      scheduler,
 
       get effect() {
         if (this.skipEffects) return () => {};
@@ -768,10 +874,7 @@
         });
         this.listenForNewDomElementsToInitialize();
 
-        let outNestedComponents = el => !(el.parentElement || {
-          _x_root() {}
-
-        })._x_root();
+        let outNestedComponents = el => !root(el.parentElement || root(el));
 
         Array.from(document.querySelectorAll('[x-data], [x-data\\.append]')).filter(outNestedComponents).forEach(el => this.initTree(el));
         document.dispatchEvent(new CustomEvent('alpine:initialized'), {
@@ -785,28 +888,28 @@
         newEl._x_dataStack = originalEl._x_dataStack;
         let root = true;
         this.walk(newEl, (el, skipSubTree) => {
-          if (!root && !!el._x_attributeByType('data')) return skipSubTree();
+          if (!root && !!directiveByType(el, 'data')) return skipSubTree();
           root = false;
           this.init(el, false, (attr, handler) => handler.initOnly);
         });
         this.skipEffects = true;
-        scheduler.flushImmediately();
+        this.scheduler.flushImmediately();
         delete this.skipEffects;
       },
 
       initTree(root) {
         this.walk(root, el => this.init(el));
-        scheduler.flush();
+        this.scheduler.flush();
       },
 
       init(el, attributes, exceptAttribute = () => false) {
-        (attributes || el._x_attributes()).forEach(attr => {
+        (attributes || directives(el)).forEach(attr => {
           let noop = () => {};
 
           let handler = Alpine.directives[attr.type] || noop;
           if (exceptAttribute(attr, handler)) return; // Run "x-ref/data/spread" on the initial sweep.
 
-          let task = handler.immediate ? callback => callback() : scheduler.task.bind(scheduler);
+          let task = handler.immediate ? callback => callback() : this.scheduler.task.bind(this.scheduler);
           task(() => {
             handler(el, attr.value, attr.modifiers, attr.expression, Alpine.effect);
           });
@@ -845,110 +948,202 @@
 
     };
 
-    window.Element.prototype._x_attributes = function (attributes) {
-      let attributeNamesAndValues = attributes || Array.from(this.attributes).map(attr => ({
-        name: attr.name,
-        value: attr.value
-      }));
-      attributeNamesAndValues = attributeNamesAndValues.map(({
-        name,
-        value
-      }) => interceptNameAndValue({
-        name,
-        value
-      }));
-      let directives = attributeNamesAndValues.filter(isXAttr).map(parseHtmlAttribute);
-      return sortDirectives(directives);
-    };
+    function setClasses(el, classString) {
+      let isInvalidType = subject => typeof subject === 'object' && !subject instanceof String || Array.isArray(subject);
 
-    window.Element.prototype._x_attributesByType = function (type) {
-      return this._x_attributes().filter(attribute => attribute.type === type);
-    };
+      if (isInvalidType(classString)) console.warn('Alpine: class bindings must return a string or a stringable type. Arrays and Objects are no longer supported.'); // This is to allow short ifs like: :class="show || 'hidden'"
 
-    window.Element.prototype._x_attributeByType = function (type) {
-      return this._x_attributesByType(type)[0];
-    };
+      if (classString === true) classString = '';
 
-    let xAttrRE = /^x-([^:^.]+)\b/;
+      let missingClasses = classString => classString.split(' ').filter(i => !el.classList.contains(i)).filter(Boolean);
 
-    function isXAttr({
-      name,
-      value
-    }) {
-      return xAttrRE.test(name);
+      let addClassesAndReturnUndo = classes => {
+        el.classList.add(...classes);
+        return () => {
+          el.classList.remove(...classes);
+        };
+      };
+
+      return addClassesAndReturnUndo(missingClasses(classString || ''));
     }
 
-    function sortDirectives(directives) {
-      let directiveOrder = ['data', 'spread', 'ref', 'init', 'bind', 'for', 'model', 'transition', 'show', 'catch-all'];
-      return directives.sort((a, b) => {
-        let typeA = directiveOrder.indexOf(a.type) === -1 ? 'catch-all' : a.type;
-        let typeB = directiveOrder.indexOf(b.type) === -1 ? 'catch-all' : b.type;
-        return directiveOrder.indexOf(typeA) - directiveOrder.indexOf(typeB);
+    let handler = (el, value, modifiers, expression, effect) => {
+      if (!el._x_transition) {
+        el._x_transition = {
+          enter: {
+            during: '',
+            start: '',
+            end: ''
+          },
+          leave: {
+            during: '',
+            start: '',
+            end: ''
+          },
+
+          in(before = () => {}, after = () => {}) {
+            return transitionClasses(el, {
+              during: this.enter.during,
+              start: this.enter.start,
+              end: this.enter.end
+            }, before, after);
+          },
+
+          out(before = () => {}, after = () => {}) {
+            return transitionClasses(el, {
+              during: this.leave.during,
+              start: this.leave.start,
+              end: this.leave.end
+            }, before, after);
+          }
+
+        };
+      }
+
+      let directiveStorageMap = {
+        'enter': classes => {
+          el._x_transition.enter.during = classes;
+        },
+        'enter-start': classes => {
+          el._x_transition.enter.start = classes;
+        },
+        'enter-end': classes => {
+          el._x_transition.enter.end = classes;
+        },
+        'leave': classes => {
+          el._x_transition.leave.during = classes;
+        },
+        'leave-start': classes => {
+          el._x_transition.leave.start = classes;
+        },
+        'leave-end': classes => {
+          el._x_transition.leave.end = classes;
+        }
+      };
+      directiveStorageMap[value](expression);
+    }; // handler.initOnly = true
+
+
+    Alpine.directive('transition', handler);
+    function transitionClasses(el, {
+      during = '',
+      start = '',
+      end = ''
+    } = {}, before = () => {}, after = () => {}) {
+      if (el._x_transitioning) el._x_transitioning.cancel();
+      let undoStart, undoDuring, undoEnd;
+      performTransition(el, {
+        start() {
+          undoStart = setClasses(el, start);
+        },
+
+        during() {
+          undoDuring = setClasses(el, during);
+        },
+
+        before,
+
+        end() {
+          undoStart();
+          undoEnd = setClasses(el, end);
+        },
+
+        after,
+
+        cleanup() {
+          undoDuring();
+          undoEnd();
+        }
+
       });
     }
+    function performTransition(el, stages) {
+      let finish = once(() => {
+        stages.after(); // Adding an "isConnected" check, in case the callback removed the element from the DOM.
 
-    function parseHtmlAttribute({
-      name,
-      value
-    }) {
-      const typeMatch = name.match(xAttrRE);
-      const valueMatch = name.match(/:([a-zA-Z0-9\-:]+)/);
-      const modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || [];
-      return {
-        type: typeMatch ? typeMatch[1] : null,
-        value: valueMatch ? valueMatch[1] : null,
-        modifiers: modifiers.map(i => i.replace('.', '')),
-        expression: value
+        if (el.isConnected) stages.cleanup();
+        delete el._x_transitioning;
+      });
+      el._x_transitioning = {
+        beforeCancels: [],
+
+        beforeCancel(callback) {
+          this.beforeCancels.push(callback);
+        },
+
+        cancel: once(function () {
+          while (this.beforeCancels.length) {
+            this.beforeCancels.shift()();
+          }
+          finish();
+        }),
+        finish
+      };
+      stages.start();
+      stages.during();
+      scheduler.holdNextTicks();
+      requestAnimationFrame(() => {
+        // Note: Safari's transitionDuration property will list out comma separated transition durations
+        // for every single transition property. Let's grab the first one and call it a day.
+        let duration = Number(getComputedStyle(el).transitionDuration.replace(/,.*/, '').replace('s', '')) * 1000;
+
+        if (duration === 0) {
+          duration = Number(getComputedStyle(el).animationDuration.replace('s', '')) * 1000;
+        }
+
+        stages.before();
+        requestAnimationFrame(() => {
+          stages.end();
+          scheduler.releaseNextTicks();
+          setTimeout(el._x_transitioning.finish, duration);
+        });
+      });
+    }
+    function once(callback) {
+      let called = false;
+      return function () {
+        if (!called) {
+          called = true;
+          callback.apply(this, arguments);
+        }
       };
     }
 
-    function interceptNameAndValue({
-      name,
-      value
-    }, addAttributes) {
-      return Alpine.interceptors.reduce((carry, interceptor) => {
-        return interceptor(carry, addAttributes);
-      }, {
-        name,
-        value
+    function mergeProxies(...objects) {
+      return new Proxy({}, {
+        get: (target, name) => {
+          return (objects.find(object => Object.keys(object).includes(name)) || {})[name];
+        },
+        set: (target, name, value) => {
+          let closestObjectWithKey = objects.find(object => Object.keys(object).includes(name));
+          let closestCanonicalObject = objects.find(object => object['_x_canonical']);
+
+          if (closestObjectWithKey) {
+            closestObjectWithKey[name] = value;
+          } else if (closestCanonicalObject) {
+            closestCanonicalObject[name] = value;
+          } else {
+            objects[objects.length - 1][name] = value;
+          }
+
+          return true;
+        }
       });
     }
 
-    window.Element.prototype._x_intersectEnter = function (callback, modifiers) {
-      this._x_intersect((entry, observer) => {
-        if (entry.intersectionRatio > 0) {
-          callback();
-          modifiers.includes('once') && observer.unobserve(this);
-        }
-      });
-    };
+    function closestDataStack(el) {
+      if (el._x_dataStack) return el._x_dataStack;
+      if (!el.parentElement) return new Set();
+      return closestDataStack(el.parentElement);
+    }
 
-    window.Element.prototype._x_intersectLeave = function (callback, modifiers) {
-      this._x_intersect((entry, observer) => {
-        if (!entry.intersectionRatio > 0) {
-          callback();
-          modifiers.includes('once') && observer.unobserve(this);
-        }
-      });
-    };
-
-    window.Element.prototype._x_intersect = function (callback) {
-      let observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => callback(entry, observer));
-      });
-      observer.observe(this, [0, 1]);
-      return observer;
-    };
-
-    window.Element.prototype._x_evaluator = function (expression, extras = {}, returns = true) {
+    function evaluator(el, expression, extras = {}, returns = true) {
       // Ok, gear up for this method. It's a bit of a bumpy ride.
       // First, we establish all data we want made available to the function/expression.
       let farExtras = {};
-
-      let dataStack = this._x_closestDataStack();
-
+      let dataStack = closestDataStack(el);
       let closeExtras = extras;
-      Alpine.injectMagics(closeExtras, this); // Now we smush em all together into one stack and reverse it so we can give proper scoping priority later.
+      Alpine.injectMagics(closeExtras, el); // Now we smush em all together into one stack and reverse it so we can give proper scoping priority later.
 
       let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse(); // We're going to use Async functions for evaluation to allow for the use of "await" in expressions.
 
@@ -983,7 +1178,7 @@
       let evaluator = () => {}; // We wrap this in a try catch right now so we can catch errors when constructing the evaluator and handle them nicely.
 
 
-      evaluator = tryCatch(this, expression, () => (...args) => {
+      evaluator = tryCatch(el, expression, () => (...args) => {
         // We build the async function from the expression and arguments we constructed already.
         let func = new AsyncFunction(['__self', ...namesWithPlaceholderAndDefault], `${withExpression}; __self.finished = true; return __self.result;`); // The following rigamerol is to handle the AsyncFunction both synchronously AND asynchronously at the SAME TIME. What a rush.
         // Because the async/promise body is evaluated immediately (synchronously), we can store any results and check
@@ -1007,30 +1202,16 @@
         };
       });
       let boundEvaluator = evaluator.bind(null, ...reversedDataStack);
-      return tryCatch.bind(null, this, expression, boundEvaluator);
-    };
-
-    window.Element.prototype._x_evaluate = function (expression, extras = {}, returns = true) {
-      return this._x_evaluator(expression, extras, returns)();
-    };
-
-    window.Element.prototype._x_evaluateSync = function (expression, extras = {}, returns = true) {
+      return tryCatch.bind(null, el, expression, boundEvaluator);
+    }
+    function evaluate(el, expression, extras = {}, returns = true) {
+      return evaluator(el, expression, extras, returns)();
+    }
+    function evaluateSync(el, expression, extras = {}, returns = true) {
       let result;
-
-      this._x_evaluator(expression, extras, returns)()(value => result = value);
-
+      evaluator(el, expression, extras, returns)()(value => result = value);
       return result;
-    };
-
-    window.Element.prototype._x_closestDataStack = function () {
-      if (this._x_dataStack) return this._x_dataStack;
-      if (!this.parentElement) return new Set();
-      return this.parentElement._x_closestDataStack();
-    };
-
-    window.Element.prototype._x_closestDataProxy = function () {
-      return mergeProxies(...this._x_closestDataStack());
-    };
+    }
 
     function tryCatch(el, expression, callback, ...args) {
       try {
@@ -1042,81 +1223,69 @@
       }
     }
 
-    function mergeProxies(...objects) {
-      return new Proxy({}, {
-        get: (target, name) => {
-          return (objects.find(object => Object.keys(object).includes(name)) || {})[name];
-        },
-        set: (target, name, value) => {
-          let closestObjectWithKey = objects.find(object => Object.keys(object).includes(name));
-          let closestCanonicalObject = objects.find(object => object['_x_canonical']);
+    Alpine.directive('intersect', (el, value, modifiers, expression, effect) => {
+      let evaluate = evaluator(el, expression, {}, false);
 
-          if (closestObjectWithKey) {
-            closestObjectWithKey[name] = value;
-          } else if (closestCanonicalObject) {
-            closestCanonicalObject[name] = value;
-          } else {
-            objects[objects.length - 1][name] = value;
-          }
+      if (['in', 'leave'].includes(value)) {
+        el._x_intersectLeave(evaluate, modifiers);
+      } else {
+        el._x_intersectEnter(evaluate, modifiers);
+      }
+    });
 
-          return true;
+    window.Element.prototype._x_intersectEnter = function (callback, modifiers) {
+      this._x_intersect((entry, observer) => {
+        if (entry.intersectionRatio > 0) {
+          callback();
+          modifiers.includes('once') && observer.unobserve(this);
         }
       });
-    }
+    };
 
-    window.Element.prototype._x_dispatch = function (event, detail = {}) {
-      this.dispatchEvent(new CustomEvent(event, {
-        detail,
-        bubbles: true
+    window.Element.prototype._x_intersectLeave = function (callback, modifiers) {
+      this._x_intersect((entry, observer) => {
+        if (!entry.intersectionRatio > 0) {
+          callback();
+          modifiers.includes('once') && observer.unobserve(this);
+        }
+      });
+    };
+
+    window.Element.prototype._x_intersect = function (callback) {
+      let observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => callback(entry, observer));
+      });
+      observer.observe(this);
+      return observer;
+    };
+
+    Alpine.directive('spread', (el, value, modifiers, expression, effect) => {
+      let spreadObject = evaluateSync(el, expression);
+      let rawAttributes = Object.entries(spreadObject).map(([name, value]) => ({
+        name,
+        value
       }));
-    };
+      let attributes = directives(el, rawAttributes);
+      Alpine.init(el, attributes);
+    });
 
-    window.Element.prototype._x_classes = function (classString) {
-      let isInvalidType = subject => typeof subject === 'object' && !subject instanceof String || Array.isArray(subject);
-
-      if (isInvalidType(classString)) console.warn('Alpine: class bindings must return a string or a stringable type. Arrays and Objects are no longer supported.'); // This is to allow short ifs like: :class="show || 'hidden'"
-
-      if (classString === true) classString = '';
-
-      let missingClasses = classString => classString.split(' ').filter(i => !this.classList.contains(i)).filter(Boolean);
-
-      let addClassesAndReturnUndo = classes => {
-        this.classList.add(...classes);
-        return () => {
-          this.classList.remove(...classes);
-        };
-      };
-
-      return addClassesAndReturnUndo(missingClasses(classString || ''));
-    };
-
-    window.Element.prototype._x_hasFocus = function () {
-      return this === document.activeElement;
-    };
-
-    window.Element.prototype._x_root = function () {
-      if (this.hasAttribute('x-data') || this.hasAttribute('x-data.append')) return this;
-      if (!this.parentElement) return;
-      return this.parentElement._x_root();
-    };
-
-    window.Element.prototype._x_bind = function (name, value, modifiers = []) {
+    function bind(el, name, value, modifiers = []) {
       name = modifiers.includes('camel') ? camelCase(name) : name;
 
       switch (name) {
         case 'value':
-          bindInputValue(this, value);
+          bindInputValue(el, value);
           break;
 
         case 'class':
-          bindClasses(this, value);
+          bindClasses(el, value);
           break;
 
         default:
-          bindAttribute(this, name, value);
+          bindAttribute(el, name, value);
           break;
       }
-    };
+    }
 
     function bindInputValue(el, value) {
       if (el.type === 'radio') {
@@ -1134,9 +1303,9 @@
         }
       } else if (el.type === 'checkbox') {
         // If we are explicitly binding a string to the :value, set the string,
-        // If the value is a boolean, leave it alone, it will be set to "on"
+        // If the value is a boolean/array/number/null/undefined, leave it alone, it will be set to "on"
         // automatically.
-        if (typeof value !== 'boolean' && ![null, undefined].includes(value)) {
+        if (!Number.isInteger(value) && !Array.isArray(value) && typeof value !== 'boolean' && ![null, undefined].includes(value)) {
           el.value = String(value);
         } else {
           if (Array.isArray(value)) {
@@ -1155,7 +1324,7 @@
 
     function bindClasses(el, value) {
       if (el._x_undoAddedClasses) el._x_undoAddedClasses();
-      el._x_undoAddedClasses = el._x_classes(value);
+      el._x_undoAddedClasses = setClasses(el, value);
     }
 
     function bindAttribute(el, name, value) {
@@ -1178,7 +1347,7 @@
         return value + '';
       });
       Array.from(el.options).forEach(option => {
-        option.selected = arrayWrappedValue.includes(option.value || option.text);
+        option.selected = arrayWrappedValue.includes(option.value);
       });
     }
 
@@ -1197,7 +1366,7 @@
       return booleanAttributes.includes(attrName);
     }
 
-    window.Element.prototype._x_on = function (el, event, modifiers, callback) {
+    function on(el, event, modifiers, callback) {
       let options = {
         passive: modifiers.includes('passive')
       };
@@ -1248,7 +1417,7 @@
 
         listenerTarget.addEventListener(event, handler, options);
       }
-    };
+    }
 
     function camelCase$1(subject) {
       return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
@@ -1365,203 +1534,38 @@
       }
     }
 
-    let handler = (el, value, modifiers, expression, effect) => {
-      if (!el._x_transition) {
-        el._x_transition = {
-          enter: {
-            during: '',
-            start: '',
-            end: ''
-          },
-          leave: {
-            during: '',
-            start: '',
-            end: ''
-          },
-
-          in(before = () => {}, after = () => {}) {
-            return transitionClasses(el, {
-              during: this.enter.during,
-              start: this.enter.start,
-              end: this.enter.end
-            }, before, after);
-          },
-
-          out(before = () => {}, after = () => {}) {
-            return transitionClasses(el, {
-              during: this.leave.during,
-              start: this.leave.start,
-              end: this.leave.end
-            }, before, after);
-          }
-
-        };
-      }
-
-      let directiveStorageMap = {
-        'enter': classes => {
-          el._x_transition.enter.during = classes;
-        },
-        'enter-start': classes => {
-          el._x_transition.enter.start = classes;
-        },
-        'enter-end': classes => {
-          el._x_transition.enter.end = classes;
-        },
-        'leave': classes => {
-          el._x_transition.leave.during = classes;
-        },
-        'leave-start': classes => {
-          el._x_transition.leave.start = classes;
-        },
-        'leave-end': classes => {
-          el._x_transition.leave.end = classes;
-        }
-      };
-      directiveStorageMap[value](expression);
-    }; // handler.initOnly = true
-
-
-    Alpine.directive('transition', handler);
-    function transitionClasses(el, {
-      during = '',
-      start = '',
-      end = ''
-    } = {}, before = () => {}, after = () => {}) {
-      if (el._x_transitioning) el._x_transitioning.cancel();
-      let undoStart, undoDuring, undoEnd;
-      performTransition(el, {
-        start() {
-          undoStart = el._x_classes(start);
-        },
-
-        during() {
-          undoDuring = el._x_classes(during);
-        },
-
-        before,
-
-        end() {
-          undoStart();
-          undoEnd = el._x_classes(end);
-        },
-
-        after,
-
-        cleanup() {
-          undoDuring();
-          undoEnd();
-        }
-
-      });
-    }
-    function performTransition(el, stages) {
-      let finish = once(() => {
-        stages.after(); // Adding an "isConnected" check, in case the callback removed the element from the DOM.
-
-        if (el.isConnected) stages.cleanup();
-        delete el._x_transitioning;
-      });
-      el._x_transitioning = {
-        beforeCancels: [],
-
-        beforeCancel(callback) {
-          this.beforeCancels.push(callback);
-        },
-
-        cancel: once(function () {
-          while (this.beforeCancels.length) {
-            this.beforeCancels.shift()();
-          }
-          finish();
-        }),
-        finish
-      };
-      stages.start();
-      stages.during();
-      scheduler.holdNextTicks();
-      requestAnimationFrame(() => {
-        // Note: Safari's transitionDuration property will list out comma separated transition durations
-        // for every single transition property. Let's grab the first one and call it a day.
-        let duration = Number(getComputedStyle(el).transitionDuration.replace(/,.*/, '').replace('s', '')) * 1000;
-
-        if (duration === 0) {
-          duration = Number(getComputedStyle(el).animationDuration.replace('s', '')) * 1000;
-        }
-
-        stages.before();
-        requestAnimationFrame(() => {
-          stages.end();
-          scheduler.releaseNextTicks();
-          setTimeout(el._x_transitioning.finish, duration);
-        });
-      });
-    }
-    function once(callback) {
-      let called = false;
-      return function () {
-        if (!called) {
-          called = true;
-          callback.apply(this, arguments);
-        }
-      };
-    }
-
-    Alpine.directive('intersect', (el, value, modifiers, expression, effect) => {
-      let evaluate = el._x_evaluator(expression, {}, false);
-
-      if (['in', 'leave'].includes(value)) {
-        el._x_intersectLeave(evaluate, modifiers);
-      } else {
-        el._x_intersectEnter(evaluate, modifiers);
-      }
-    });
-
-    Alpine.directive('spread', (el, value, modifiers, expression, effect) => {
-      let spreadObject = el._x_evaluateSync(expression);
-
-      let rawAttributes = Object.entries(spreadObject).map(([name, value]) => ({
-        name,
-        value
-      }));
-
-      let attributes = el._x_attributes(rawAttributes);
-
-      Alpine.init(el, attributes);
-    });
-
     Alpine.directive('model', (el, value, modifiers, expression, effect) => {
-      let evaluate = el._x_evaluator(expression);
-
+      let evaluate = evaluator(el, expression);
       let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`;
-
-      let evaluateAssignment = el._x_evaluator(assignmentExpression); // If the element we are binding to is a select, a radio, or checkbox
+      let evaluateAssignment = evaluator(el, assignmentExpression); // If the element we are binding to is a select, a radio, or checkbox
       // we'll listen for the change event instead of the "input" event.
-
 
       var event = el.tagName.toLowerCase() === 'select' || ['checkbox', 'radio'].includes(el.type) || modifiers.includes('lazy') ? 'change' : 'input';
       let assigmentFunction = generateAssignmentFunction(el, modifiers, expression);
-
-      el._x_on(el, event, modifiers, e => {
+      on(el, event, modifiers, e => {
         evaluateAssignment({
           '$event': e,
           rightSideOfExpression: assigmentFunction
         });
       });
+      if (!window.hey) window.hey = [];
 
-      effect(() => {
+      el._x_forceModelUpdate = () => {
         evaluate()(value => {
           // If nested model key is undefined, set the default value to empty string.
-          if (value === undefined && expression.match(/\./)) value = '';
-          if (modifiers.includes('unintrusive') && document.activeElement.isSameNode(el)) return; // @todo: This is nasty
+          if (value === undefined && expression.match(/\./)) value = ''; // @todo: This is nasty
 
           window.fromModel = true;
-
-          el._x_bind('value', value);
-
+          bind(el, 'value', value);
           delete window.fromModel;
         });
-      });
+      };
+
+      window.hey.push(effect(() => {
+        if (modifiers.includes('unintrusive') && document.activeElement.isSameNode(el)) return;
+
+        el._x_forceModelUpdate();
+      }));
     });
 
     function generateAssignmentFunction(el, modifiers, expression) {
@@ -1872,8 +1876,7 @@
     }
 
     Alpine.directive('morph', (el, value, modifiers, expression, effect) => {
-      let evaluate = el._x_evaluator(expression);
-
+      let evaluate = evaluator(el, expression);
       effect(() => {
         evaluate()(value => {
           debugger;
@@ -1891,16 +1894,22 @@
       });
     });
 
+    Alpine.directive('watch', (el, value, modifiers, expression, effect) => {
+      let evaluate = evaluator(el, `$watch('${value}', $value => ${expression})`);
+      setTimeout(() => {
+        evaluate();
+      });
+    });
+
     let handler$1 = (el, value, modifiers, expression, effect) => {
-      el._x_evaluate(expression, {}, false);
+      evaluate(el, expression, {}, false);
     };
 
     handler$1.initOnly = true;
     Alpine.directive('init', handler$1);
 
     Alpine.directive('text', (el, value, modifiers, expression, effect) => {
-      let evaluate = el._x_evaluator(expression);
-
+      let evaluate = evaluator(el, expression);
       effect(() => {
         evaluate()(value => {
           el.textContent = value;
@@ -1910,9 +1919,7 @@
 
     Alpine.directive('bind', (el, value, modifiers, expression, effect) => {
       let attrName = value;
-
-      let evaluate = el._x_evaluator(expression); // Ignore :key bindings. (They are used by x-for)
-
+      let evaluate = evaluator(el, expression); // Ignore :key bindings. (They are used by x-for)
 
       if (attrName === 'key') return;
       effect(() => evaluate()(value => {
@@ -1920,7 +1927,7 @@
           console.warn(`Alpine Expression Error: Invalid class binding: "${expression}".\n\nArray and Object syntax for class bindings is no longer supported in version 3.0.0 and later.\n\n`, el);
         }
 
-        el._x_bind(attrName, value, modifiers);
+        bind(el, attrName, value, modifiers);
       }));
     });
 
@@ -1933,18 +1940,18 @@
         data = components[expression]();
         data._x_canonical = true;
       } else {
-        data = el._x_evaluateSync(expression);
+        data = evaluateSync(el, expression);
       }
 
       Alpine.injectMagics(data, el);
       el._x_data = data;
       el._x_$data = Alpine.reactive(el._x_data);
-      el._x_dataStack = new Set(el._x_closestDataStack());
+      el._x_dataStack = new Set(closestDataStack(el));
 
       el._x_dataStack.add(el._x_$data);
 
       if (data['init']) {
-        el._x_evaluateSync(data['init']);
+        evaluateSync(el, data['init']);
       }
     };
 
@@ -1952,7 +1959,7 @@
     Alpine.directive('data', handler$2);
 
     Alpine.directive('show', (el, value, modifiers, expression, effect) => {
-      let evaluate = el._x_evaluator(expression, {}, true, true);
+      let evaluate = evaluator(el, expression, {}, true);
 
       let hide = () => {
         el.style.display = 'none';
@@ -2075,16 +2082,13 @@
     }
 
     Alpine.directive('for', (el, value, modifiers, expression, effect) => {
-      var _el$_x_attributesByTy;
+      var _directivesByType$fil;
 
       let iteratorNames = parseForExpression(expression);
-
-      let evaluateItems = el._x_evaluator(iteratorNames.items);
-
-      let evaluateKey = el._x_evaluator( // Look for a :key="..." expression
-      ((_el$_x_attributesByTy = el._x_attributesByType('bind').filter(attribute => attribute.value === 'key')[0]) === null || _el$_x_attributesByTy === void 0 ? void 0 : _el$_x_attributesByTy.expression // Otherwise, use "index"
+      let evaluateItems = evaluator(el, iteratorNames.items);
+      let evaluateKey = evaluator(el, // Look for a :key="..." expression
+      ((_directivesByType$fil = directivesByType(el, 'bind').filter(attribute => attribute.value === 'key')[0]) === null || _directivesByType$fil === void 0 ? void 0 : _directivesByType$fil.expression // Otherwise, use "index"
       ) || 'index');
-
       effect(() => {
         loop(el, iteratorNames, evaluateItems, evaluateKey);
       });
@@ -2098,8 +2102,7 @@
           items = Array.from(Array(items).keys(), i => i + 1);
         }
 
-        let closestParentContext = el._x_closestDataStack(); // As we walk the array, we'll also walk the DOM (updating/creating as we go).
-
+        let closestParentContext = closestDataStack(el); // As we walk the array, we'll also walk the DOM (updating/creating as we go).
 
         let currentEl = templateEl;
         items.forEach((item, index) => {
@@ -2208,19 +2211,17 @@
     }
 
     let handler$3 = function handler(el, value, modifiers, expression, effect, before) {
-      let root = el._x_root();
-
-      if (!root._x_$refs) root._x_$refs = {};
-      root._x_$refs[expression] = el;
+      let theRoot = root(el);
+      if (!theRoot._x_$refs) theRoot._x_$refs = {};
+      theRoot._x_$refs[expression] = el;
     };
 
     handler$3.immediate = true;
     Alpine.directive('ref', handler$3);
 
     Alpine.directive('on', (el, value, modifiers, expression) => {
-      let evaluate = el._x_evaluator(expression, {}, false);
-
-      el._x_on(el, value, modifiers, e => {
+      let evaluate = evaluator(el, expression, {}, false);
+      on(el, value, modifiers, e => {
         evaluate({
           '$event': e
         });
@@ -2235,6 +2236,13 @@
       };
     });
 
+    window.Element.prototype._x_dispatch = function (event, detail = {}) {
+      this.dispatchEvent(new CustomEvent(event, {
+        detail,
+        bubbles: true
+      }));
+    };
+
     Alpine.magic('ignore', el => {
       return callback => {
         console.log(scheduler);
@@ -2244,8 +2252,7 @@
 
     Alpine.magic('watch', el => {
       return (key, callback) => {
-        let evaluate = el._x_evaluator(key);
-
+        let evaluate = evaluator(el, key);
         let firstTime = true;
         let effect = Alpine.effect(() => evaluate()(value => {
           // This is a hack to force deep reactivity for things like "items.push()"
@@ -2266,9 +2273,9 @@
 
     Alpine.magic('morph', el => (el, html) => morph(el, html));
 
-    Alpine.magic('root', el => el._x_root());
+    Alpine.magic('root', el => root(el));
 
-    Alpine.magic('refs', el => el._x_root()._x_$refs || {});
+    Alpine.magic('refs', el => root(el)._x_$refs || {});
 
     Alpine.magic('get', () => {
       return (url, params) => new Promise(resolve => {
@@ -2296,34 +2303,11 @@
 
     Alpine.magic('el', el => el);
 
-    Alpine.intercept(({
-      name,
-      value
-    }) => {
-      if (name.startsWith(':')) name = name.replace(':', 'x-bind:');
-      return {
-        name,
-        value
-      };
-    });
-
-    Alpine.intercept(({
-      name,
-      value
-    }) => {
-      if (name.startsWith('@')) name = name.replace('@', 'x-on:');
-      return {
-        name,
-        value
-      };
-    });
-
-    window.Alpine = Alpine;
     /**
      * Start It Up
      */
 
-    if (!window.deferLoadingAlpine) window.deferLoadingAlpine = callback => callback();
-    window.deferLoadingAlpine(() => Alpine.start());
+    window.Alpine = Alpine;
+    Alpine.start();
 
 })));

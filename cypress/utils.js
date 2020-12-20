@@ -1,3 +1,4 @@
+import { root } from "../src/utils/root"
 
 export function test(name, template, callback) {
     it(name, () => {
@@ -15,7 +16,7 @@ export function test(name, template, callback) {
     })
 }
 
-export let haveData = (key, value) => ([ el ]) => expect(el._x_root()._x_$data[key]).to.equal(value)
+export let haveData = (key, value) => ([ el ]) => expect(root(el)._x_$data[key]).to.equal(value)
 
 export let haveAttribute = (name, value) => el => expect(el).to.have.attr(name, value)
 

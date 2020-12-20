@@ -1,7 +1,8 @@
 import Alpine from '../alpine'
+import { evaluate } from '../utils/evaluate'
 
 let handler = (el, value, modifiers, expression, effect) => {
-    el._x_evaluate(expression, {}, false)
+    evaluate(el, expression, {}, false)
 }
 
 handler.initOnly = true

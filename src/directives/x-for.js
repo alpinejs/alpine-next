@@ -1,12 +1,15 @@
 import Alpine from '../alpine'
+import { closestDataStack } from '../utils/closest'
+import { directivesByType } from '../utils/directives'
+import { evaluator } from '../utils/evaluate'
 
 Alpine.directive('for', (el, value, modifiers, expression, effect) => {
     let iteratorNames = parseForExpression(expression)
 
-    let evaluateItems = el._x_evaluator(iteratorNames.items)
-    let evaluateKey = el._x_evaluator(
+    let evaluateItems = evaluator(el, iteratorNames.items)
+    let evaluateKey = evaluator(el,
         // Look for a :key="..." expression
-        el._x_attributesByType('bind').filter(attribute => attribute.value === 'key')[0]?.expression
+        directivesByType(el, 'bind').filter(attribute => attribute.value === 'key')[0]?.expression
         // Otherwise, use "index"
         || 'index'
     )
@@ -25,7 +28,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             items = Array.from(Array(items).keys(), i => i + 1)
         }
 
-        let closestParentContext = el._x_closestDataStack()
+        let closestParentContext = closestDataStack(el)
 
         // As we walk the array, we'll also walk the DOM (updating/creating as we go).
         let currentEl = templateEl

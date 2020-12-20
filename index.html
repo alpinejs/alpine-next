@@ -2,9 +2,9 @@
     <script src="http://alpine-next.test/dist/alpine.js" defer></script>
     <!-- <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet"> -->
 
-    <button x-data @click="console.log('yo')">
-    </button>
-
+    <div x-data="new Foo">
+        <span x-text="bar"></span>
+    </div>
 
 <!--
     <div x-data x-init="console.log($refs.yo)">

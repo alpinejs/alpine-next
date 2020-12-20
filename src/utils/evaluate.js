@@ -1,14 +1,16 @@
 import Alpine from '../alpine.js'
+import mergeProxies from './mergeProxies'
+import { closestDataStack } from './closest'
 
-window.Element.prototype._x_evaluator = function(expression, extras = {}, returns = true) {
+export function evaluator(el, expression, extras = {}, returns = true) {
     // Ok, gear up for this method. It's a bit of a bumpy ride.
 
     // First, we establish all data we want made available to the function/expression.
     let farExtras = {}
-    let dataStack = this._x_closestDataStack()
+    let dataStack = closestDataStack(el)
     let closeExtras = extras
 
-    Alpine.injectMagics(closeExtras, this)
+    Alpine.injectMagics(closeExtras, el)
 
     // Now we smush em all together into one stack and reverse it so we can give proper scoping priority later.
     let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse()
@@ -50,7 +52,7 @@ window.Element.prototype._x_evaluator = function(expression, extras = {}, return
     let evaluator = () => {}
 
     // We wrap this in a try catch right now so we can catch errors when constructing the evaluator and handle them nicely.
-    evaluator = tryCatch(this, expression, () => (...args) => {
+    evaluator = tryCatch(el, expression, () => (...args) => {
         // We build the async function from the expression and arguments we constructed already.
         let func = new AsyncFunction(['__self', ...namesWithPlaceholderAndDefault], `${withExpression}; __self.finished = true; return __self.result;`)
 
@@ -81,62 +83,29 @@ window.Element.prototype._x_evaluator = function(expression, extras = {}, return
 
     let boundEvaluator = evaluator.bind(null, ...reversedDataStack)
 
-    return tryCatch.bind(null, this, expression, boundEvaluator)
+    return tryCatch.bind(null, el, expression, boundEvaluator)
 }
 
-window.Element.prototype._x_evaluate = function(expression, extras = {}, returns = true) {
-    return this._x_evaluator(expression, extras, returns)()
+export function evaluate(el, expression, extras = {}, returns = true) {
+    return evaluator(el, expression, extras, returns)()
 }
 
-window.Element.prototype._x_evaluateSync = function(expression, extras = {}, returns = true) {
+export function evaluateSync(el, expression, extras = {}, returns = true) {
     let result
 
-    this._x_evaluator(expression, extras, returns)()(value => result = value)
+    evaluator(el, expression, extras, returns)()(value => result = value)
 
     return result
 }
 
-window.Element.prototype._x_closestDataStack = function() {
-    if (this._x_dataStack) return this._x_dataStack
-
-    if (! this.parentElement) return new Set
-
-    return this.parentElement._x_closestDataStack()
-}
-
-window.Element.prototype._x_closestDataProxy = function() {
-    return mergeProxies(...this._x_closestDataStack())
-}
 
 function tryCatch(el, expression, callback, ...args) {
     try {
         return callback(...args)
     } catch (e) {
+        console.log(callback.toString())
         console.warn(`Alpine Expression Error: ${e.message}\n\nExpression: "${expression}"\n\n`, el)
 
         throw e
     }
-}
-
-function mergeProxies(...objects) {
-    return new Proxy({}, {
-        get: (target, name) => {
-            return (objects.find(object => Object.keys(object).includes(name)) || {})[name];
-        },
-
-        set: (target, name, value) => {
-            let closestObjectWithKey = objects.find(object => Object.keys(object).includes(name))
-            let closestCanonicalObject = objects.find(object => object['_x_canonical'])
-
-            if (closestObjectWithKey) {
-                closestObjectWithKey[name] = value
-            } else if (closestCanonicalObject) {
-                closestCanonicalObject[name] = value
-            } else {
-                objects[objects.length - 1][name] = value
-            }
-
-            return true
-        },
-    })
 }

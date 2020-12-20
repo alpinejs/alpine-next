@@ -1,5 +1,5 @@
 
-window.Element.prototype._x_on = function(el, event, modifiers, callback) {
+export default function on (el, event, modifiers, callback) {
     let options = { passive: modifiers.includes('passive') }
 
     if (modifiers.includes('camel')) event = camelCase(event)

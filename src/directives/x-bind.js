@@ -1,9 +1,11 @@
 import hyperactiv from 'hyperactiv'
 import Alpine from '../alpine'
+import bind from '../utils/bind'
+import { evaluator } from '../utils/evaluate'
 
 Alpine.directive('bind', (el, value, modifiers, expression, effect) => {
     let attrName = value
-    let evaluate = el._x_evaluator(expression)
+    let evaluate = evaluator(el, expression)
 
     // Ignore :key bindings. (They are used by x-for)
     if (attrName === 'key') return;
@@ -13,6 +15,6 @@ Alpine.directive('bind', (el, value, modifiers, expression, effect) => {
             console.warn(`Alpine Expression Error: Invalid class binding: "${expression}".\n\nArray and Object syntax for class bindings is no longer supported in version 3.0.0 and later.\n\n`, el)
         }
 
-        el._x_bind(attrName, value, modifiers)
+        bind(el, attrName, value, modifiers)
     }))
 })

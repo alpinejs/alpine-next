@@ -1,5 +1,6 @@
 import Alpine from '../alpine'
 import scheduler from '../scheduler'
+import setClasses from '../utils/classes'
 
 let handler = (el, value, modifiers, expression, effect) => {
     if (! el._x_transition) {
@@ -49,16 +50,16 @@ export function transitionClasses(el, { during = '', start = '', end = '' } = {}
 
     performTransition(el, {
         start() {
-            undoStart = el._x_classes(start)
+            undoStart = setClasses(el, start)
         },
         during() {
-            undoDuring = el._x_classes(during)
+            undoDuring = setClasses(el, during)
         },
         before,
         end() {
             undoStart()
 
-            undoEnd = el._x_classes(end)
+            undoEnd = setClasses(el, end)
         },
         after,
         cleanup() {

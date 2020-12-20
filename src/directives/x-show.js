@@ -1,7 +1,8 @@
 import Alpine from '../alpine'
+import { evaluator } from '../utils/evaluate'
 
 Alpine.directive('show', (el, value, modifiers, expression, effect) => {
-    let evaluate = el._x_evaluator(expression, {}, true, true)
+    let evaluate = evaluator(el, expression, {}, true, true)
 
     let hide = () => {
         el.style.display = 'none'

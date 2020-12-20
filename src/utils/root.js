@@ -1,8 +1,8 @@
 
-window.Element.prototype._x_root = function() {
-    if (this.hasAttribute('x-data') || this.hasAttribute('x-data.append')) return this
+export function root(el) {
+    if (el.hasAttribute('x-data') || el.hasAttribute('x-data.append')) return el
 
-    if (! this.parentElement) return
+    if (! el.parentElement) return
 
-    return this.parentElement._x_root()
+    return root(el.parentElement)
 }

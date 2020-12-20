@@ -30,7 +30,7 @@
         <div class="flex justify-center max-w-3xl w-full px-6">
             <input
                 x-data
-                x-on:keydown.slash.window="if(! $el._x_hasFocus()) { $event.preventDefault(); $el.focus() }"
+                x-on:keydown.slash.window="if(! $el === document.activeElement) { $event.preventDefault(); $el.focus() }"
                 x-on:keydown.escape.window="$el.blur()"
                 type="text" class="bg-gradient-to-r focus:bg-gray-200 focus:outline-none focus:placeholder-gray-600 focus:shadow-outline from-gray-200 px-4 py-1 rounded to-transparent w-full" placeholder="Search (Press &quot;/&quot;)">
         </div>

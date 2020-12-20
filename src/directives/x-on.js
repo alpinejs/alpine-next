@@ -1,9 +1,11 @@
 import Alpine from '../alpine'
+import { evaluator } from '../utils/evaluate'
+import on from '../utils/on'
 
 Alpine.directive('on', (el, value, modifiers, expression) => {
-    let evaluate = el._x_evaluator(expression, {}, false)
+    let evaluate = evaluator(el, expression, {}, false)
 
-    el._x_on(el, value, modifiers, e => {
+    on(el, value, modifiers, e => {
         evaluate({ '$event': e })
     })
 })

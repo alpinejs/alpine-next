@@ -1,3 +1,4 @@
 import Alpine from '../alpine'
+import { root } from '../utils/root'
 
-Alpine.magic('refs', el => el._x_root()._x_$refs || {})
+Alpine.magic('refs', el => root(el)._x_$refs || {})

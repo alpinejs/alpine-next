@@ -1,18 +1,19 @@
+import setClasses from '../utils/classes'
 
-window.Element.prototype._x_bind = function(name, value, modifiers = []) {
+export default function bind(el, name, value, modifiers = []) {
     name = modifiers.includes('camel') ? camelCase(name) : name
 
     switch (name) {
         case 'value':
-            bindInputValue(this, value)
+            bindInputValue(el, value)
             break;
 
         case 'class':
-            bindClasses(this, value)
+            bindClasses(el, value)
             break;
 
         default:
-            bindAttribute(this, name, value)
+            bindAttribute(el, name, value)
             break;
     }
 }
@@ -33,9 +34,9 @@ function bindInputValue(el, value) {
         }
     } else if (el.type === 'checkbox') {
         // If we are explicitly binding a string to the :value, set the string,
-        // If the value is a boolean, leave it alone, it will be set to "on"
+        // If the value is a boolean/array/number/null/undefined, leave it alone, it will be set to "on"
         // automatically.
-        if (typeof value !== 'boolean' && ! [null, undefined].includes(value)) {
+        if (! Number.isInteger(value) && ! Array.isArray(value) && typeof value !== 'boolean' && ! [null, undefined].includes(value)) {
             el.value = String(value)
         } else {
             if (Array.isArray(value)) {
@@ -56,7 +57,7 @@ function bindInputValue(el, value) {
 function bindClasses(el, value) {
     if (el._x_undoAddedClasses) el._x_undoAddedClasses()
 
-    el._x_undoAddedClasses = el._x_classes(value)
+    el._x_undoAddedClasses = setClasses(el, value)
 }
 
 function bindAttribute(el, name, value) {
@@ -78,7 +79,7 @@ function updateSelect(el, value) {
     const arrayWrappedValue = [].concat(value).map(value => { return value + '' })
 
     Array.from(el.options).forEach(option => {
-        option.selected = arrayWrappedValue.includes(option.value || option.text)
+        option.selected = arrayWrappedValue.includes(option.value)
     })
 }
 

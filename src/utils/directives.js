@@ -1,7 +1,7 @@
-import Alpine from './../alpine.js'
+import Alpine from '../alpine.js'
 
-window.Element.prototype._x_attributes = function(attributes) {
-    let attributeNamesAndValues = attributes || Array.from(this.attributes).map(attr => ({name: attr.name, value: attr.value}))
+export function directives(el, attributes) {
+    let attributeNamesAndValues = attributes || Array.from(el.attributes).map(attr => ({name: attr.name, value: attr.value}))
 
     attributeNamesAndValues = attributeNamesAndValues.map(({name, value}) => interceptNameAndValue({ name, value}))
 
@@ -10,12 +10,12 @@ window.Element.prototype._x_attributes = function(attributes) {
     return sortDirectives(directives)
 }
 
-window.Element.prototype._x_attributesByType = function(type) {
-    return this._x_attributes().filter(attribute => attribute.type === type)
+export function directivesByType(el, type) {
+    return directives(el).filter(attribute => attribute.type === type)
 }
 
-window.Element.prototype._x_attributeByType = function(type) {
-    return this._x_attributesByType(type)[0]
+export function directiveByType(el, type) {
+    return directivesByType(el, type)[0]
 }
 
 let xAttrRE = /^x-([^:^.]+)\b/
@@ -49,6 +49,18 @@ function parseHtmlAttribute({ name, value }) {
 }
 
 function interceptNameAndValue({ name, value }, addAttributes) {
+    Alpine.intercept(({ name, value }) => {
+        if (name.startsWith('@')) name = name.replace('@', 'x-on:')
+
+        return { name, value }
+    })
+
+    Alpine.intercept(({ name, value }) => {
+        if (name.startsWith(':')) name = name.replace(':', 'x-bind:')
+
+        return { name,  value }
+    })
+
     return Alpine.interceptors.reduce((carry, interceptor) => {
         return interceptor(carry, addAttributes)
     }, { name, value })

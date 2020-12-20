@@ -1,11 +1,12 @@
 import Alpine from '../alpine'
+import { root } from '../utils/root'
 
 let handler = function (el, value, modifiers, expression, effect, before) {
-    let root = el._x_root()
+    let theRoot = root(el)
 
-    if (! root._x_$refs) root._x_$refs = {}
+    if (! theRoot._x_$refs) theRoot._x_$refs = {}
 
-    root._x_$refs[expression] = el
+    theRoot._x_$refs[expression] = el
 }
 
 handler.immediate = true
