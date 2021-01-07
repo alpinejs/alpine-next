@@ -6,6 +6,7 @@ import Alpine from './alpine'
  */
 import './directives/x-transition'
 import './directives/x-intersect'
+import './directives/x-destroy'
 import './directives/x-spread'
 import './directives/x-model'
 import './directives/x-cloak'

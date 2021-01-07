@@ -61,7 +61,7 @@ let Alpine = {
     start() {
         document.dispatchEvent(new CustomEvent('alpine:initializing'), { bubbles: true })
 
-        this.listenForNewDomElementsToInitialize()
+        this.listenForAndReactToDomManipulations()
 
         let outNestedComponents = el => ! root(el.parentElement || root(el))
 
@@ -116,7 +116,29 @@ let Alpine = {
         })
     },
 
-    listenForNewDomElementsToInitialize() {
+    destroyCallbacks: new WeakMap,
+
+    addDestroyCallback(el, callback) {
+        if (! this.destroyCallbacks.get(el)) {
+            this.destroyCallbacks.set(el, [])
+        }
+
+        this.destroyCallbacks.get(el).push(callback)
+    },
+
+    destroyTree(root) {
+        this.walk(root, el => this.destroy(el))
+
+        this.scheduler.flush()
+    },
+
+    destroy(el) {
+        let callbacks = this.destroyCallbacks.get(el)
+
+        callbacks && callbacks.forEach(callback => callback())
+    },
+
+    listenForAndReactToDomManipulations() {
         let observer = new MutationObserver(mutations => {
             for(let mutation of mutations) {
                 if (mutation.type !== 'childList') continue
@@ -125,6 +147,15 @@ let Alpine = {
                     if (node.nodeType !== 1) continue
 
                     this.initTree(node)
+                }
+
+                for(let node of mutation.removedNodes) {
+                    if (node.nodeType !== 1) continue
+
+                    // Don't block execution for destroy callbacks.
+                    scheduler.nextTick(() => {
+                        this.destroyTree(node)
+                    })
                 }
             }
         })
