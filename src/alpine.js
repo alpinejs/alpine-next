@@ -45,7 +45,6 @@ let Alpine = {
 
     components: {},
 
-    stores: {},
 
     directive(name, callback) {
         this.directives[name] = callback
@@ -62,6 +61,8 @@ let Alpine = {
     intercept(callback) {
         this.interceptors.push(callback)
     },
+
+    stores: {},
 
     store(name, object) {
         this.stores[name] = this.reactive(object)
