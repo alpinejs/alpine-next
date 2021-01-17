@@ -1,143 +1,110 @@
 <html>
     <script src="http://alpine-next.test/dist/alpine.js" defer></script>
-    <!-- <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet"> -->
 
-    <div x-data="new Foo">
-        <span x-text="bar"></span>
-    </div>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
-<!--
-    <div x-data x-init="console.log($refs.yo)">
-        <p x-ref="yo"></p>
-    </div>
+    <body class="bg-gray-100 text-gray-900 font-sans antialiased">
+        <div class="flex items-center justify-center p-12" x-data="{ switchValue: false }">
+            <div class="w-full max-w-xs mx-auto">
+                <switch-group class="flex items-center space-x-4">
+                    <switch-label>Enable notifications</switch-label>
 
-    <button x-data="{ foo() { console.log(this.$refs) } }" @click="foo()" x-ref="foo">Log this element</button>
-
-    <input type="text" class="border" x-data x-mask="(xxx) xxx-xxxx" placeholder="(xxx)">
-
-    <div x-data="{ show: false }">
-        <button @click="console.log(foo.bar.baz)">click mwe</button>
-        <button @click="show = ! show">yo</button>
-
-        <div x-show="show">
-            <div
-                x-show="show"
-                x-transition:enter="duration-1000"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="duration-1000"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-            >faded</div>
-        </div>
-    </div>
-
-    <button x-data x-on:click="if (true) console.log('hey')">error</button>
-
-    <button x-data x-on:click="console.log('yo')">error</button>
-
-    <div x-data="hey">
-        im here
-        <button x-spread="trigger">trigger</button>
-        <div x-spread="dialogue">hey</div>
-    </div>
-
-    <div x-data="{ foo: 'hey' }" x-init="$watch('foo', value => console.log(value))">
-        <button @click="foo = 'yo'">Toggle Show</button>
-        <span x-text="foo"></span>
-    </div>
-
-    <div x-data x-init="$nextTick(() => $refs.button.innerText = 'yo')">
-        <button x-ref="button"></button>
-    </div>
-
-    <div x-data="hey">
-        im here
-        <button x-spread="trigger">trigger</button>
-        <div x-spread="dialogue">hey</div>
-    </div>
-
-    <script nonce="nonce-yoyoyo">
-        window.addEventListener('alpine:loading', () => {
-            Alpine.component('hey', {
-                open: false,
-                trigger: {
-                    ['@click']() {
-                        this.open = ! this.open
-                        console.log(this.$refs.yo)
-                    },
-                },
-                dialogue: {
-                    ['x-show']() {
-                        return this.open
-                    },
-                    ['x-ref']: 'yo',
-                    ['@click.away']() {
-                        this.open = false
-                    },
-                }
-            })
-        })
-    </script>
-
-    <div x-data="{ show: false }">
-        <button @click="show = ! show">Toggle</button>
-        <div
-            x-show="show"
-            x-transition:enter="duration-1000"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="duration-1000"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-        >
-            <h1>show/hide me</h1>
-            <h2>...and me</h2>
+                    <the-switch
+                        x-model="switchValue"
+                        class="relative inline-flex flex-shrink-0 h-6 transition-colors duration-200 ease-in-out border-2 border-transparent rounded-full cursor-pointer w-11 focus:outline-none focus:shadow-outline"
+                        :class="switchValue ? 'bg-indigo-600' : 'bg-gray-200'"
+                    >
+                        <span
+                            class="inline-block w-5 h-5 transition duration-200 ease-in-out transform bg-white rounded-full"
+                            :class="{ 'translate-x-5': switchValue, 'translate-x-0': !switchValue }"
+                        />
+                    </the-switch>
+                </switch-group>
+            </div>
         </div>
 
-    </div>
+        <template x-element="switch-group">
+            <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
-    <div x-data>
-        Foo: <h1 x-init="$el.innerText = 'foo'"></h1>
-        Bar: <h2 x-init="$el.innerText = 'bar'"></h2>
-    </div>
-
-    <span x-data="{ hey: 'there' }" x-text="hey"></span>
-
-    <div x-data="{ items: [['foo', 'bar'], ['bar', 'baz']] }">
-        <button @click="items[1].push('heyheyhey')">add hey</button>
-
-        <h1 x-data="{ foo: 'bar' }">
-            <span x-text="foo"></span>
-            <span x-text="items"></span>
-        </h1>
-
-        <template x-for="item in items">
-            <div>
-                <h1 x-text="item"></h1>
-
-                <template x-for="(yo, hey) in item" :key="hey">
-                    <h1 x-init="" x-text="yo"></h1>
-                </template>
+            <div class="w-full max-w-xs mx-auto" x-data="{ api: { labelEl: null, switchEl: null} }" x-provide="api" x-init="Alpine.store('group')">
+                <div class="flex items-center space-x-4">
+                    <slot></slot>
+                </div>
             </div>
         </template>
-    </div>
 
-    <span x-data></span>
+        <template x-element="switch-label" x-inject="api">
+            <label
+                x-data="{ id: Math.random().toString(36).substring(7) }"
+                x-init="api.labelEl = $el"
+                :id="'headlessui-switch-label-' + id"
+                @pointerup="api.switchEl.click() && api.switchEl.focus({ preventScroll: true })"
+            ><slot></slot></label>
+        </template>
 
-    <div x-data="{ show: false }">
-        <span x-intersect.enter="console.log('enter')" x-intersect.leave="console.log('leave')">hey</span>
-    </div>
+        <template x-element="the-switch" x-props="{ value: false }" x-inject="api">
+            <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
-    <select type="text" x-data="{ selected: 'bar' }" x-bind:value="selected">
-        <option>foo</option>
-        <option>bar</option>
-        <option>baz</option>
-    </select>
-
-    <div x-data="{ foo: 'bar' }">
-        <span x-text="foo"></span>
-
-        <input type="text" x-model="foo">
-    </div> -->
+            <button
+                x-init="if(api) api.switchEl = $el"
+                @click.prevent="$dispatch('input', ! value)"
+                @keyup.space.prevent="$dispatch('input', ! value)"
+                @keypress.prevent
+                role="switch"
+                tabindex="0"
+                :aria-checked="!! value"
+                :aria-labelledby="api && api.labelEl.id"
+            >
+                <slot></slot>
+            </button>
+        </template>
+    </body>
 </html>
+
+<!--
+    Problems:
+    - can't attach events from the <template> to the custom-element root in light-dom
+ -->
+
+<!-- Todo: work with "value" props and models -->
+
+<!--
+Alpine Portage || x-element?
+
+Alpine Evolve || x-morph?
+
+Alpine Evolve
+
+Alpine Erode
+
+Alpenglow
+
+Glacier
+
+Groves
+
+Guide
+
+Alpa
+
+Altitude
+
+Slide
+
+Biome
+
+Lake
+
+Lodge
+
+Tundra
+
+Yak
+
+Yodle
+
+Cairn
+
+Soar
+
+Frost -->

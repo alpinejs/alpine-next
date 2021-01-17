@@ -1,6 +1,6 @@
 import Alpine from '../alpine'
 import bind from '../utils/bind'
-import { evaluator } from '../utils/evaluate'
+import { evaluator, evaluate, evaluateSync } from '../utils/evaluate'
 import on from '../utils/on'
 
 Alpine.directive('model', (el, value, modifiers, expression, effect) => {
@@ -17,7 +17,7 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
 
     let assigmentFunction = generateAssignmentFunction(el, modifiers, expression)
 
-    on(el, event, modifiers, (e) => {
+    let removeListener = on(el, event, modifiers, (e) => {
         evaluateAssignment({
             '$event': e,
             rightSideOfExpression: assigmentFunction
@@ -31,6 +31,8 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
             // If nested model key is undefined, set the default value to empty string.
             if (value === undefined && expression.match(/\./)) value = ''
 
+
+
             // @todo: This is nasty
             window.fromModel = true
             bind(el, 'value', value)
@@ -38,11 +40,19 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
         })
     }
 
-    window.hey.push(effect(() => {
+    effect(() => {
         if (modifiers.includes('unintrusive') && document.activeElement.isSameNode(el)) return
 
         el._x_forceModelUpdate()
-    }))
+    })
+
+    if (! el._x_bindings) {
+        el._x_bindings = {}
+    }
+
+    el._x_bindings.value = () => {
+        return evaluateSync(el, expression)
+    }
 })
 
 function generateAssignmentFunction(el, modifiers, expression) {

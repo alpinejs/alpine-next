@@ -1,10 +1,12 @@
 import scheduler from './scheduler.js'
-import { reactive, effect, markRaw, toRaw, pauseTracking, enableTracking, resetTracking } from '@vue/reactivity'
+import { readonly, reactive, effect, markRaw, toRaw, pauseTracking, enableTracking, resetTracking } from '@vue/reactivity'
 import { directiveByType, directives } from './utils/directives'
 import { root } from './utils/root.js'
+import { closestDataStack } from './utils/closest.js'
 
 let Alpine = {
     reactive,
+    syncEffect: effect,
 
     markRaw,
     toRaw,
@@ -27,11 +29,23 @@ let Alpine = {
         }
     },
 
+    get effectSync() {
+        if (this.skipEffects) return () => {}
+
+        return callback => {
+            return effect(() => {
+                callback()
+            })
+        }
+    },
+
     directives: {},
 
     magics: {},
 
     components: {},
+
+    stores: {},
 
     directive(name, callback) {
         this.directives[name] = callback
@@ -49,6 +63,14 @@ let Alpine = {
         this.interceptors.push(callback)
     },
 
+    store(name, object) {
+        this.stores[name] = this.reactive(object)
+    },
+
+    getStore(name) {
+        return this.stores[name]
+    },
+
     injectMagics(obj, el) {
         Object.entries(this.magics).forEach(([name, callback]) => {
             Object.defineProperty(obj, `$${name}`, {
@@ -61,9 +83,9 @@ let Alpine = {
     start() {
         document.dispatchEvent(new CustomEvent('alpine:initializing'), { bubbles: true })
 
-        this.listenForAndReactToDomManipulations()
+        this.listenForAndReactToDomManipulations(document.querySelector('body'))
 
-        let outNestedComponents = el => ! root(el.parentElement || root(el))
+        let outNestedComponents = el => ! root(el.parentNode || root(el))
 
         Array.from(document.querySelectorAll('[x-data], [x-data\\.append]'))
             .filter(outNestedComponents)
@@ -74,8 +96,10 @@ let Alpine = {
 
     copyTree(originalEl, newEl) {
         newEl._x_data = originalEl._x_data
-        newEl._x_$data = originalEl._x_$data
+        newEl._x_$data = this.reactive(originalEl._x_data)
         newEl._x_dataStack = originalEl._x_dataStack
+        newEl._x_dataStack = new Set(closestDataStack(originalEl))
+        newEl._x_dataStack.add(newEl._x_$data)
 
         let root = true
 
@@ -87,13 +111,18 @@ let Alpine = {
             this.init(el, false, (attr, handler) => handler.initOnly)
         })
 
-        this.skipEffects = true
+        // @todo: why is this here, why does this break Livewire reactivity?
+        // this.skipEffects = true
         this.scheduler.flushImmediately()
-        delete this.skipEffects
+        // delete this.skipEffects
     },
 
     initTree(root) {
-        this.walk(root, el => this.init(el))
+        if (root instanceof ShadowRoot) {
+            Array.from(root.children).forEach(child => this.walk(child, el => this.init(el)))
+        } else {
+            this.walk(root, el => this.init(el))
+        }
 
         this.scheduler.flush()
     },
@@ -138,7 +167,7 @@ let Alpine = {
         callbacks && callbacks.forEach(callback => callback())
     },
 
-    listenForAndReactToDomManipulations() {
+    listenForAndReactToDomManipulations(rootElement) {
         let observer = new MutationObserver(mutations => {
             for(let mutation of mutations) {
                 if (mutation.type !== 'childList') continue
@@ -160,7 +189,7 @@ let Alpine = {
             }
         })
 
-        observer.observe(document.querySelector('body'), { subtree: true, childList: true, deep: false })
+        observer.observe(rootElement, { subtree: true, childList: true, deep: false })
     },
 
     walk(el, callback) {

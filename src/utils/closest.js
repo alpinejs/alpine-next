@@ -1,11 +1,17 @@
 import mergeProxies from './mergeProxies'
 
-export function closestDataStack(el) {
-    if (el._x_dataStack) return el._x_dataStack
+export function closestDataStack(node) {
+    if (node._x_dataStack) return node._x_dataStack
 
-    if (! el.parentElement) return new Set
+    if (node instanceof ShadowRoot) {
+        return closestDataStack(node.host)
+    }
 
-    return closestDataStack(el.parentElement)
+    if (! node.parentNode) {
+        return new Set
+    }
+
+    return closestDataStack(node.parentNode)
 }
 
 export function closestDataProxy(el) {

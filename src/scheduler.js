@@ -1,6 +1,7 @@
 
 export default {
     tasks: [],
+    lowPriorityTasks: [],
     nextTicks: [],
     shouldFlush: false,
     ignore: false,

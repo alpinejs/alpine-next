@@ -5,7 +5,7 @@ export default function on (el, event, modifiers, callback) {
     if (modifiers.includes('camel')) event = camelCase(event)
 
     if (modifiers.includes('away')) {
-        addAwayListener(el, event, modifiers, callback, options)
+        return addAwayListener(el, event, modifiers, callback, options)
     } else {
         let listenerTarget = modifiers.includes('window')
             ? window : (modifiers.includes('document') ? document : el)
@@ -50,6 +50,10 @@ export default function on (el, event, modifiers, callback) {
         }
 
         listenerTarget.addEventListener(event, handler, options)
+
+        return () => {
+            listenerTarget.removeEventListener(event, handler, options)
+        }
     }
 }
 
@@ -76,6 +80,10 @@ function addAwayListener(el, event, modifiers, callback, options) {
 
     // Listen for this event at the root level.
     document.addEventListener(event, handler, options)
+
+    return () => {
+        document.removeEventListener(event, handler, options)
+    }
 }
 
 function debounce(func, wait) {

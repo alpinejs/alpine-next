@@ -1,4 +1,3 @@
-
 import Alpine from '../alpine'
 import { directives } from '../utils/directives'
 import { evaluateSync } from '../utils/evaluate'

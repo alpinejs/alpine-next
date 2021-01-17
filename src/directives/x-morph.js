@@ -7,7 +7,6 @@ Alpine.directive('morph', (el, value, modifiers, expression, effect) => {
 
     effect(() => {
         evaluate()(value => {
-            debugger
             if (! el.firstElementChild) {
                 if (el.firstChild) {
                     el.firstChild.remove()

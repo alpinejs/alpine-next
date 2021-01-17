@@ -10,5 +10,7 @@ window.Element.prototype._x_dispatch = function(event, detail = {}) {
     this.dispatchEvent(new CustomEvent(event, {
         detail,
         bubbles: true,
+        // Allows events to pass the shadow DOM barrier.
+        composed: true,
     }))
 }

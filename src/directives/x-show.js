@@ -1,5 +1,7 @@
 import Alpine from '../alpine'
 import { evaluator } from '../utils/evaluate'
+// @todo: make it so that transitions will only get loaded if it's available in the main bundle
+import { registerTranstions } from './x-transition'
 
 Alpine.directive('show', (el, value, modifiers, expression, effect) => {
     let evaluate = evaluator(el, expression, {}, true, true)
@@ -18,6 +20,10 @@ Alpine.directive('show', (el, value, modifiers, expression, effect) => {
         }
 
         el._x_is_shown = true
+    }
+
+    if (modifiers.includes('transition')) {
+        registerTranstions(el, modifiers)
     }
 
     let isFirstRun = true
@@ -76,7 +82,7 @@ function toggleWithTransitions(el, value, show, hide) {
 }
 
 function closestHide(el) {
-    let parent = el.parentElement
+    let parent = el.parentNode
 
     if (! parent) return
 

@@ -24,18 +24,16 @@ export function evaluator(el, expression, extras = {}, returns = true) {
 
         let expressionWithContext = expression.bind(mergedObject)
 
-        if (expression instanceof AsyncFunction) {
-            return (...args) => {
+        return (...args) => {
+            let result = expressionWithContext(...args)
+
+            if (result instanceof Promise) {
                 return (receiver) => {
-                    expressionWithContext(...args).then(result => receiver(result))
+                    result.then(i => receiver(i))
                 }
             }
-        } else {
-            return (...args) => {
-                let result = expressionWithContext(...args)
 
-                return (receiver) => receiver(result)
-            }
+            return (receiver) => receiver(result)
         }
     }
 

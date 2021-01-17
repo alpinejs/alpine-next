@@ -1,4 +1,4 @@
-import setClasses from '../utils/classes'
+import { setClasses, toggleClasses } from '../utils/classes'
 
 export default function bind(el, name, value, modifiers = []) {
     name = modifiers.includes('camel') ? camelCase(name) : name
@@ -57,7 +57,11 @@ function bindInputValue(el, value) {
 function bindClasses(el, value) {
     if (el._x_undoAddedClasses) el._x_undoAddedClasses()
 
-    el._x_undoAddedClasses = setClasses(el, value)
+    if (typeof value === 'object' && value !== null) {
+        el._x_undoAddedClasses = toggleClasses(el, value)
+    } else {
+        el._x_undoAddedClasses = setClasses(el, value)
+    }
 }
 
 function bindAttribute(el, name, value) {
