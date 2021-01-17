@@ -14,6 +14,8 @@ Alpine.directive('bind', (el, value, modifiers, expression, effect) => {
         el._x_bindings = {}
     }
 
+
+    console.log('bind', value)
     el._x_bindings[attrName] = () => {
         return evaluateSync(el, expression)
     }

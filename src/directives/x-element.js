@@ -20,6 +20,13 @@ function registerElement(name, template) {
                 shadow.append(child.cloneNode(true))
             })
 
+            // @todo: totally undecided on this.
+            // this.setAttribute('invisible', true)
+            // this.style.display = 'contents'
+
+            // This is great and does great things, but breaks flex
+            // this.style.display = 'contents'
+
             // The main mutation observer won't pick up changes inside
             // shadow roots (like els added by x-for).
             Alpine.listenForAndReactToDomManipulations(this.shadowRoot)
@@ -54,25 +61,6 @@ function registerElement(name, template) {
                         reactiveRoot[propName] = propDefault
                     })
 
-                }
-
-                if (template.hasAttribute('x-model-prop')) {
-                    let modelName = template.getAttribute('x-model-prop')
-
-                    if (! customElementRoot._x_model) {
-                        reactiveRoot[modelName] = undefined
-                    } else {
-                        customElementRoot._x_model.detachListener()
-
-                        Object.defineProperty(reactiveRoot, modelName, {
-                            get() {
-                                return customElementRoot._x_model.get()
-                            },
-                            set(value) {
-                                customElementRoot._x_model.set(value)
-                            }
-                        })
-                    }
                 }
 
                 if (template.hasAttribute('x-inject')) {

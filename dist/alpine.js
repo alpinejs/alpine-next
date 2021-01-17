@@ -886,7 +886,6 @@
       directives: {},
       magics: {},
       components: {},
-      stores: {},
 
       directive(name, callback) {
         this.directives[name] = callback;
@@ -903,6 +902,8 @@
       intercept(callback) {
         this.interceptors.push(callback);
       },
+
+      stores: {},
 
       store(name, object) {
         this.stores[name] = this.reactive(object);
@@ -1515,7 +1516,12 @@
           });
           Array.from(template.content.children).forEach(child => {
             shadow.append(child.cloneNode(true));
-          }); // The main mutation observer won't pick up changes inside
+          }); // @todo: totally undecided on this.
+          // this.setAttribute('invisible', true)
+          // this.style.display = 'contents'
+          // This is great and does great things, but breaks flex
+          // this.style.display = 'contents'
+          // The main mutation observer won't pick up changes inside
           // shadow roots (like els added by x-for).
 
           Alpine.listenForAndReactToDomManipulations(this.shadowRoot);
@@ -1545,27 +1551,6 @@
 
                 reactiveRoot[propName] = propDefault;
               });
-            }
-
-            if (template.hasAttribute('x-model-prop')) {
-              let modelName = template.getAttribute('x-model-prop');
-
-              if (!customElementRoot._x_model) {
-                reactiveRoot[modelName] = undefined;
-              } else {
-                customElementRoot._x_model.detachListener();
-
-                Object.defineProperty(reactiveRoot, modelName, {
-                  get() {
-                    return customElementRoot._x_model.get();
-                  },
-
-                  set(value) {
-                    customElementRoot._x_model.set(value);
-                  }
-
-                });
-              }
             }
 
             if (template.hasAttribute('x-inject')) {
@@ -1638,6 +1623,31 @@
       }));
       let attributes = directives(el, rawAttributes);
       Alpine.init(el, attributes);
+    });
+
+    Alpine.directive('scope', (el, value, modifiers, expression) => {
+      let slot = el.firstElementChild.assignedSlot; // let root = closestCustomElementRoot(el)
+
+      let object = evaluateSync(el, expression);
+      let reactiveRoot = {};
+      Object.entries(object).forEach(([name, defaultValue]) => {
+        let getter = evaluator(el);
+        Object.defineProperty(reactiveRoot, name, {
+          get() {
+            console.log('get');
+            return slot._x_bindings[name]();
+          }
+
+        });
+      });
+      el._x_dataStack = new Set(closestDataStack(el));
+
+      el._x_dataStack.add(Alpine.reactive(reactiveRoot)); // Object.defineProperty(root._x_provides, expression, {
+      //     get() {
+      //         return evaluateSync(el, expression)
+      //     }
+      // })
+
     });
 
     function bind(el, name, value, modifiers = []) {
@@ -1954,7 +1964,9 @@
       }
 
       el._x_bindings.value = () => {
-        return evaluateSync(el, expression);
+        let value;
+        evaluate()(i => value = i);
+        return value;
       };
     });
 
@@ -1968,7 +1980,7 @@
 
       return (event, currentValue) => {
         // Check for event.detail due to an issue where IE11 handles other events as a CustomEvent.
-        if (event instanceof CustomEvent && event.detail) {
+        if (event instanceof CustomEvent && event.detail !== undefined) {
           return event.detail;
         } else if (el.type === 'checkbox') {
           // If the data we are binding to is an array, toggle its value inside the array.
@@ -2314,6 +2326,8 @@
       if (!el._x_bindings) {
         el._x_bindings = {};
       }
+
+      console.log('bind', value);
 
       el._x_bindings[attrName] = () => {
         return evaluateSync(el, expression);

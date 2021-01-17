@@ -3,34 +3,65 @@
 
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
-    <body class="bg-gray-100 text-gray-900 font-sans antialiased">
-        <div class="flex items-center justify-center p-12" x-data="{ switchValue: false }">
+
+    <the-button>
+        Hey There
+    </the-button>
+
+    <template x-element>
+
+    </template>
+
+    <!--
+        Problems:
+        - Shadow DOM styling
+        - Root element?
+        - Attribute/event forwarding
+        - Attribute/event attaching to root from component
+        - x-scope?
+        - Spruce? $store?
+    -->
+
+    <!--
+        Homework:
+        - inject styles cost
+        - compare to x-spread
+     -->
+
+    <!-- <body class="bg-gray-100 text-gray-900 font-sans antialiased">
+        <div class="flex items-center justify-center p-12" x-data="{ checked: false }">
             <div class="w-full max-w-xs mx-auto">
+
+                <div x-spread="window.headlessUI.switchGroup">
+                    <label x-spread="window.headlessUI.switchLabel">Thing Here</label>
+
+                    <button x-spread="window.headlessUI.switchButton">
+                        <span :class="checked && 'bg-blue-500'">Hey Hey</span>
+                    </button>
+                </div>
+
                 <switch-group class="flex items-center space-x-4">
                     <switch-label>Enable notifications</switch-label>
 
-                    <the-switch
-                        x-model="switchValue"
-                        class="relative inline-flex flex-shrink-0 h-6 transition-colors duration-200 ease-in-out border-2 border-transparent rounded-full cursor-pointer w-11 focus:outline-none focus:shadow-outline"
-                        :class="switchValue ? 'bg-indigo-600' : 'bg-gray-200'"
-                    >
-                        <span
-                            class="inline-block w-5 h-5 transition duration-200 ease-in-out transform bg-white rounded-full"
-                            :class="{ 'translate-x-5': switchValue, 'translate-x-0': !switchValue }"
-                        />
+                    <the-switch x-model="checked" x-scope="{ props }">
+                        <button
+                            x-spread="{ props }"
+                            class="relative inline-flex flex-shrink-0 h-6 transition-colors duration-200 ease-in-out border-2 border-transparent rounded-full cursor-pointer w-11 focus:outline-none focus:ring"
+                            :class="checked ? 'bg-indigo-600' : 'bg-gray-200'"
+                        >
+                            <span
+                                class="inline-block w-5 h-5 transition duration-200 ease-in-out transform bg-white rounded-full"
+                                :class="{ 'translate-x-5': checked, 'translate-x-0': ! checked }"
+                            ></span>
+                        </button>
                     </the-switch>
                 </switch-group>
+
             </div>
         </div>
 
         <template x-element="switch-group">
-            <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-
-            <div class="w-full max-w-xs mx-auto" x-data="{ api: { labelEl: null, switchEl: null} }" x-provide="api" x-init="Alpine.store('group')">
-                <div class="flex items-center space-x-4">
-                    <slot></slot>
-                </div>
-            </div>
+            <slot :foo="'bar'" x-data="{ api: { labelEl: null, switchEl: null} }" x-provide="api"></slot>
         </template>
 
         <template x-element="switch-label" x-inject="api">
@@ -39,13 +70,13 @@
                 x-init="api.labelEl = $el"
                 :id="'headlessui-switch-label-' + id"
                 @pointerup="api.switchEl.click() && api.switchEl.focus({ preventScroll: true })"
-            ><slot></slot></label>
+            >
+                <slot></slot>
+            </label>
         </template>
 
-        <template x-element="the-switch" x-props="{ value: false }" x-inject="api">
-            <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-
-            <button
+        <template x-element="the-switch" x-props="{ value: false }" x-inject="api" x-as="label">
+            <slot
                 x-init="if(api) api.switchEl = $el"
                 @click.prevent="$dispatch('input', ! value)"
                 @keyup.space.prevent="$dispatch('input', ! value)"
@@ -54,17 +85,10 @@
                 tabindex="0"
                 :aria-checked="!! value"
                 :aria-labelledby="api && api.labelEl.id"
-            >
-                <slot></slot>
-            </button>
+            ></slot>
         </template>
-    </body>
+    </body> -->
 </html>
-
-<!--
-    Problems:
-    - can't attach events from the <template> to the custom-element root in light-dom
- -->
 
 <!-- Todo: work with "value" props and models -->
 
@@ -108,3 +132,49 @@ Cairn
 Soar
 
 Frost -->
+
+
+        <!-- <div class="space-x-4">
+            <slot>
+                <span>first</span>
+                <span>second</span>
+            </slot>
+            <slot>
+                <span>first</span>
+                <span>second</span>
+            </slot>
+            <span>third</span>
+            <slot>
+                <span>fourth</span>
+            </slot>
+        </div> -->
+
+        <!-- <div class="space-x-4">
+            <div style="display: contents" invisible>
+                <span>first</span>
+                <span>second</span>
+            </div>
+            <div style="display: contents" invisible>
+                <span>first</span>
+                <span>second</span>
+            </div>
+            <span>third</span>
+            <div style="display: contents" invisible>
+                <span>fourth</span>
+            </div>
+        </div> -->
+
+
+        <!-- <style>
+            .space-x-4>slot>:not([hidden])~:not([hidden]),
+            .space-x-4>[invisible]>:not([hidden])~:not([hidden]),
+            .space-x-4>:not([hidden])~slot>:not([hidden]),
+            .space-x-4>:not([hidden])~[invisible]>:not([hidden]),
+
+            .space-x-4>:not([hidden])~:not([hidden]) {
+                background: blue;
+                --tw-space-x-reverse: 0;
+                margin-right: calc(1rem * var(--tw-space-x-reverse));
+                margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
+            }
+        </style> -->

@@ -31,8 +31,6 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
             // If nested model key is undefined, set the default value to empty string.
             if (value === undefined && expression.match(/\./)) value = ''
 
-
-
             // @todo: This is nasty
             window.fromModel = true
             bind(el, 'value', value)
@@ -51,7 +49,11 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
     }
 
     el._x_bindings.value = () => {
-        return evaluateSync(el, expression)
+        let value
+
+        evaluate()(i => value = i)
+
+        return value
     }
 })
 
@@ -64,8 +66,9 @@ function generateAssignmentFunction(el, modifiers, expression) {
     }
 
     return (event, currentValue) => {
+
         // Check for event.detail due to an issue where IE11 handles other events as a CustomEvent.
-        if (event instanceof CustomEvent && event.detail) {
+        if (event instanceof CustomEvent && event.detail !== undefined) {
             return event.detail
         } else if (el.type === 'checkbox') {
             // If the data we are binding to is an array, toggle its value inside the array.
