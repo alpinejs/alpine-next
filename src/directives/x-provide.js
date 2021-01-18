@@ -1,8 +1,10 @@
 import Alpine from '../alpine'
 import scheduler from '../scheduler'
-import { evaluateSync } from '../utils/evaluate'
+import { evaluator } from '../utils/evaluate'
 
 Alpine.directive('provide', (el, value, modifiers, expression) => {
+    let evaluate = evaluator(el, expression)
+
     let root = closestCustomElementRoot(el)
 
     if (! root._x_provides) {
@@ -11,13 +13,17 @@ Alpine.directive('provide', (el, value, modifiers, expression) => {
 
     Object.defineProperty(root._x_provides, expression, {
         get() {
-            return evaluateSync(el, expression)
+            let result
+
+            evaluate()(value => result = value)
+
+            return result
         }
     })
 })
 
 function closestCustomElementRoot(el) {
-    if (el.host) return el.host
+    if (el._x_customElementRoot) return el
 
     return closestCustomElementRoot(el.parentNode)
 }

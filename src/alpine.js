@@ -84,7 +84,7 @@ let Alpine = {
     start() {
         document.dispatchEvent(new CustomEvent('alpine:initializing'), { bubbles: true })
 
-        this.listenForAndReactToDomManipulations(document.querySelector('body'))
+        // this.listenForAndReactToDomManipulations(document.querySelector('body'))
 
         let outNestedComponents = el => ! root(el.parentNode || root(el))
 
@@ -175,6 +175,8 @@ let Alpine = {
 
                 for(let node of mutation.addedNodes) {
                     if (node.nodeType !== 1) continue
+
+                    if (node._x_ignoreMutationObserver) continue
 
                     this.initTree(node)
                 }

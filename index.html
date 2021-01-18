@@ -3,13 +3,32 @@
 
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
+    <div x-data="{ foo: 'baz' }">
+        <the-outer class="bg-gray-100" :foo="foo + '-nested'">
+            <div>
+                <span x-text="foo"></span>
+            </div>
+        </the-outer>
+    </div>
 
-    <the-button>
-        Hey There
-    </the-button>
+    <template x-element="the-outer" x-props="{ foo: 'fiiii' }">
+        <div class="border-b-8" x-data="{ hey: 'there' }" x-provide="hey">
+            <h1 x-text="foo"></h1>
 
-    <template x-element>
+            <the-inner :foo="foo + '-nested-deep'">
+                <span x-text="foo"></span>
+            </the-inner>
 
+            <slot></slot>
+        </div>
+    </template>
+
+    <template x-element="the-inner" x-props="{ foo: '' }" x-inject="hey">
+        <div class="border-b-8">
+            <h1 x-text="hey"></h1>
+
+            <slot></slot>
+        </div>
     </template>
 
     <!--
