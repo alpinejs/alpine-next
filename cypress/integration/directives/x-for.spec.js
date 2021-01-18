@@ -119,6 +119,7 @@ test('components inside a plain element of loop are reactive',
     }
 )
 
+// @flaky
 test('adding key attribute moves dom nodes properly',
     `
         <div x-data="{ items: ['foo', 'bar'] }">
@@ -334,7 +335,8 @@ test('x-for over range using i in property syntax',
     get => get('span').should(haveLength('10'))
 )
 
-test('x-for with an array of numbers',
+// @flaky
+test.retry(2)('x-for with an array of numbers',
     `
         <div x-data="{ items: [] }">
             <template x-for="i in items">

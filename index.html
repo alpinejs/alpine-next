@@ -1,7 +1,48 @@
 <html>
     <script src="http://alpine-next.test/dist/alpine.js" defer></script>
 
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .transition { transition-property: background-color, border-color, color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        .duration-100 { transition-duration: 1000ms; }
+    </style>
+    <div x-data="{ show: true }">
+        <span x-show.immediate="show">
+            <h1 x-show="show" x-transition:leave="transition duration-100">thing</h1>
+        </span>
+
+        <button x-on:click="show = false"></button>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--
+
+
+
+
+
+
+
 
     <div x-data="{ foo: 'baz' }">
         <the-outer class="bg-gray-100" :foo="foo + '-nested'">
@@ -29,7 +70,7 @@
 
             <slot></slot>
         </div>
-    </template>
+    </template> -->
 
     <!--
         Problems:

@@ -84,7 +84,7 @@ let Alpine = {
     start() {
         document.dispatchEvent(new CustomEvent('alpine:initializing'), { bubbles: true })
 
-        // this.listenForAndReactToDomManipulations(document.querySelector('body'))
+        this.listenForAndReactToDomManipulations(document.querySelector('body'))
 
         let outNestedComponents = el => ! root(el.parentNode || root(el))
 

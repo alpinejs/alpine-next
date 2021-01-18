@@ -55,6 +55,7 @@ test('x-show waits for transitions within it to finish before hiding an elements
     }
 )
 
+// @flaky
 test('x-show does NOT wait for transitions to finish if .immediate is present',
     `
         <style>

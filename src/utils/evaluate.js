@@ -84,6 +84,18 @@ export function evaluator(el, expression, extras = {}, returns = true) {
     return tryCatch.bind(null, el, expression, boundEvaluator)
 }
 
+export function evaluatorSync(el, expression, extras = {}, returns = true) {
+    let evaluate = evaluator(el, expression, extras, returns)
+
+    return () => {
+        let result
+
+        evaluate()(value => result = value)
+
+        return result
+    }
+}
+
 export function evaluate(el, expression, extras = {}, returns = true) {
     return evaluator(el, expression, extras, returns)()
 }

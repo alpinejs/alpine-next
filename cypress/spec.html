@@ -1,21 +1,29 @@
 <html>
+    <!-- Using a <blockquote> because it's an obscure tag -->
+    <!-- which allows us to use document.querySelector()  -->
+    <!-- with generic tags freely inside Cypress tests.   -->
     <blockquote id="root">
-
+        <!-- This is where our test subjects will be injected. -->
     </blockquote>
 
     <script>
         let root = document.querySelector('#root')
 
+        // We aren't loading Alpine directly because we are expecting
+        // Cypress to inject HTML into "#root", THEN we'll call
+        // this function from Cypress to boot everything up.
         root.evalScripts = () => {
+            // Load all injected script tags.
             root.querySelectorAll('script').forEach(el => {
                 eval(el.innerHTML)
-                console.log(el.innerHTML)
             })
-        }
 
-        window.deferLoadingAlpine = startAlpine => {
-            root.startAlpine = startAlpine
+            // Load Alpine.
+            let script = document.createElement('script')
+
+            script.src = 'http://alpine-next.test/dist/alpine.js'
+
+            root.after(script)
         }
     </script>
-    <script src="http://alpine-next.test/dist/alpine.js"></script>
 </html>

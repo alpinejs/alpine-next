@@ -30,6 +30,7 @@ test('nested data modified in event listener updates affected attribute bindings
     }
 )
 
+// @flaky
 test('.passive modifier should disable e.preventDefault()',
     `
         <div x-data="{ defaultPrevented: null }">

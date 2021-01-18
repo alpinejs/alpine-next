@@ -53,6 +53,7 @@ test('x-spread supports x-for',
     }
 )
 
+// @flaky
 test('x-spread syntax supports x-transition',
     `
         <style>

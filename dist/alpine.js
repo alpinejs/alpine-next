@@ -782,7 +782,7 @@
       name,
       value
     }, addAttributes) {
-      Alpine.intercept(({
+      Alpine$1.intercept(({
         name,
         value
       }) => {
@@ -792,7 +792,7 @@
           value
         };
       });
-      Alpine.intercept(({
+      Alpine$1.intercept(({
         name,
         value
       }) => {
@@ -802,7 +802,7 @@
           value
         };
       });
-      return Alpine.interceptors.reduce((carry, interceptor) => {
+      return Alpine$1.interceptors.reduce((carry, interceptor) => {
         return interceptor(carry, addAttributes);
       }, {
         name,
@@ -852,7 +852,7 @@
       return closestDataStack(node.parentNode);
     }
 
-    let Alpine = {
+    let Alpine$1 = {
       reactive,
       syncEffect: effect,
       markRaw,
@@ -928,7 +928,8 @@
       start() {
         document.dispatchEvent(new CustomEvent('alpine:initializing'), {
           bubbles: true
-        }); // this.listenForAndReactToDomManipulations(document.querySelector('body'))
+        });
+        this.listenForAndReactToDomManipulations(document.querySelector('body'));
 
         let outNestedComponents = el => !root(el.parentNode || root(el));
 
@@ -971,12 +972,12 @@
         (attributes || directives(el)).forEach(attr => {
           let noop = () => {};
 
-          let handler = Alpine.directives[attr.type] || noop;
+          let handler = Alpine$1.directives[attr.type] || noop;
           if (exceptAttribute(attr, handler)) return; // Run "x-ref/data/spread" on the initial sweep.
 
           let task = handler.immediate ? callback => callback() : this.scheduler.task.bind(this.scheduler);
           task(() => {
-            handler(el, attr.value, attr.modifiers, attr.expression, Alpine.effect);
+            handler(el, attr.value, attr.modifiers, attr.expression, Alpine$1.effect);
           });
         });
       },
@@ -1142,7 +1143,7 @@
     }; // handler.initOnly = true
 
 
-    Alpine.directive('transition', handler);
+    Alpine$1.directive('transition', handler);
     function transitionClasses(el, {
       during = '',
       start = '',
@@ -1387,7 +1388,7 @@
       let farExtras = {};
       let dataStack = closestDataStack(el);
       let closeExtras = extras;
-      Alpine.injectMagics(closeExtras, el); // Now we smush em all together into one stack and reverse it so we can give proper scoping priority later.
+      Alpine$1.injectMagics(closeExtras, el); // Now we smush em all together into one stack and reverse it so we can give proper scoping priority later.
 
       let reversedDataStack = [farExtras].concat(Array.from(dataStack).concat([closeExtras])).reverse(); // We're going to use Async functions for evaluation to allow for the use of "await" in expressions.
 
@@ -1446,6 +1447,14 @@
       let boundEvaluator = evaluator.bind(null, ...reversedDataStack);
       return tryCatch.bind(null, el, expression, boundEvaluator);
     }
+    function evaluatorSync(el, expression, extras = {}, returns = true) {
+      let evaluate = evaluator(el, expression, extras, returns);
+      return () => {
+        let result;
+        evaluate()(value => result = value);
+        return result;
+      };
+    }
     function evaluate(el, expression, extras = {}, returns = true) {
       return evaluator(el, expression, extras, returns)();
     }
@@ -1465,7 +1474,7 @@
       }
     }
 
-    Alpine.directive('intersect', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('intersect', (el, value, modifiers, expression, effect) => {
       let evaluate = evaluator(el, expression, {}, false);
 
       if (['in', 'leave'].includes(value)) {
@@ -1521,7 +1530,7 @@
       });
     }
 
-    Alpine.directive('element', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('element', (el, value, modifiers, expression, effect) => {
       // We need to do this after Alpine has run through all the "light" dom.
       queueMicrotask(() => {
         var _element$querySelecto;
@@ -1531,12 +1540,12 @@
         let props = el._x_defaultProps;
         let element = createElement(template);
         let injectData = generateInjectDataObject(template, el);
-        element._x_dataStack = new Set([generateReactivePropObject(props, el._x_bindings, el), injectData]);
+        element._x_dataStack = new Set([el._x_bindings, injectData]);
         transferAttributes(element, el, props);
         element._x_ignoreMutationObserver = true;
         element._x_customElementRoot = true;
         el.replaceWith(element);
-        Alpine.initTree(element);
+        Alpine$1.initTree(element);
         el.removeAttribute('x-element');
         element.setAttribute('x-element', expression);
         (_element$querySelecto = element.querySelector('slot')) === null || _element$querySelecto === void 0 ? void 0 : _element$querySelecto.replaceWith(...el.childNodes);
@@ -1561,31 +1570,6 @@
           }
 
         });
-      });
-      return reactiveRoot;
-    }
-
-    function generateReactivePropObject(props, bindings, el) {
-      let reactiveRoot = {};
-      Object.entries(props).forEach(([propName, propDefault]) => {
-        // If the property was bound on the custom-element with x-bind.
-        if (bindings && typeof bindings[propName] !== undefined) {
-          Object.defineProperty(reactiveRoot, propName, {
-            get() {
-              return bindings[propName]();
-            }
-
-          });
-          return;
-        } // If the element has the property on itself.
-
-
-        if (el.hasAttribute(propName)) {
-          reactiveRoot[propName] = this.getAttribute(propName);
-          return;
-        }
-
-        reactiveRoot[propName] = propDefault;
       });
       return reactiveRoot;
     }
@@ -1681,19 +1665,13 @@
     //     })
     // }
 
-    Alpine.directive('provide', (el, value, modifiers, expression) => {
-      let evaluate = evaluator(el, expression);
+    Alpine$1.directive('provide', (el, value, modifiers, expression) => {
+      let evaluate = evaluatorSync(el, expression);
       let root = closestCustomElementRoot(el);
-
-      if (!root._x_provides) {
-        root._x_provides = {};
-      }
-
+      if (!root._x_provides) root._x_provides = {};
       Object.defineProperty(root._x_provides, expression, {
         get() {
-          let result;
-          evaluate()(value => result = value);
-          return result;
+          return evaluate();
         }
 
       });
@@ -1704,23 +1682,23 @@
       return closestCustomElementRoot(el.parentNode);
     }
 
-    Alpine.directive('destroy', (el, value, modifiers, expression, effect) => {
-      Alpine.addDestroyCallback(el, () => {
+    Alpine$1.directive('destroy', (el, value, modifiers, expression, effect) => {
+      Alpine$1.addDestroyCallback(el, () => {
         evaluate(el, expression, {}, false);
       });
     });
 
-    Alpine.directive('spread', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('spread', (el, value, modifiers, expression, effect) => {
       let spreadObject = evaluateSync(el, expression);
       let rawAttributes = Object.entries(spreadObject).map(([name, value]) => ({
         name,
         value
       }));
       let attributes = directives(el, rawAttributes);
-      Alpine.init(el, attributes);
+      Alpine$1.init(el, attributes);
     });
 
-    Alpine.directive('scope', (el, value, modifiers, expression) => {
+    Alpine$1.directive('scope', (el, value, modifiers, expression) => {
       let slot = el.firstElementChild.assignedSlot; // let root = closestCustomElementRoot(el)
 
       let object = evaluateSync(el, expression);
@@ -1737,7 +1715,7 @@
       });
       el._x_dataStack = new Set(closestDataStack(el));
 
-      el._x_dataStack.add(Alpine.reactive(reactiveRoot)); // Object.defineProperty(root._x_provides, expression, {
+      el._x_dataStack.add(Alpine$1.reactive(reactiveRoot)); // Object.defineProperty(root._x_provides, expression, {
       //     get() {
       //         return evaluateSync(el, expression)
       //     }
@@ -1746,6 +1724,9 @@
     });
 
     function bind(el, name, value, modifiers = []) {
+      // Register bound data as pure observable data for other APIs to use.
+      if (!el._x_bindings) el._x_bindings = Alpine.reactive({});
+      el._x_bindings[name] = value;
       name = modifiers.includes('camel') ? camelCase(name) : name;
 
       switch (name) {
@@ -1781,7 +1762,9 @@
         // If we are explicitly binding a string to the :value, set the string,
         // If the value is a boolean/array/number/null/undefined, leave it alone, it will be set to "on"
         // automatically.
-        if (!Number.isInteger(value) && !Array.isArray(value) && typeof value !== 'boolean' && ![null, undefined].includes(value)) {
+        if (Number.isInteger(value)) {
+          el.value = value;
+        } else if (!Number.isInteger(value) && !Array.isArray(value) && typeof value !== 'boolean' && ![null, undefined].includes(value)) {
           el.value = String(value);
         } else {
           if (Array.isArray(value)) {
@@ -2021,7 +2004,7 @@
       }
     }
 
-    Alpine.directive('model', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('model', (el, value, modifiers, expression, effect) => {
       let evaluate = evaluator(el, expression);
       let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`;
       let evaluateAssignment = evaluator(el, assignmentExpression); // If the element we are binding to is a select, a radio, or checkbox
@@ -2053,16 +2036,6 @@
 
         el._x_forceModelUpdate();
       });
-
-      if (!el._x_bindings) {
-        el._x_bindings = {};
-      }
-
-      el._x_bindings.value = () => {
-        let value;
-        evaluate()(i => value = i);
-        return value;
-      };
     });
 
     function generateAssignmentFunction(el, modifiers, expression) {
@@ -2112,7 +2085,7 @@
       return !Array.isArray(subject) && !isNaN(subject);
     }
 
-    Alpine.directive('cloak', el => {
+    Alpine$1.directive('cloak', el => {
       scheduler.nextTick(() => {
         el.removeAttribute('x-cloak');
       });
@@ -2372,7 +2345,7 @@
       return !from._x_is_shown && to._x_is_shown;
     }
 
-    Alpine.directive('morph', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('morph', (el, value, modifiers, expression, effect) => {
       let evaluate = evaluator(el, expression);
       effect(() => {
         evaluate()(value => {
@@ -2389,7 +2362,7 @@
       });
     });
 
-    Alpine.directive('watch', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('watch', (el, value, modifiers, expression, effect) => {
       let evaluate = evaluator(el, `$watch('${value}', $value => ${expression})`);
       setTimeout(() => {
         evaluate();
@@ -2401,9 +2374,9 @@
     };
 
     handler$1.initOnly = true;
-    Alpine.directive('init', handler$1);
+    Alpine$1.directive('init', handler$1);
 
-    Alpine.directive('text', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('text', (el, value, modifiers, expression, effect) => {
       let evaluate = evaluator(el, expression);
       effect(() => {
         evaluate()(value => {
@@ -2412,22 +2385,11 @@
       });
     });
 
-    Alpine.directive('bind', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('bind', (el, value, modifiers, expression, effect) => {
       let attrName = value;
       let evaluate = evaluator(el, expression); // Ignore :key bindings. (They are used by x-for)
 
       if (attrName === 'key') return;
-
-      if (!el._x_bindings) {
-        el._x_bindings = {};
-      }
-
-      el._x_bindings[attrName] = () => {
-        let result;
-        evaluate()(value => result = value);
-        return result;
-      };
-
       effect(() => evaluate()(value => {
         bind(el, attrName, value, modifiers);
       }));
@@ -2435,7 +2397,7 @@
 
     let handler$2 = (el, value, modifiers, expression, effect) => {
       expression = expression === '' ? '{}' : expression;
-      let components = Alpine.components;
+      let components = Alpine$1.components;
       let data;
 
       if (Object.keys(components).includes(expression)) {
@@ -2445,9 +2407,9 @@
         data = evaluateSync(el, expression);
       }
 
-      Alpine.injectMagics(data, el);
+      Alpine$1.injectMagics(data, el);
       el._x_data = data;
-      el._x_$data = Alpine.reactive(el._x_data);
+      el._x_$data = Alpine$1.reactive(el._x_data);
       el._x_dataStack = new Set(closestDataStack(el));
 
       el._x_dataStack.add(el._x_$data);
@@ -2462,16 +2424,16 @@
       }
 
       if (data['destroy']) {
-        Alpine.addDestroyCallback(el, () => {
+        Alpine$1.addDestroyCallback(el, () => {
           evaluate(el, data['destroy'].bind(data));
         });
       }
     };
 
     handler$2.initOnly = true;
-    Alpine.directive('data', handler$2);
+    Alpine$1.directive('data', handler$2);
 
-    Alpine.directive('show', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('show', (el, value, modifiers, expression, effect) => {
       let evaluate = evaluator(el, expression, {}, true);
 
       let hide = () => {
@@ -2495,7 +2457,7 @@
 
       let isFirstRun = true;
       effect(() => evaluate()(value => {
-        isFirstRun ? toggleImmediately(el, value, show, hide) : toggleWithTransitions(el, value, show, hide);
+        isFirstRun || modifiers.includes('immediate') ? toggleImmediately(el, value, show, hide) : toggleWithTransitions(el, value, show, hide);
         isFirstRun = false;
       }));
     });
@@ -2598,7 +2560,7 @@
       return target;
     }
 
-    Alpine.directive('for', (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('for', (el, value, modifiers, expression, effect) => {
       var _directivesByType$fil;
 
       let iteratorNames = parseForExpression(expression);
@@ -2633,7 +2595,7 @@
           if (!nextEl) {
             nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl);
             let newSet = new Set(closestParentContext);
-            newSet.add(Alpine.reactive(iterationScopeVariables));
+            newSet.add(Alpine$1.reactive(iterationScopeVariables));
             nextEl._x_dataStack = newSet;
             nextEl._x_for = iterationScopeVariables; // Alpine.initTree(nextEl)
           }
@@ -2734,9 +2696,9 @@
     };
 
     handler$3.immediate = true;
-    Alpine.directive('ref', handler$3);
+    Alpine$1.directive('ref', handler$3);
 
-    Alpine.directive('on', (el, value, modifiers, expression) => {
+    Alpine$1.directive('on', (el, value, modifiers, expression) => {
       let evaluate = evaluator(el, expression, {}, false);
       on(el, value, modifiers, e => {
         evaluate({
@@ -2745,9 +2707,9 @@
       });
     });
 
-    Alpine.magic('nextTick', el => callback => scheduler.nextTick(callback));
+    Alpine$1.magic('nextTick', el => callback => scheduler.nextTick(callback));
 
-    Alpine.magic('dispatch', el => {
+    Alpine$1.magic('dispatch', el => {
       return (event, detail = {}) => {
         return el._x_dispatch(event, detail);
       };
@@ -2762,11 +2724,11 @@
       }));
     };
 
-    Alpine.magic('watch', el => {
+    Alpine$1.magic('watch', el => {
       return (key, callback) => {
         let evaluate = evaluator(el, key);
         let firstTime = true;
-        let effect = Alpine.effect(() => evaluate()(value => {
+        let effect = Alpine$1.effect(() => evaluate()(value => {
           // This is a hack to force deep reactivity for things like "items.push()"
           let div = document.createElement('div');
           div.dataset.hey = value;
@@ -2783,23 +2745,23 @@
       };
     });
 
-    Alpine.magic('store', () => {
-      return name => Alpine.getStore(name);
+    Alpine$1.magic('store', () => {
+      return name => Alpine$1.getStore(name);
     });
 
-    Alpine.magic('morph', el => (el, html, options) => morph(el, html, options));
+    Alpine$1.magic('morph', el => (el, html, options) => morph(el, html, options));
 
-    Alpine.magic('root', el => root(el));
+    Alpine$1.magic('root', el => root(el));
 
-    Alpine.magic('refs', el => root(el)._x_$refs || {});
+    Alpine$1.magic('refs', el => root(el)._x_$refs || {});
 
-    Alpine.magic('el', el => el);
+    Alpine$1.magic('el', el => el);
 
     /**
      * Start It Up
      */
 
-    window.Alpine = Alpine;
-    Alpine.start();
+    window.Alpine = Alpine$1;
+    Alpine$1.start();
 
 })));

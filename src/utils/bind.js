@@ -1,6 +1,10 @@
 import { setClasses, toggleClasses } from '../utils/classes'
 
 export default function bind(el, name, value, modifiers = []) {
+    // Register bound data as pure observable data for other APIs to use.
+    if (! el._x_bindings) el._x_bindings = Alpine.reactive({})
+    el._x_bindings[name] = value
+
     name = modifiers.includes('camel') ? camelCase(name) : name
 
     switch (name) {
@@ -36,7 +40,9 @@ function bindInputValue(el, value) {
         // If we are explicitly binding a string to the :value, set the string,
         // If the value is a boolean/array/number/null/undefined, leave it alone, it will be set to "on"
         // automatically.
-        if (! Number.isInteger(value) && ! Array.isArray(value) && typeof value !== 'boolean' && ! [null, undefined].includes(value)) {
+        if (Number.isInteger(value)) {
+            el.value = value
+        } else if (! Number.isInteger(value) && ! Array.isArray(value) && typeof value !== 'boolean' && ! [null, undefined].includes(value)) {
             el.value = String(value)
         } else {
             if (Array.isArray(value)) {

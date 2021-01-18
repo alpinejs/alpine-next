@@ -40,7 +40,7 @@ Alpine.directive('element', (el, value, modifiers, expression, effect) => {
 
         let injectData = generateInjectDataObject(template, el)
 
-        element._x_dataStack = new Set([generateReactivePropObject(props, el._x_bindings, el), injectData])
+        element._x_dataStack = new Set([el._x_bindings, injectData])
 
         transferAttributes(element, el, props)
 

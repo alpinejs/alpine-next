@@ -43,18 +43,6 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
 
         el._x_forceModelUpdate()
     })
-
-    if (! el._x_bindings) {
-        el._x_bindings = {}
-    }
-
-    el._x_bindings.value = () => {
-        let value
-
-        evaluate()(i => value = i)
-
-        return value
-    }
 })
 
 function generateAssignmentFunction(el, modifiers, expression) {

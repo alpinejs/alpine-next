@@ -1,18 +1,39 @@
 import { root } from "../src/utils/root"
 
-export function test(name, template, callback) {
+export let test = function (name, template, callback) {
     it(name, () => {
-        cy.visit('http://alpine-next.test/cypress/spec.html')
+        injectHtmlAndBootAlpine(cy, template, callback)
+    })
+}
 
-        cy.get('#root').then(([el]) => {
-            el.innerHTML = template
+test.only = (name, template, callback) => {
+    it.only(name, () => {
+        injectHtmlAndBootAlpine(cy, template, callback)
+    })
+}
 
-            el.evalScripts()
+test.retry = (count) => (name, template, callback) => {
+    it(name, {
+        retries: {
+            // During "cypress run"
+            runMode: count - 1,
+            // During "cypress open"
+            openMode: count - 1,
+        }
+    }, () => {
+        injectHtmlAndBootAlpine(cy, template, callback)
+    })
+}
 
-            el.startAlpine()
+function injectHtmlAndBootAlpine(cy, template, callback) {
+    cy.visit('http://alpine-next.test/cypress/spec.html')
 
-            callback(cy.get)
-        })
+    cy.get('#root').then(([el]) => {
+        el.innerHTML = template
+
+        el.evalScripts()
+
+        callback(cy.get)
     })
 }
 
