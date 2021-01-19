@@ -39,8 +39,6 @@ let handler = (el, value, modifiers, expression, effect) => {
     directiveStorageMap[value](expression)
 }
 
-// handler.initOnly = true
-
 Alpine.directive('transition', handler)
 
 export function transitionClasses(el, { during = '', start = '', end = '' } = {}, before = () => {}, after = () => {}) {

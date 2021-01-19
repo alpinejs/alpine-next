@@ -1,7 +1,8 @@
 import { reactive } from '@vue/reactivity'
 import Alpine from '../alpine'
 import { evaluateSync } from '../utils/evaluate'
-import { closestDataStack } from '../utils/closest'
+import { closestDataProxy, closestDataStack } from '../utils/closest'
+import { addScopeToNode } from '../scope'
 
 document.addEventListener('alpine:initializing', () => {
     document.querySelectorAll('[x-element]').forEach(template => {
@@ -20,41 +21,61 @@ function registerElement(name, template) {
 
             this.setAttribute('x-element', name)
 
-            console.log('construct', name)
-
             this._x_defaultProps = props
             this._x_template = template
+
+            queueMicrotask(() => {
+                // If this component is not inside of Alpine scope
+                if (closestDataStack(this).size === 0) {
+                    console.log('not inside')
+                }
+            })
         }
     })
 }
 
 Alpine.directive('element', (el, value, modifiers, expression, effect) => {
-    // We need to do this after Alpine has run through all the "light" dom.
+    let template = el._x_template
+    let defaultProps = el._x_defaultProps
+
+    let element = createElement(template)
+
+    let injectData = generateInjectDataObject(template, el)
+
+    element._x_dataStack = new Set([el._x_bindings || {}, injectData])
+
+    transferAttributes(element, el, defaultProps)
+
+    element._x_ignoreMutationObserver = true
+    element._x_customElementRoot = true
+
+    Alpine.initTree(element)
+
+    let slot = element.querySelector('slot')
+
+    let scope = {}
+
+    if (slot && el.hasAttribute('x-scope')) {
+        let scopeName = el.getAttribute('x-scope')
+
+        Object.defineProperty(scope, scopeName, {
+            get() {
+                return slot._x_bindings[scopeName]
+            }
+        })
+    }
+
+    el.childNodes.forEach(node => {
+        addScopeToNode(node, scope)
+    })
+
     queueMicrotask(() => {
-        console.log('handle x-element', expression)
-
-        let template = el._x_template
-        let props = el._x_defaultProps
-
-        let element = createElement(template)
-
-        let injectData = generateInjectDataObject(template, el)
-
-        element._x_dataStack = new Set([el._x_bindings, injectData])
-
-        transferAttributes(element, el, props)
-
-        element._x_ignoreMutationObserver = true
-        element._x_customElementRoot = true
-
         el.replaceWith(element)
-
-        Alpine.initTree(element)
 
         el.removeAttribute('x-element')
         element.setAttribute('x-element', expression)
 
-        element.querySelector('slot')?.replaceWith(...el.childNodes)
+        slot && slot.replaceWith(...el.childNodes)
     })
 })
 
@@ -81,34 +102,6 @@ function generateInjectDataObject(template, el) {
                 return provides[injectName]
             },
         })
-    })
-
-    return reactiveRoot
-}
-
-function generateReactivePropObject(props, bindings, el) {
-    let reactiveRoot = {}
-
-    Object.entries(props).forEach(([propName, propDefault]) => {
-        // If the property was bound on the custom-element with x-bind.
-        if (bindings && typeof bindings[propName] !== undefined) {
-            Object.defineProperty(reactiveRoot, propName, {
-                get() {
-                    return bindings[propName]()
-                }
-            })
-
-            return
-        }
-
-        // If the element has the property on itself.
-        if (el.hasAttribute(propName)) {
-            reactiveRoot[propName] = this.getAttribute(propName)
-
-            return
-        }
-
-        reactiveRoot[propName] = propDefault
     })
 
     return reactiveRoot

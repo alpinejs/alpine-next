@@ -22,6 +22,7 @@ Alpine.directive('show', (el, value, modifiers, expression, effect) => {
         el._x_is_shown = true
     }
 
+    // @todo make this more tree-shakeable
     if (modifiers.includes('transition')) {
         registerTranstions(el, modifiers)
     }

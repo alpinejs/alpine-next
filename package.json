@@ -25,7 +25,8 @@
     },
     "scripts": {
         "watch": "rollup -c -w",
-        "build": "rollup -c"
+        "build": "rollup -c",
+        "test": "cypress open"
     },
     "author": "",
     "license": "ISC"

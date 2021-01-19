@@ -742,9 +742,6 @@
     function directivesByType(el, type) {
       return directives(el).filter(attribute => attribute.type === type);
     }
-    function directiveByType(el, type) {
-      return directivesByType(el, type)[0];
-    }
     let xAttrRE = /^x-([^:^.]+)\b/;
 
     function isXAttr({
@@ -755,7 +752,7 @@
     }
 
     function sortDirectives(directives) {
-      let directiveOrder = ['data', 'spread', 'ref', 'init', 'bind', 'for', 'model', 'transition', 'show', 'catch-all'];
+      let directiveOrder = ['data', 'spread', 'ref', 'init', 'bind', 'for', 'model', 'transition', 'show', 'catch-all', 'element'];
       return directives.sort((a, b) => {
         let typeA = directiveOrder.indexOf(a.type) === -1 ? 'catch-all' : a.type;
         let typeB = directiveOrder.indexOf(b.type) === -1 ? 'catch-all' : b.type;
@@ -822,13 +819,12 @@
           return (objects.find(object => Object.keys(object).includes(name)) || {})[name];
         },
         set: (target, name, value) => {
-          let closestObjectWithKey = objects.find(object => Object.keys(object).includes(name));
-          let closestCanonicalObject = objects.find(object => object['_x_canonical']);
+          let closestObjectWithKey = objects.find(object => Object.keys(object).includes(name)); // @todo: you might need to re-add me, just trying to see if we need this.
+          // let closestCanonicalObject = objects.find(object => object['_x_canonical'])
 
           if (closestObjectWithKey) {
-            closestObjectWithKey[name] = value;
-          } else if (closestCanonicalObject) {
-            closestCanonicalObject[name] = value;
+            closestObjectWithKey[name] = value; // } else if (closestCanonicalObject) {
+            //     closestCanonicalObject[name] = value
           } else {
             objects[objects.length - 1][name] = value;
           }
@@ -864,12 +860,10 @@
         if (this.skipEffects) return () => {};
         return callback => {
           return effect(() => {
-            callback();
-          }, {
-            scheduler(run) {
-              scheduler.task(run);
-            }
-
+            callback(); // }, {
+            //     scheduler(run) {
+            //         scheduler.task(run)
+            //     }
           });
         };
       },
@@ -939,25 +933,23 @@
         });
       },
 
-      copyTree(originalEl, newEl) {
-        newEl._x_data = originalEl._x_data;
-        newEl._x_$data = this.reactive(originalEl._x_data);
-        newEl._x_dataStack = originalEl._x_dataStack;
-        newEl._x_dataStack = new Set(closestDataStack(originalEl));
-
-        newEl._x_dataStack.add(newEl._x_$data);
-
-        let root = true;
-        this.walk(newEl, (el, skipSubTree) => {
-          if (!root && !!directiveByType(el, 'data')) return skipSubTree();
-          root = false;
-          this.init(el, false, (attr, handler) => handler.initOnly);
-        }); // @todo: why is this here, why does this break Livewire reactivity?
-        // this.skipEffects = true
-
-        this.scheduler.flushImmediately(); // delete this.skipEffects
-      },
-
+      // copyTree(originalEl, newEl) {
+      //     newEl._x_data = originalEl._x_data
+      //     newEl._x_$data = this.reactive(originalEl._x_data)
+      //     newEl._x_dataStack = originalEl._x_dataStack
+      //     newEl._x_dataStack = new Set(closestDataStack(originalEl))
+      //     newEl._x_dataStack.add(newEl._x_$data)
+      //     let root = true
+      //     this.walk(newEl, (el, skipSubTree) => {
+      //         if (! root && !! directiveByType(el, 'data')) return skipSubTree()
+      //         root = false
+      //         this.init(el, false)
+      //     })
+      //     // @todo: why is this here, why does this break Livewire reactivity?
+      //     // this.skipEffects = true
+      //     this.scheduler.flushImmediately()
+      //     // delete this.skipEffects
+      // },
       initTree(root) {
         if (root instanceof ShadowRoot) {
           Array.from(root.children).forEach(child => this.walk(child, el => this.init(el)));
@@ -968,14 +960,17 @@
         this.scheduler.flush();
       },
 
-      init(el, attributes, exceptAttribute = () => false) {
+      init(el, attributes) {
         (attributes || directives(el)).forEach(attr => {
           let noop = () => {};
 
-          let handler = Alpine$1.directives[attr.type] || noop;
-          if (exceptAttribute(attr, handler)) return; // Run "x-ref/data/spread" on the initial sweep.
+          let handler = Alpine$1.directives[attr.type] || noop; // Run "x-ref/data/spread" on the initial sweep.
+          // let task = handler.immediate
+          //     ? callback => callback()
+          //     : this.scheduler.task.bind(this.scheduler)
 
-          let task = handler.immediate ? callback => callback() : this.scheduler.task.bind(this.scheduler);
+          let task = callback => callback();
+
           task(() => {
             handler(el, attr.value, attr.modifiers, attr.expression, Alpine$1.effect);
           });
@@ -1140,8 +1135,7 @@
         }
       };
       directiveStorageMap[value](expression);
-    }; // handler.initOnly = true
-
+    };
 
     Alpine$1.directive('transition', handler);
     function transitionClasses(el, {
@@ -1474,41 +1468,11 @@
       }
     }
 
-    Alpine$1.directive('intersect', (el, value, modifiers, expression, effect) => {
-      let evaluate = evaluator(el, expression, {}, false);
+    function addScopeToNode(node, data) {
+      node._x_dataStack = new Set(closestDataStack(node));
 
-      if (['in', 'leave'].includes(value)) {
-        el._x_intersectLeave(evaluate, modifiers);
-      } else {
-        el._x_intersectEnter(evaluate, modifiers);
-      }
-    });
-
-    window.Element.prototype._x_intersectEnter = function (callback, modifiers) {
-      this._x_intersect((entry, observer) => {
-        if (entry.intersectionRatio > 0) {
-          callback();
-          modifiers.includes('once') && observer.unobserve(this);
-        }
-      });
-    };
-
-    window.Element.prototype._x_intersectLeave = function (callback, modifiers) {
-      this._x_intersect((entry, observer) => {
-        if (!entry.intersectionRatio > 0) {
-          callback();
-          modifiers.includes('once') && observer.unobserve(this);
-        }
-      });
-    };
-
-    window.Element.prototype._x_intersect = function (callback) {
-      let observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => callback(entry, observer));
-      });
-      observer.observe(this);
-      return observer;
-    };
+      node._x_dataStack.add(data);
+    }
 
     document.addEventListener('alpine:initializing', () => {
       document.querySelectorAll('[x-element]').forEach(template => {
@@ -1522,33 +1486,50 @@
           super();
           let props = template.hasAttribute('x-props') ? evaluateSync(template, template.getAttribute('x-props')) : {};
           this.setAttribute('x-element', name);
-          console.log('construct', name);
           this._x_defaultProps = props;
           this._x_template = template;
+          queueMicrotask(() => {
+            // If this component is not inside of Alpine scope
+            if (closestDataStack(this).size === 0) {
+              console.log('not inside');
+            }
+          });
         }
 
       });
     }
 
     Alpine$1.directive('element', (el, value, modifiers, expression, effect) => {
-      // We need to do this after Alpine has run through all the "light" dom.
-      queueMicrotask(() => {
-        var _element$querySelecto;
+      let template = el._x_template;
+      let defaultProps = el._x_defaultProps;
+      let element = createElement(template);
+      let injectData = generateInjectDataObject(template, el);
+      element._x_dataStack = new Set([el._x_bindings || {}, injectData]);
+      transferAttributes(element, el, defaultProps);
+      element._x_ignoreMutationObserver = true;
+      element._x_customElementRoot = true;
+      Alpine$1.initTree(element);
+      let slot = element.querySelector('slot');
+      let scope = {};
 
-        console.log('handle x-element', expression);
-        let template = el._x_template;
-        let props = el._x_defaultProps;
-        let element = createElement(template);
-        let injectData = generateInjectDataObject(template, el);
-        element._x_dataStack = new Set([el._x_bindings, injectData]);
-        transferAttributes(element, el, props);
-        element._x_ignoreMutationObserver = true;
-        element._x_customElementRoot = true;
+      if (slot && el.hasAttribute('x-scope')) {
+        let scopeName = el.getAttribute('x-scope');
+        Object.defineProperty(scope, scopeName, {
+          get() {
+            return slot._x_bindings[scopeName];
+          }
+
+        });
+      }
+
+      el.childNodes.forEach(node => {
+        addScopeToNode(node, scope);
+      });
+      queueMicrotask(() => {
         el.replaceWith(element);
-        Alpine$1.initTree(element);
         el.removeAttribute('x-element');
         element.setAttribute('x-element', expression);
-        (_element$querySelecto = element.querySelector('slot')) === null || _element$querySelecto === void 0 ? void 0 : _element$querySelecto.replaceWith(...el.childNodes);
+        slot && slot.replaceWith(...el.childNodes);
       });
     });
 
@@ -1665,27 +1646,8 @@
     //     })
     // }
 
-    Alpine$1.directive('provide', (el, value, modifiers, expression) => {
-      let evaluate = evaluatorSync(el, expression);
-      let root = closestCustomElementRoot(el);
-      if (!root._x_provides) root._x_provides = {};
-      Object.defineProperty(root._x_provides, expression, {
-        get() {
-          return evaluate();
-        }
-
-      });
-    });
-
-    function closestCustomElementRoot(el) {
-      if (el._x_customElementRoot) return el;
-      return closestCustomElementRoot(el.parentNode);
-    }
-
-    Alpine$1.directive('destroy', (el, value, modifiers, expression, effect) => {
-      Alpine$1.addDestroyCallback(el, () => {
-        evaluate(el, expression, {}, false);
-      });
+    Alpine$1.directive('destroy', (el, value, modifiers, expression) => {
+      Alpine$1.addDestroyCallback(el, () => evaluate(el, expression, {}, false));
     });
 
     Alpine$1.directive('spread', (el, value, modifiers, expression, effect) => {
@@ -1696,31 +1658,6 @@
       }));
       let attributes = directives(el, rawAttributes);
       Alpine$1.init(el, attributes);
-    });
-
-    Alpine$1.directive('scope', (el, value, modifiers, expression) => {
-      let slot = el.firstElementChild.assignedSlot; // let root = closestCustomElementRoot(el)
-
-      let object = evaluateSync(el, expression);
-      let reactiveRoot = {};
-      Object.entries(object).forEach(([name, defaultValue]) => {
-        let getter = evaluator(el);
-        Object.defineProperty(reactiveRoot, name, {
-          get() {
-            console.log('get');
-            return slot._x_bindings[name]();
-          }
-
-        });
-      });
-      el._x_dataStack = new Set(closestDataStack(el));
-
-      el._x_dataStack.add(Alpine$1.reactive(reactiveRoot)); // Object.defineProperty(root._x_provides, expression, {
-      //     get() {
-      //         return evaluateSync(el, expression)
-      //     }
-      // })
-
     });
 
     function bind(el, name, value, modifiers = []) {
@@ -1751,13 +1688,11 @@
         // "checked" value since x-bind:value is processed before x-model.
         if (el.attributes.value === undefined) {
           el.value = value;
-        } // @todo: removed this because getting "attrType" is tough.
-        // We'll see what breaks
+        } // @todo: remove commented code when you know it's safe
+        // if (window.fromModel) {
 
 
-        if (window.fromModel) {
-          el.checked = checkedAttrLooseCompare(el.value, value);
-        }
+        el.checked = checkedAttrLooseCompare(el.value, value); // }
       } else if (el.type === 'checkbox') {
         // If we are explicitly binding a string to the :value, set the string,
         // If the value is a boolean/array/number/null/undefined, leave it alone, it will be set to "on"
@@ -1842,15 +1777,6 @@
         let listenerTarget = modifiers.includes('window') ? window : modifiers.includes('document') ? document : el;
 
         let handler = e => {
-          // Remove this global event handler if the element that declared it
-          // has been removed. It's now stale.
-          if (listenerTarget === window || listenerTarget === document) {
-            if (!document.body.contains(el)) {
-              listenerTarget.removeEventListener(event, handler, options);
-              return;
-            }
-          }
-
           if (isKeyEvent(event)) {
             if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
               return;
@@ -2018,20 +1944,20 @@
           rightSideOfExpression: assigmentFunction
         });
       });
-      if (!window.hey) window.hey = [];
 
       el._x_forceModelUpdate = () => {
         evaluate()(value => {
           // If nested model key is undefined, set the default value to empty string.
           if (value === undefined && expression.match(/\./)) value = ''; // @todo: This is nasty
+          // hopefully we can remove this
+          // window.fromModel = true
 
-          window.fromModel = true;
-          bind(el, 'value', value);
-          delete window.fromModel;
+          bind(el, 'value', value); // delete window.fromModel
         });
       };
 
       effect(() => {
+        // Don't modify the value of the input if it's focused.
         if (modifiers.includes('unintrusive') && document.activeElement.isSameNode(el)) return;
 
         el._x_forceModelUpdate();
@@ -2091,277 +2017,6 @@
       });
     });
 
-    function morph(dom, toHtml, options) {
-      assignOptions(options);
-      patch(dom, createElement$1(toHtml));
-      return dom;
-    }
-    let key, lookahead, updating, updated, removing, removed, adding, added;
-
-    let noop = () => {};
-
-    function assignOptions(options = {}) {
-      let defaultGetKey = el => el.getAttribute('key');
-
-      key = options.key || defaultGetKey;
-      lookahead = options.lookahead || false;
-      updating = options.updating || noop;
-      updated = options.updated || noop;
-      removing = options.removing || noop;
-      removed = options.removed || noop;
-      adding = options.adding || noop;
-      added = options.added || noop;
-    }
-
-    function createElement$1(html) {
-      return document.createRange().createContextualFragment(html).firstElementChild;
-    }
-
-    function patch(dom, to) {
-      if (dom.isEqualNode(to)) return;
-
-      if (differentElementNamesTypesOrKeys(dom, to)) {
-        return patchElement(dom, to);
-      }
-
-      let updateChildrenOnly = false;
-      if (shouldSkip(updating, dom, to, () => updateChildrenOnly = true)) return;
-      initializeAlpineOnTo(dom, to, () => updateChildrenOnly = true);
-
-      if (textOrComment(to)) {
-        patchNodeValue(dom, to);
-        updated(dom, to);
-        return;
-      }
-
-      if (!updateChildrenOnly) {
-        patchAttributes(dom, to);
-      }
-
-      updated(dom, to);
-      patchChildren(dom, to);
-    }
-
-    function differentElementNamesTypesOrKeys(dom, to) {
-      return dom.nodeType != to.nodeType || dom.nodeName != to.nodeName || getKey(dom) != getKey(to);
-    }
-
-    function textOrComment(el) {
-      return el.nodeType === 3 || el.nodeType === 8;
-    }
-
-    function patchElement(dom, to) {
-      if (shouldSkip(removing, dom)) return;
-      let toCloned = to.cloneNode(true);
-      if (shouldSkip(adding, toCloned)) return;
-      dom.parentNode.replaceChild(toCloned, dom);
-      removed(dom);
-      added(toCloned);
-    }
-
-    function patchNodeValue(dom, to) {
-      let value = to.nodeValue;
-      if (dom.nodeValue !== value) dom.nodeValue = value;
-    }
-
-    function patchAttributes(dom, to) {
-      let domAttributes = Array.from(dom.attributes);
-      let toAttributes = Array.from(to.attributes);
-
-      for (let i = domAttributes.length - 1; i >= 0; i--) {
-        let name = domAttributes[i].name;
-        if (!to.hasAttribute(name)) dom.removeAttribute(name);
-      }
-
-      for (let i = toAttributes.length - 1; i >= 0; i--) {
-        let name = toAttributes[i].name;
-        let value = toAttributes[i].value;
-        if (dom.getAttribute(name) !== value) dom.setAttribute(name, value);
-      }
-    }
-
-    function patchChildren(dom, to) {
-      let domChildren = dom.childNodes;
-      let toChildren = to.childNodes;
-      let toKeyToNodeMap = keyToMap(toChildren);
-      let domKeyDomNodeMap = keyToMap(domChildren);
-      let currentTo = to.firstChild;
-      let currentFrom = dom.firstChild;
-      let domKeyHoldovers = {};
-
-      while (currentTo) {
-        let toKey = getKey(currentTo);
-        let domKey = getKey(currentFrom); // Add new elements
-
-        if (!currentFrom) {
-          if (toKey && domKeyHoldovers[toKey]) {
-            let holdover = domKeyHoldovers[toKey];
-            dom.appendChild(holdover);
-            currentFrom = holdover;
-          } else {
-            addNodeTo(currentTo, dom);
-            currentTo = currentTo.nextSibling;
-            continue;
-          }
-        }
-
-        if (lookahead) {
-          let nextToElementSibling = currentTo.nextElementSibling;
-
-          if (nextToElementSibling && currentFrom.isEqualNode(nextToElementSibling)) {
-            currentFrom = addNodeBefore(currentTo, currentFrom);
-            domKey = getKey(currentFrom);
-          }
-        }
-
-        if (toKey !== domKey) {
-          if (!toKey && domKey) {
-            domKeyHoldovers[domKey] = currentFrom;
-            currentFrom = addNodeBefore(currentTo, currentFrom);
-            domKeyHoldovers[domKey].remove();
-            currentFrom = currentFrom.nextSibling;
-            currentTo = currentTo.nextSibling;
-            continue;
-          }
-
-          if (toKey && !domKey) {
-            if (domKeyDomNodeMap[toKey]) {
-              currentFrom.parentElement.replaceChild(domKeyDomNodeMap[toKey], currentFrom);
-              currentFrom = domKeyDomNodeMap[toKey];
-            }
-          }
-
-          if (toKey && domKey) {
-            domKeyHoldovers[domKey] = currentFrom;
-            let domKeyNode = domKeyDomNodeMap[toKey];
-
-            if (domKeyNode) {
-              currentFrom.parentElement.replaceChild(domKeyNode, currentFrom);
-              currentFrom = domKeyNode;
-            } else {
-              domKeyHoldovers[domKey] = currentFrom;
-              currentFrom = addNodeBefore(currentTo, currentFrom);
-              domKeyHoldovers[domKey].remove();
-              currentFrom = currentFrom.nextSibling;
-              currentTo = currentTo.nextSibling;
-              continue;
-            }
-          }
-        } // Patch elements
-
-
-        patch(currentFrom, currentTo);
-        currentTo = currentTo && currentTo.nextSibling;
-        currentFrom = currentFrom && currentFrom.nextSibling;
-      } // cleanup extra froms
-
-
-      while (currentFrom) {
-        if (!shouldSkip(removing, currentFrom)) {
-          let domForRemoval = currentFrom;
-          dom.removeChild(domForRemoval);
-          removed(domForRemoval);
-        }
-
-        currentFrom = currentFrom.nextSibling;
-      }
-    }
-
-    function getKey(el) {
-      return el && el.nodeType === 1 && key(el);
-    }
-
-    function keyToMap(els) {
-      let map = {};
-      els.forEach(el => {
-        let theKey = getKey(el);
-
-        if (theKey) {
-          map[theKey] = el;
-        }
-      });
-      return map;
-    }
-
-    function shouldSkip(hook, ...args) {
-      let skip = false;
-      hook(...args, () => skip = true);
-      return skip;
-    }
-
-    function addNodeTo(node, parent) {
-      if (!shouldSkip(adding, node)) {
-        let clone = node.cloneNode(true);
-        parent.appendChild(clone);
-        added(clone);
-      }
-    }
-
-    function addNodeBefore(node, beforeMe) {
-      if (!shouldSkip(adding, node)) {
-        let clone = node.cloneNode(true);
-        beforeMe.parentElement.insertBefore(clone, beforeMe);
-        added(clone);
-        return clone;
-      }
-
-      return beforeMe;
-    }
-
-    function initializeAlpineOnTo(from, to, childrenOnly) {
-      if (from.nodeType !== 1) return; // If the element we are updating is an Alpine component...
-
-      if (from._x_dataStack) {
-        // Then temporarily clone it (with it's data) to the "to" element.
-        // This should simulate backend Livewire being aware of Alpine changes.
-        window.Alpine.copyTree(from, to);
-      } // x-show elements require care because of transitions.
-
-
-      if (Array.from(from.attributes).map(attr => attr.name).some(name => /x-show/.test(name))) {
-        if (from._x_transitioning) {
-          // This covers @entangle('something')
-          childrenOnly();
-        } else {
-          // This covers x-show="$wire.something"
-          //
-          // If the element has x-show, we need to "reverse" the damage done by "clone",
-          // so that if/when the element has a transition on it, it will occur naturally.
-          if (isHiding(from, to)) {
-            let style = to.getAttribute('style');
-            to.setAttribute('style', style.replace('display: none;', ''));
-          } else if (isShowing(from, to)) {
-            to.style.display = from.style.display;
-          }
-        }
-      }
-    }
-
-    function isHiding(from, to) {
-      return from._x_is_shown && !to._x_is_shown;
-    }
-
-    function isShowing(from, to) {
-      return !from._x_is_shown && to._x_is_shown;
-    }
-
-    Alpine$1.directive('morph', (el, value, modifiers, expression, effect) => {
-      let evaluate = evaluator(el, expression);
-      effect(() => {
-        evaluate()(value => {
-          if (!el.firstElementChild) {
-            if (el.firstChild) {
-              el.firstChild.remove();
-            }
-
-            el.appendChild(document.createElement('div'));
-          }
-
-          morph(el.firstElementChild, value);
-        });
-      });
-    });
-
     Alpine$1.directive('watch', (el, value, modifiers, expression, effect) => {
       let evaluate = evaluator(el, `$watch('${value}', $value => ${expression})`);
       setTimeout(() => {
@@ -2369,12 +2024,9 @@
       });
     });
 
-    let handler$1 = (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('init', (el, value, modifiers, expression, effect) => {
       evaluate(el, expression, {}, false);
-    };
-
-    handler$1.initOnly = true;
-    Alpine$1.directive('init', handler$1);
+    });
 
     Alpine$1.directive('text', (el, value, modifiers, expression, effect) => {
       let evaluate = evaluator(el, expression);
@@ -2386,38 +2038,20 @@
     });
 
     Alpine$1.directive('bind', (el, value, modifiers, expression, effect) => {
-      let attrName = value;
-      let evaluate = evaluator(el, expression); // Ignore :key bindings. (They are used by x-for)
+      let evaluate = evaluator(el, expression); // Ignore x-bind:key. (x-for will handle that)
 
-      if (attrName === 'key') return;
-      effect(() => evaluate()(value => {
-        bind(el, attrName, value, modifiers);
+      if (value === 'key') return;
+      effect(() => evaluate()(result => {
+        bind(el, value, result, modifiers);
       }));
     });
 
-    let handler$2 = (el, value, modifiers, expression, effect) => {
+    Alpine$1.directive('data', (el, value, modifiers, expression, effect) => {
       expression = expression === '' ? '{}' : expression;
       let components = Alpine$1.components;
-      let data;
-
-      if (Object.keys(components).includes(expression)) {
-        data = components[expression]();
-        data._x_canonical = true;
-      } else {
-        data = evaluateSync(el, expression);
-      }
-
+      let data = Object.keys(components).includes(expression) ? components[expression]() : evaluateSync(el, expression);
       Alpine$1.injectMagics(data, el);
-      el._x_data = data;
-      el._x_$data = Alpine$1.reactive(el._x_data);
-      el._x_dataStack = new Set(closestDataStack(el));
-
-      el._x_dataStack.add(el._x_$data);
-
-      el.dispatchEvent(new CustomEvent('alpine:initializingComponent', {
-        detail: el._x_$data,
-        bubbles: true
-      }));
+      addScopeToNode(el, reactive(data));
 
       if (data['init']) {
         evaluateSync(el, data['init'].bind(data));
@@ -2428,10 +2062,7 @@
           evaluate(el, data['destroy'].bind(data));
         });
       }
-    };
-
-    handler$2.initOnly = true;
-    Alpine$1.directive('data', handler$2);
+    });
 
     Alpine$1.directive('show', (el, value, modifiers, expression, effect) => {
       let evaluate = evaluator(el, expression, {}, true);
@@ -2449,7 +2080,8 @@
         }
 
         el._x_is_shown = true;
-      };
+      }; // @todo make this more tree-shakeable
+
 
       if (modifiers.includes('transition')) {
         registerTranstions(el, modifiers);
@@ -2565,7 +2197,7 @@
 
       let iteratorNames = parseForExpression(expression);
       let evaluateItems = evaluator(el, iteratorNames.items);
-      let evaluateKey = evaluator(el, // Look for a :key="..." expression
+      let evaluateKey = evaluatorSync(el, // Look for a :key="..." expression
       ((_directivesByType$fil = directivesByType(el, 'bind').filter(attribute => attribute.value === 'key')[0]) === null || _directivesByType$fil === void 0 ? void 0 : _directivesByType$fil.expression // Otherwise, use "index"
       ) || 'index');
       effect(() => {
@@ -2586,26 +2218,17 @@
         let currentEl = templateEl;
         items.forEach((item, index) => {
           let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items);
-          let currentKey;
-          evaluateKey(_objectSpread2({
+          let currentKey = evaluateKey(_objectSpread2({
             index
-          }, iterationScopeVariables))(result => currentKey = result);
+          }, iterationScopeVariables));
           let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey); // If we haven't found a matching key, insert the element at the current position.
 
           if (!nextEl) {
             nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl);
-            let newSet = new Set(closestParentContext);
-            newSet.add(Alpine$1.reactive(iterationScopeVariables));
-            nextEl._x_dataStack = newSet;
-            nextEl._x_for = iterationScopeVariables; // Alpine.initTree(nextEl)
+            addScopeToNode(nextEl, reactive(iterationScopeVariables));
+            nextEl._x_for = iterationScopeVariables;
           }
 
-          {
-            // Refresh data
-            Object.entries(iterationScopeVariables).forEach(([key, value]) => {
-              Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value;
-            });
-          }
           currentEl = nextEl;
           currentEl._x_for_key = currentKey;
         });
@@ -2689,22 +2312,23 @@
       return !Array.isArray(subject) && !isNaN(subject);
     }
 
-    let handler$3 = function handler(el, value, modifiers, expression, effect, before) {
+    let handler$1 = function handler(el, value, modifiers, expression, effect, before) {
       let theRoot = root(el);
-      if (!theRoot._x_$refs) theRoot._x_$refs = {};
-      theRoot._x_$refs[expression] = el;
+      if (!theRoot._x_refs) theRoot._x_refs = {};
+      theRoot._x_refs[expression] = el;
     };
 
-    handler$3.immediate = true;
-    Alpine$1.directive('ref', handler$3);
+    handler$1.immediate = true;
+    Alpine$1.directive('ref', handler$1);
 
     Alpine$1.directive('on', (el, value, modifiers, expression) => {
       let evaluate = evaluator(el, expression, {}, false);
-      on(el, value, modifiers, e => {
+      let removeListener = on(el, value, modifiers, e => {
         evaluate({
           '$event': e
         });
       });
+      Alpine$1.addDestroyCallback(el, removeListener);
     });
 
     Alpine$1.magic('nextTick', el => callback => scheduler.nextTick(callback));
@@ -2749,11 +2373,9 @@
       return name => Alpine$1.getStore(name);
     });
 
-    Alpine$1.magic('morph', el => (el, html, options) => morph(el, html, options));
-
     Alpine$1.magic('root', el => root(el));
 
-    Alpine$1.magic('refs', el => root(el)._x_$refs || {});
+    Alpine$1.magic('refs', el => root(el)._x_refs || {});
 
     Alpine$1.magic('el', el => el);
 

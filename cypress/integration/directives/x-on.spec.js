@@ -117,17 +117,17 @@ test('.window modifier',
 
 test('unbind global event handler when element is removed',
     `
-        <div x-data="{ foo: 'bar' }">
-            <div x-on:click.window="foo = 'baz'" x-ref="rmMe"></div>
+        <div x-data="{ count: 0 }">
+            <div x-on:click.window="count++" x-ref="rmMe"></div>
 
             <button @click="$refs.rmMe.remove()">click</button>
-            <span x-text="foo"></span>
+            <span x-text="count"></span>
         </div>
     `,
     get => {
         get('button').click()
         get('span').click()
-        get('span').should(haveText('bar'))
+        get('span').should(haveText('1'))
     }
 )
 

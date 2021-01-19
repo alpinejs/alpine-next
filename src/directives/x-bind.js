@@ -1,16 +1,14 @@
-import hyperactiv from 'hyperactiv'
 import Alpine from '../alpine'
 import bind from '../utils/bind'
-import { evaluateSync, evaluator } from '../utils/evaluate'
+import { evaluator } from '../utils/evaluate'
 
 Alpine.directive('bind', (el, value, modifiers, expression, effect) => {
-    let attrName = value
     let evaluate = evaluator(el, expression)
 
-    // Ignore :key bindings. (They are used by x-for)
-    if (attrName === 'key') return;
+    // Ignore x-bind:key. (x-for will handle that)
+    if (value === 'key') return
 
-    effect(() => evaluate()(value => {
-        bind(el, attrName, value, modifiers)
+    effect(() => evaluate()(result => {
+        bind(el, value, result, modifiers)
     }))
 })

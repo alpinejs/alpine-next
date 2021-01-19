@@ -1,13 +1,15 @@
 import Alpine from '../alpine'
+import { reactive } from '../reactivity'
+import { addScopeToNode } from '../scope'
 import { closestDataStack } from '../utils/closest'
 import { directivesByType } from '../utils/directives'
-import { evaluator } from '../utils/evaluate'
+import { evaluator, evaluatorSync } from '../utils/evaluate'
 
 Alpine.directive('for', (el, value, modifiers, expression, effect) => {
     let iteratorNames = parseForExpression(expression)
 
     let evaluateItems = evaluator(el, iteratorNames.items)
-    let evaluateKey = evaluator(el,
+    let evaluateKey = evaluatorSync(el,
         // Look for a :key="..." expression
         directivesByType(el, 'bind').filter(attribute => attribute.value === 'key')[0]?.expression
         // Otherwise, use "index"
@@ -35,8 +37,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
         items.forEach((item, index) => {
             let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items)
 
-            let currentKey
-            evaluateKey({ index, ...iterationScopeVariables })(result => currentKey = result)
+            let currentKey = evaluateKey({ index, ...iterationScopeVariables })
 
             let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey)
 
@@ -44,16 +45,9 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             if (! nextEl) {
                 nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl)
 
-                let newSet = new Set(closestParentContext)
-                newSet.add(Alpine.reactive(iterationScopeVariables))
-                nextEl._x_dataStack = newSet
+                addScopeToNode(nextEl, reactive(iterationScopeVariables))
+
                 nextEl._x_for = iterationScopeVariables
-                // Alpine.initTree(nextEl)
-            } {
-                // Refresh data
-                Object.entries(iterationScopeVariables).forEach(([key, value]) => {
-                    Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value
-                })
             }
 
             currentEl = nextEl
@@ -63,7 +57,6 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
         removeAnyLeftOverElementsFromPreviousUpdate(currentEl)
     })
 }
-
 
 // This was taken from VueJS 2.* core. Thanks Vue!
 function parseForExpression(expression) {
@@ -93,8 +86,11 @@ function parseForExpression(expression) {
 function getIterationScopeVariables(iteratorNames, item, index, items) {
     // We must create a new object, so each iteration has a new scope
     let scopeVariables = {}
+
     scopeVariables[iteratorNames.item] = item
+
     if (iteratorNames.index) scopeVariables[iteratorNames.index] = index
+
     if (iteratorNames.collection) scopeVariables[iteratorNames.collection] = items
 
     return scopeVariables

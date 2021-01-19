@@ -4,9 +4,9 @@ import { root } from '../utils/root'
 let handler = function (el, value, modifiers, expression, effect, before) {
     let theRoot = root(el)
 
-    if (! theRoot._x_$refs) theRoot._x_$refs = {}
+    if (! theRoot._x_refs) theRoot._x_refs = {}
 
-    theRoot._x_$refs[expression] = el
+    theRoot._x_refs[expression] = el
 }
 
 handler.immediate = true

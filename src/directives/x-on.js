@@ -5,7 +5,9 @@ import on from '../utils/on'
 Alpine.directive('on', (el, value, modifiers, expression) => {
     let evaluate = evaluator(el, expression, {}, false)
 
-    on(el, value, modifiers, e => {
+    let removeListener = on(el, value, modifiers, e => {
         evaluate({ '$event': e })
     })
+
+    Alpine.addDestroyCallback(el, removeListener)
 })

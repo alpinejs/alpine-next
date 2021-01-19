@@ -11,15 +11,6 @@ export default function on (el, event, modifiers, callback) {
             ? window : (modifiers.includes('document') ? document : el)
 
         let handler = e => {
-            // Remove this global event handler if the element that declared it
-            // has been removed. It's now stale.
-            if (listenerTarget === window || listenerTarget === document) {
-                if (! document.body.contains(el)) {
-                    listenerTarget.removeEventListener(event, handler, options)
-                    return
-                }
-            }
-
             if (isKeyEvent(event)) {
                 if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
                     return

@@ -21,10 +21,10 @@ let Alpine = {
         return callback => {
             return effect(() => {
                 callback()
-            }, {
-                scheduler(run) {
-                    scheduler.task(run)
-                }
+            // }, {
+            //     scheduler(run) {
+            //         scheduler.task(run)
+            //     }
             })
         }
     },
@@ -95,28 +95,28 @@ let Alpine = {
         document.dispatchEvent(new CustomEvent('alpine:initialized'), { bubbles: true })
     },
 
-    copyTree(originalEl, newEl) {
-        newEl._x_data = originalEl._x_data
-        newEl._x_$data = this.reactive(originalEl._x_data)
-        newEl._x_dataStack = originalEl._x_dataStack
-        newEl._x_dataStack = new Set(closestDataStack(originalEl))
-        newEl._x_dataStack.add(newEl._x_$data)
+    // copyTree(originalEl, newEl) {
+    //     newEl._x_data = originalEl._x_data
+    //     newEl._x_$data = this.reactive(originalEl._x_data)
+    //     newEl._x_dataStack = originalEl._x_dataStack
+    //     newEl._x_dataStack = new Set(closestDataStack(originalEl))
+    //     newEl._x_dataStack.add(newEl._x_$data)
 
-        let root = true
+    //     let root = true
 
-        this.walk(newEl, (el, skipSubTree) => {
-            if (! root && !! directiveByType(el, 'data')) return skipSubTree()
+    //     this.walk(newEl, (el, skipSubTree) => {
+    //         if (! root && !! directiveByType(el, 'data')) return skipSubTree()
 
-            root = false
+    //         root = false
 
-            this.init(el, false, (attr, handler) => handler.initOnly)
-        })
+    //         this.init(el, false)
+    //     })
 
-        // @todo: why is this here, why does this break Livewire reactivity?
-        // this.skipEffects = true
-        this.scheduler.flushImmediately()
-        // delete this.skipEffects
-    },
+    //     // @todo: why is this here, why does this break Livewire reactivity?
+    //     // this.skipEffects = true
+    //     this.scheduler.flushImmediately()
+    //     // delete this.skipEffects
+    // },
 
     initTree(root) {
         if (root instanceof ShadowRoot) {
@@ -128,17 +128,16 @@ let Alpine = {
         this.scheduler.flush()
     },
 
-    init(el, attributes, exceptAttribute = () => false) {
+    init(el, attributes) {
         (attributes || directives(el)).forEach(attr => {
             let noop = () => {}
             let handler = Alpine.directives[attr.type] || noop
 
-            if (exceptAttribute(attr, handler)) return
-
             // Run "x-ref/data/spread" on the initial sweep.
-            let task = handler.immediate
-                ? callback => callback()
-                : this.scheduler.task.bind(this.scheduler)
+            // let task = handler.immediate
+            //     ? callback => callback()
+            //     : this.scheduler.task.bind(this.scheduler)
+            let task = callback => callback()
 
             task(() => {
                 handler(el, attr.value, attr.modifiers, attr.expression, Alpine.effect)

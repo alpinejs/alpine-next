@@ -1,19 +1,54 @@
 <html>
     <script src="http://alpine-next.test/dist/alpine.js" defer></script>
 
-    <style>
-        .transition { transition-property: background-color, border-color, color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
-        .duration-100 { transition-duration: 1000ms; }
-    </style>
-    <div x-data="{ show: true }">
-        <span x-show.immediate="show">
-            <h1 x-show="show" x-transition:leave="transition duration-100">thing</h1>
-        </span>
-
-        <button x-on:click="show = false"></button>
-    </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--
+    // Light-dom story:
+    // add "x-element" to all custom elements
+    // walk through and initialize
+    // when you hit x-element, process element bindings
+        // on the side:
+        // initialize template element with props
+        // get bindings on slot
+        // attach bindings as scope on x-scope to element
+    // continue rendering tree
+    // when all is over, replace x-element with real elements
+    // attach scope to slotted element roots
+    // replace slots with slotted elements
+
+    // Shadow-dom story:
+    // Should be same except handling of slot replacement and element replacement
+    // Just attach shadow instead
+
+    // Stand-alone story
+    // Upgrade elements, but don't wait for Alpine to hit "x-element" directive.
+    // Just initialize element tree -->
 
 
 

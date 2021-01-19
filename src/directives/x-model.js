@@ -1,6 +1,6 @@
 import Alpine from '../alpine'
 import bind from '../utils/bind'
-import { evaluator, evaluate, evaluateSync } from '../utils/evaluate'
+import { evaluator } from '../utils/evaluate'
 import on from '../utils/on'
 
 Alpine.directive('model', (el, value, modifiers, expression, effect) => {
@@ -24,21 +24,21 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
         })
     })
 
-    if (! window.hey) window.hey = []
-
     el._x_forceModelUpdate = () => {
         evaluate()(value => {
             // If nested model key is undefined, set the default value to empty string.
             if (value === undefined && expression.match(/\./)) value = ''
 
             // @todo: This is nasty
-            window.fromModel = true
+            // hopefully we can remove this
+            // window.fromModel = true
             bind(el, 'value', value)
-            delete window.fromModel
+            // delete window.fromModel
         })
     }
 
     effect(() => {
+        // Don't modify the value of the input if it's focused.
         if (modifiers.includes('unintrusive') && document.activeElement.isSameNode(el)) return
 
         el._x_forceModelUpdate()
@@ -54,7 +54,6 @@ function generateAssignmentFunction(el, modifiers, expression) {
     }
 
     return (event, currentValue) => {
-
         // Check for event.detail due to an issue where IE11 handles other events as a CustomEvent.
         if (event instanceof CustomEvent && event.detail !== undefined) {
             return event.detail
@@ -62,7 +61,8 @@ function generateAssignmentFunction(el, modifiers, expression) {
             // If the data we are binding to is an array, toggle its value inside the array.
             if (Array.isArray(currentValue)) {
                 let newValue = modifiers.includes('number') ? safeParseNumber(event.target.value) : event.target.value
-                return event.target.checked ? currentValue.concat([newValue]) : currentValue.filter(el => !checkedAttrLooseCompare(el, newValue))
+
+                return event.target.checked ? currentValue.concat([newValue]) : currentValue.filter(el => ! checkedAttrLooseCompare(el, newValue))
             } else {
                 return event.target.checked
             }
@@ -87,6 +87,7 @@ function generateAssignmentFunction(el, modifiers, expression) {
 
 function safeParseNumber(rawValue) {
     let number = rawValue ? parseFloat(rawValue) : null
+
     return isNumeric(number) ? number : rawValue
 }
 

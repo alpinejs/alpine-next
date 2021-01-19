@@ -25,7 +25,7 @@ function isXAttr({ name, value }) {
 }
 
 function sortDirectives(directives) {
-    let directiveOrder = ['data', 'spread', 'ref', 'init', 'bind', 'for', 'model', 'transition', 'show', 'catch-all']
+    let directiveOrder = ['data', 'spread', 'ref', 'init', 'bind', 'for', 'model', 'transition', 'show', 'catch-all', 'element']
 
     return directives.sort((a, b) => {
         let typeA = directiveOrder.indexOf(a.type) === -1 ? 'catch-all' : a.type
