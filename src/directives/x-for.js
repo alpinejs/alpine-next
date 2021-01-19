@@ -50,6 +50,12 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
                 nextEl._x_for = iterationScopeVariables
             }
 
+            // Refresh scope
+            Object.entries(iterationScopeVariables).forEach(([key, value]) => {
+                Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value
+            })
+
+
             currentEl = nextEl
             currentEl._x_for_key = currentKey
         })

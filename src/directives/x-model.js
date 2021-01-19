@@ -30,10 +30,9 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
             if (value === undefined && expression.match(/\./)) value = ''
 
             // @todo: This is nasty
-            // hopefully we can remove this
-            // window.fromModel = true
+            window.fromModel = true
             bind(el, 'value', value)
-            // delete window.fromModel
+            delete window.fromModel
         })
     }
 

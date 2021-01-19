@@ -1443,9 +1443,9 @@
     }
     function evaluatorSync(el, expression, extras = {}, returns = true) {
       let evaluate = evaluator(el, expression, extras, returns);
-      return () => {
+      return extras => {
         let result;
-        evaluate()(value => result = value);
+        evaluate(extras)(value => result = value);
         return result;
       };
     }
@@ -1688,11 +1688,12 @@
         // "checked" value since x-bind:value is processed before x-model.
         if (el.attributes.value === undefined) {
           el.value = value;
-        } // @todo: remove commented code when you know it's safe
-        // if (window.fromModel) {
+        } // @todo: yuck
 
 
-        el.checked = checkedAttrLooseCompare(el.value, value); // }
+        if (window.fromModel) {
+          el.checked = checkedAttrLooseCompare(el.value, value);
+        }
       } else if (el.type === 'checkbox') {
         // If we are explicitly binding a string to the :value, set the string,
         // If the value is a boolean/array/number/null/undefined, leave it alone, it will be set to "on"
@@ -1949,10 +1950,10 @@
         evaluate()(value => {
           // If nested model key is undefined, set the default value to empty string.
           if (value === undefined && expression.match(/\./)) value = ''; // @todo: This is nasty
-          // hopefully we can remove this
-          // window.fromModel = true
 
-          bind(el, 'value', value); // delete window.fromModel
+          window.fromModel = true;
+          bind(el, 'value', value);
+          delete window.fromModel;
         });
       };
 
@@ -2227,8 +2228,12 @@
             nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl);
             addScopeToNode(nextEl, reactive(iterationScopeVariables));
             nextEl._x_for = iterationScopeVariables;
-          }
+          } // Refresh scope
 
+
+          Object.entries(iterationScopeVariables).forEach(([key, value]) => {
+            Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value;
+          });
           currentEl = nextEl;
           currentEl._x_for_key = currentKey;
         });

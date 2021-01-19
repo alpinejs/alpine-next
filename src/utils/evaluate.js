@@ -87,10 +87,10 @@ export function evaluator(el, expression, extras = {}, returns = true) {
 export function evaluatorSync(el, expression, extras = {}, returns = true) {
     let evaluate = evaluator(el, expression, extras, returns)
 
-    return () => {
+    return (extras) => {
         let result
 
-        evaluate()(value => result = value)
+        evaluate(extras)(value => result = value)
 
         return result
     }

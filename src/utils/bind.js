@@ -32,10 +32,10 @@ function bindInputValue(el, value) {
             el.value = value
         }
 
-        // @todo: remove commented code when you know it's safe
-        // if (window.fromModel) {
+        // @todo: yuck
+        if (window.fromModel) {
             el.checked = checkedAttrLooseCompare(el.value, value)
-        // }
+        }
     } else if (el.type === 'checkbox') {
         // If we are explicitly binding a string to the :value, set the string,
         // If the value is a boolean/array/number/null/undefined, leave it alone, it will be set to "on"

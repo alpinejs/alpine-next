@@ -31,13 +31,17 @@ function injectHtmlAndBootAlpine(cy, template, callback) {
     cy.get('#root').then(([el]) => {
         el.innerHTML = template
 
+        let thing = cy.get
+
         el.evalScripts()
 
-        callback(cy.get)
+        cy.get('[alpine-is-ready]', { timeout: 5000 }).should('be.visible');
+
+        callback(thing)
     })
 }
 
-export let haveData = (key, value) => ([ el ]) => expect(root(el)._x_$data[key]).to.equal(value)
+export let haveData = (key, value) => ([ el ]) => expect(Array.from(root(el)._x_dataStack).slice(-1)[0][key]).to.equal(value)
 
 export let haveAttribute = (name, value) => el => expect(el).to.have.attr(name, value)
 

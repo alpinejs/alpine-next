@@ -24,6 +24,15 @@
             script.src = 'http://alpine-next.test/dist/alpine.js'
 
             root.after(script)
+
+            document.addEventListener('alpine:initialized', () => {
+                let readyEl = document.createElement('blockquote')
+                readyEl.setAttribute('alpine-is-ready', true)
+                readyEl.style.width = '1px'
+                readyEl.style.height = '1px'
+
+                document.querySelector('blockquote').after(readyEl)
+            })
         }
     </script>
 </html>
