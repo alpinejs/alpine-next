@@ -1,5 +1,5 @@
 import Alpine from '../alpine'
-import { stop, pauseTracking, enableTracking } from '@vue/reactivity'
+import { pauseTracking, enableTracking } from './../reactivity'
 import { evaluator } from '../utils/evaluate'
 
 Alpine.magic('watch', el => {

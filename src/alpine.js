@@ -1,5 +1,5 @@
 import scheduler from './scheduler.js'
-import { readonly, reactive, effect, markRaw, toRaw, pauseTracking, enableTracking, resetTracking } from '@vue/reactivity'
+import { reactive, effect, markRaw, toRaw, pauseTracking, enableTracking } from './reactivity'
 import { directiveByType, directives } from './utils/directives'
 import { root } from './utils/root.js'
 import { closestDataStack } from './utils/closest.js'
@@ -10,8 +10,6 @@ let Alpine = {
 
     markRaw,
     toRaw,
-
-    interceptors: [],
 
     scheduler,
 
@@ -56,10 +54,6 @@ let Alpine = {
 
     component(name, callback) {
         this.components[name] = callback
-    },
-
-    intercept(callback) {
-        this.interceptors.push(callback)
     },
 
     stores: {},

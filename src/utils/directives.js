@@ -1,4 +1,3 @@
-import Alpine from '../alpine.js'
 
 export function directives(el, attributes) {
     let attributeNamesAndValues = attributes || Array.from(el.attributes).map(attr => ({name: attr.name, value: attr.value}))
@@ -48,20 +47,22 @@ function parseHtmlAttribute({ name, value }) {
     }
 }
 
+let interceptors = []
+
 function interceptNameAndValue({ name, value }, addAttributes) {
-    Alpine.intercept(({ name, value }) => {
+    interceptors.push(({ name, value }) => {
         if (name.startsWith('@')) name = name.replace('@', 'x-on:')
 
         return { name, value }
     })
 
-    Alpine.intercept(({ name, value }) => {
+    interceptors.push(({ name, value }) => {
         if (name.startsWith(':')) name = name.replace(':', 'x-bind:')
 
         return { name,  value }
     })
 
-    return Alpine.interceptors.reduce((carry, interceptor) => {
+    return interceptors.reduce((carry, interceptor) => {
         return interceptor(carry, addAttributes)
     }, { name, value })
 }

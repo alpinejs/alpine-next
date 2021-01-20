@@ -1,4 +1,4 @@
-import { reactive } from '@vue/reactivity'
+import { reactive } from './../reactivity'
 import Alpine from '../alpine'
 import { evaluateSync } from '../utils/evaluate'
 import { closestDataProxy, closestDataStack } from '../utils/closest'

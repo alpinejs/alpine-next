@@ -1,3 +1,7 @@
-import { readonly, reactive, effect, markRaw, toRaw, pauseTracking, enableTracking, resetTracking } from '@vue/reactivity'
+import { reactive, effect, markRaw, toRaw, pauseTracking, enableTracking } from '@vue/reactivity/dist/reactivity.esm-bundler'
 
-export { reactive }
+// 7.33kb - no vue reactivity
+// 9.47kb - with vue reactivity
+// 2.14kb - for vue reactivity
+
+export { reactive, effect, markRaw, toRaw, pauseTracking, enableTracking }
