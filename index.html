@@ -1,31 +1,11 @@
 <html>
     <script src="http://alpine-next.test/dist/alpine.js" defer></script>
 
-
-
-
-
-
-    <h1 x-data="{ foo: 'bar' }" x-text="foo"></h1>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    <div x-data="{ things: ['hey', 'there'] }">
+        <template x-for="thing in things">
+            <div x-text="thing"></div>
+        </template>
+    </div>
 
 
 

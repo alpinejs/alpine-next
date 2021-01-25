@@ -42,9 +42,11 @@ Alpine.directive('element', (el, value, modifiers, expression, effect) => {
 
     let injectData = generateInjectDataObject(template, el)
 
-    element._x_dataStack = new Set([el._x_bindings || {}, injectData])
+    let props = getProps(element, el, defaultProps)
 
-    transferAttributes(element, el, defaultProps)
+    transferAttributes(element, el, props)
+
+    element._x_dataStack = new Set([props, el._x_bindings || {}, injectData])
 
     element._x_ignoreMutationObserver = true
     element._x_customElementRoot = true
@@ -75,6 +77,8 @@ Alpine.directive('element', (el, value, modifiers, expression, effect) => {
         el.removeAttribute('x-element')
         element.setAttribute('x-element', expression)
 
+        // el._x_customElementRoot = true
+
         slot && slot.replaceWith(...el.childNodes)
     })
 })
@@ -89,6 +93,7 @@ function generateInjectDataObject(template, el) {
     injectNames.forEach(injectName => {
         let getClosestProvides = (el, name) => {
             if (! el) return {}
+            console.log(el, el._x_provides);
 
             if (el._x_provides && el._x_provides[injectName] !== undefined) return el._x_provides
 
@@ -96,6 +101,8 @@ function generateInjectDataObject(template, el) {
         }
 
         let provides = getClosestProvides(el, injectName)
+
+        console.log(provides);
 
         Object.defineProperty(reactiveRoot, injectName, {
             get() {
@@ -105,6 +112,19 @@ function generateInjectDataObject(template, el) {
     })
 
     return reactiveRoot
+}
+
+function getProps(element, el, defaultProps) {
+    let props = {}
+
+    // Assign defaults
+    Object.entries(defaultProps).forEach(([key, value]) => props[key] = value)
+    let propKeys = Object.keys(props)
+
+    // Assign passed in vanillas
+    propKeys.forEach(key => el.hasAttribute(key) ? props[key] = el.getAttribute(key) : null)
+
+    return props
 }
 
 function transferAttributes(from, to, props) {
