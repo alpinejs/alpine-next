@@ -4,17 +4,8 @@ export default {
     lowPriorityTasks: [],
     nextTicks: [],
     shouldFlush: false,
-    ignore: false,
-
-    ignore(callback) {
-        this.ignore = true
-        callback()
-        this.ignore = false
-    },
 
     task(callback) {
-        if (this.ignore === true) return
-
         this.tasks.push(callback)
         this.shouldFlushAtEndOfRequest()
     },

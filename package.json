@@ -19,7 +19,7 @@
         "esbuild": "^0.8.39"
     },
     "scripts": {
-        "build": "esbuild src/index.js --bundle --outfile=dist/alpine.js",
+        "build": "esbuild src/index.js --bundle --outfile=dist/alpine.js --minify",
         "watch": "esbuild src/index.js --bundle --outfile=dist/alpine.js --watch",
         "test": "cypress open"
     },
