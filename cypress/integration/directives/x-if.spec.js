@@ -19,7 +19,7 @@ test('x-if',
     }
 )
 
-test.only('x-if with multiple root elements',
+test('x-if with multiple root elements',
     `
         <div x-data="{ show: false }">
             <button @click="show = ! show">Toggle</button>
