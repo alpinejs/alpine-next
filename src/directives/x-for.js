@@ -63,7 +63,12 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
 
         templateEl._x_old_things = things
 
-        templateEl.after(...things.map(i => i.element))
+        // We have to defer the adding of these nodes, otherwise, they will get
+        // picked up by the DOM-walker on initial loading of Alpine and get
+        // inited twice.
+        queueMicrotask(() => {
+            templateEl.after(...things.map(i => i.element))
+        })
     })
 }
 

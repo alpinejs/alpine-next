@@ -113,7 +113,6 @@ let Alpine = {
     // },
 
     initTree(root) {
-        console.log('inited');
         if (root instanceof ShadowRoot) {
             Array.from(root.children).forEach(child => this.walk(child, el => this.init(el)))
         } else {
@@ -127,8 +126,6 @@ let Alpine = {
         (attributes || directives(el)).forEach(attr => {
             let noop = () => {}
             let handler = Alpine.directives[attr.type] || noop
-
-            console.log(el);
 
             // Run "x-ref/data/spread" on the initial sweep.
             // let task = handler.immediate
@@ -166,25 +163,34 @@ let Alpine = {
 
     listenForAndReactToDomManipulations(rootElement) {
         let observer = new MutationObserver(mutations => {
-            for(let mutation of mutations) {
-                if (mutation.type !== 'childList') continue
+            let addeds = mutations.flatMap(i => Array.from(i.addedNodes))
+            let removeds = mutations.flatMap(i => Array.from(i.removedNodes))
 
-                for(let node of mutation.addedNodes) {
-                    if (node.nodeType !== 1) continue
+            for (let node of addeds) {
+                if (node.nodeType !== 1) continue
 
-                    if (node._x_ignoreMutationObserver) continue
+                // If an element gets moved on a page, it's registered
+                // as both an "add" and "remove", so we wan't to skip those.
+                if (removeds.includes(node)) continue
 
-                    this.initTree(node)
-                }
+                if (node._x_ignoreMutationObserver) continue
 
-                for(let node of mutation.removedNodes) {
-                    if (node.nodeType !== 1) continue
+                this.initTree(node)
+            }
 
-                    // Don't block execution for destroy callbacks.
-                    scheduler.nextTick(() => {
-                        this.destroyTree(node)
-                    })
-                }
+            for (let node of removeds) {
+                if (node.nodeType !== 1) continue
+
+                // If an element gets moved on a page, it's registered
+                // as both an "add" and "remove", so we wan't to skip those.
+                if (addeds.includes(node)) continue
+
+                if (node._x_ignoreMutationObserver) continue
+
+                // Don't block execution for destroy callbacks.
+                scheduler.nextTick(() => {
+                    this.destroyTree(node)
+                })
             }
         })
 

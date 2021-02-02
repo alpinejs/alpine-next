@@ -3,10 +3,8 @@
     "main": "dist/alpine.js",
     "exports": "./dist/alpine.modern.js",
     "unpkg": "dist/alpine.umd.js",
-
     "module": "dist/alpine.m.js",
     "esmodule": "dist/alpine.modern.js",
-
     "name": "alpine-next",
     "version": "1.0.0",
     "description": "",
@@ -18,11 +16,11 @@
     },
     "devDependencies": {
         "@vue/reactivity": "^3.0.2",
-        "microbundle": "^0.13.0"
+        "esbuild": "^0.8.39"
     },
     "scripts": {
-        "build": "microbundle",
-        "watch": "microbundle watch",
+        "build": "esbuild src/index.js --bundle --outfile=dist/alpine.js",
+        "watch": "esbuild src/index.js --bundle --outfile=dist/alpine.js --watch",
         "test": "cypress open"
     },
     "author": "",

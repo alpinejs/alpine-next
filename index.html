@@ -1,14 +1,12 @@
 <html>
     <script src="http://alpine-next.test/dist/alpine.js" defer></script>
 
-    <div x-data="{ items: ['foo'], output: '' }">
-        <button x-on:click="items = ['bar']">click me</button>
+    <div x-data="{ items: ['foo'] }">
+        <button x-on:click="items = ['foo', 'bar']">click me</button>
 
-        <template x-for="(item, index) in items">
-            <span x-text="item" x-on:click="console.log('click')"></span>
+        <template x-for="item in items">
+            <span x-text="item"></span>
         </template>
-
-        <h1 x-text="output"></h1>
     </div>
 </html>
 
