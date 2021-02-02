@@ -19,30 +19,6 @@ test('renders loops with x-for',
     }
 )
 
-test('supports multiple root nodes',
-    `
-        <div x-data="{ items: ['foo'] }">
-            <button x-on:click="items = ['foo', 'bar']">click me</button>
-
-            <template x-for="item in items">
-                <h1 x-text="item"></h1>
-                <h2 x-text="item"></h2>
-            </template>
-        </div>
-    `,
-    get => {
-        get('h1:nth-of-type(1)').should(haveText('foo'))
-        get('h1:nth-of-type(2)').should(notBeVisible())
-        get('h2:nth-of-type(1)').should(haveText('foo'))
-        get('h2:nth-of-type(2)').should(notBeVisible())
-        get('button').click()
-        get('h1:nth-of-type(1)').should(haveText('foo'))
-        get('h1:nth-of-type(2)').should(haveText('bar'))
-        get('h2:nth-of-type(1)').should(haveText('foo'))
-        get('h2:nth-of-type(2)').should(haveText('bar'))
-    }
-)
-
 test('removes all elements when array is empty and previously had one item',
     `
         <div x-data="{ items: ['foo'] }">

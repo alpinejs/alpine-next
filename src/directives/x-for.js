@@ -30,6 +30,47 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             items = Array.from(Array(items).keys(), i => i + 1)
         }
 
+        let oldThings = templateEl._x_old_things || []
+
+        let things = items.map((item, index) => {
+            let scope = getIterationScopeVariables(iteratorNames, item, index, items)
+
+            let key = evaluateKey({ index, ...scope })
+
+            let element = oldThings.find(i => i.key === key)?.element
+
+            if (element) {
+                // Refresh the scope in case it was overwritten rather than mutated.
+                let existingScope = Array.from(element._x_dataStack).slice(-1)[0]
+
+                Object.entries(scope).forEach(([key, value]) => {
+                    existingScope[key] = value
+                })
+            } else {
+                let clone = document.importNode(templateEl.content, true).firstElementChild
+
+                addScopeToNode(clone, reactive(scope), templateEl)
+
+                element = clone
+            }
+
+            return { key, scope, element, remove() { element.remove() } }
+        })
+
+        let unusedThings = oldThings.filter(i => ! things.map(i => i.key).includes(i.key))
+
+        unusedThings.forEach(thing => thing.remove())
+
+        templateEl._x_old_things = things
+
+        templateEl.after(...things.map(i => i.element))
+    })
+}
+
+function _loop(el, iteratorNames, evaluateItems, evaluateKey) {
+    let templateEl = el
+
+    evaluateItems()(items => {
         let closestParentContext = closestDataStack(el)
 
         // As we walk the array, we'll also walk the DOM (updating/creating as we go).
@@ -51,10 +92,10 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             }
 
             // Refresh scope
+            console.log('refreshed')
             Object.entries(iterationScopeVariables).forEach(([key, value]) => {
                 Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value
             })
-
 
             currentEl = nextEl
             currentEl._x_for_key = currentKey
@@ -100,50 +141,6 @@ function getIterationScopeVariables(iteratorNames, item, index, items) {
     if (iteratorNames.collection) scopeVariables[iteratorNames.collection] = items
 
     return scopeVariables
-}
-
-function addElementInLoopAfterCurrentEl(templateEl, currentEl) {
-    let clone = document.importNode(templateEl.content, true)
-
-    currentEl.parentElement.insertBefore(clone, currentEl.nextElementSibling)
-
-    let inserted = currentEl.nextElementSibling
-
-    return inserted
-}
-
-function lookAheadForMatchingKeyedElementAndMoveItIfFound(nextEl, currentKey) {
-    if (! nextEl) return
-
-    // If the the key's DO match, no need to look ahead.
-    if (nextEl._x_for_key === currentKey) return nextEl
-
-    // If they don't, we'll look ahead for a match.
-    // If we find it, we'll move it to the current position in the loop.
-    let tmpNextEl = nextEl
-
-    while(tmpNextEl) {
-        if (! tmpNextEl._x_for_key) return
-
-        if (tmpNextEl._x_for_key === currentKey) {
-            return tmpNextEl.parentElement.insertBefore(tmpNextEl, nextEl)
-        }
-
-        tmpNextEl = (tmpNextEl.nextElementSibling && tmpNextEl.nextElementSibling._x_for_key !== undefined) ? tmpNextEl.nextElementSibling : false
-    }
-}
-
-function removeAnyLeftOverElementsFromPreviousUpdate(currentEl) {
-    var nextElementFromOldLoop = (currentEl.nextElementSibling && currentEl.nextElementSibling._x_for_key !== undefined) ? currentEl.nextElementSibling : false
-
-    while (nextElementFromOldLoop) {
-        let nextElementFromOldLoopImmutable = nextElementFromOldLoop
-        let nextSibling = nextElementFromOldLoop.nextElementSibling
-
-        nextElementFromOldLoopImmutable.remove()
-
-        nextElementFromOldLoop = (nextSibling && nextSibling._x_for_key !== undefined) ? nextSibling : false
-    }
 }
 
 function isNumeric(subject){

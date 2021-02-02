@@ -113,6 +113,7 @@ let Alpine = {
     // },
 
     initTree(root) {
+        console.log('inited');
         if (root instanceof ShadowRoot) {
             Array.from(root.children).forEach(child => this.walk(child, el => this.init(el)))
         } else {
@@ -126,6 +127,8 @@ let Alpine = {
         (attributes || directives(el)).forEach(attr => {
             let noop = () => {}
             let handler = Alpine.directives[attr.type] || noop
+
+            console.log(el);
 
             // Run "x-ref/data/spread" on the initial sweep.
             // let task = handler.immediate
