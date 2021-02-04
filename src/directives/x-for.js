@@ -30,14 +30,14 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             items = Array.from(Array(items).keys(), i => i + 1)
         }
 
-        let oldThings = templateEl._x_old_things || []
+        let oldIterations = templateEl._x_old_iterations || []
 
-        let things = items.map((item, index) => {
+        let iterations = Array.from(items).map((item, index) => {
             let scope = getIterationScopeVariables(iteratorNames, item, index, items)
 
             let key = evaluateKey({ index, ...scope })
 
-            let element = oldThings.find(i => i.key === key)?.element
+            let element = oldIterations.find(i => i.key === key)?.element
 
             if (element) {
                 // Refresh the scope in case it was overwritten rather than mutated.
@@ -57,17 +57,17 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             return { key, scope, element, remove() { element.remove() } }
         })
 
-        let unusedThings = oldThings.filter(i => ! things.map(i => i.key).includes(i.key))
+        let unusedIterations = oldIterations.filter(i => ! iterations.map(i => i.key).includes(i.key))
 
-        unusedThings.forEach(thing => thing.remove())
+        unusedIterations.forEach(iteration => iteration.remove())
 
-        templateEl._x_old_things = things
+        templateEl._x_old_iterations = iterations
 
         // We have to defer the adding of these nodes, otherwise, they will get
         // picked up by the DOM-walker on initial loading of Alpine and get
         // inited twice.
         queueMicrotask(() => {
-            templateEl.after(...things.map(i => i.element))
+            templateEl.after(...iterations.map(i => i.element))
         })
     })
 }

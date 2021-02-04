@@ -162,6 +162,23 @@ test('.once modifier',
     }
 )
 
+test.only('.once modifier with @keyup',
+    `
+        <div x-data="{ count: 0 }">
+            <input type="text" x-on:keyup.once="count = count+1">
+
+            <span x-text="count"></span>
+        </div>
+    `,
+    get => {
+        get('span').should(haveText('0'))
+        get('input').type('f')
+        get('span').should(haveText('1'))
+        get('input').type('o')
+        get('span').should(haveText('1'))
+    }
+)
+
 test('.debounce modifier',
     `
         <div x-data="{ count: 0 }">
