@@ -1,16 +1,34 @@
 
 export default function on (el, event, modifiers, callback) {
+    let handler, listenerTarget
+
     let options = { passive: modifiers.includes('passive') }
 
     if (modifiers.includes('camel')) event = camelCase(event)
 
     if (modifiers.includes('away')) {
-        return addAwayListener(el, event, modifiers, callback, options)
+        listenerTarget = document
+
+        handler = e => {
+            // Don't do anything if the click came from the element or within it.
+            if (el.contains(e.target)) return
+
+            // Don't do anything if this element isn't currently visible.
+            if (el.offsetWidth < 1 && el.offsetHeight < 1) return
+
+            // Now that we are sure the element is visible, AND the click
+            // is from outside it, let's run the expression.
+            callback(e)
+
+            if (modifiers.includes('once')) {
+                document.removeEventListener(event, handler, options)
+            }
+        }
     } else {
-        let listenerTarget = modifiers.includes('window')
+        listenerTarget = modifiers.includes('window')
             ? window : (modifiers.includes('document') ? document : el)
 
-        let handler = e => {
+        handler = e => {
             if (isKeyEvent(event)) {
                 if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
                     return
@@ -27,54 +45,29 @@ export default function on (el, event, modifiers, callback) {
                 listenerTarget.removeEventListener(event, handler, options)
             }
         }
+    }
 
-        if (modifiers.includes('debounce')) {
-            let nextModifier = modifiers[modifiers.indexOf('debounce')+1] || 'invalid-wait'
-            let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
-            handler = debounce(handler, wait, this)
-        }
+    if (modifiers.includes('debounce')) {
+        let nextModifier = modifiers[modifiers.indexOf('debounce')+1] || 'invalid-wait'
+        let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
+        handler = debounce(handler, wait, this)
+    }
 
-        if (modifiers.includes('throttle')) {
-            let nextModifier = modifiers[modifiers.indexOf('throttle')+1] || 'invalid-wait'
-            let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
-            handler = throttle(handler, wait, this)
-        }
+    if (modifiers.includes('throttle')) {
+        let nextModifier = modifiers[modifiers.indexOf('throttle')+1] || 'invalid-wait'
+        let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
+        handler = throttle(handler, wait, this)
+    }
 
-        listenerTarget.addEventListener(event, handler, options)
+    listenerTarget.addEventListener(event, handler, options)
 
-        return () => {
-            listenerTarget.removeEventListener(event, handler, options)
-        }
+    return () => {
+        listenerTarget.removeEventListener(event, handler, options)
     }
 }
 
 function camelCase(subject) {
     return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase())
-}
-
-function addAwayListener(el, event, modifiers, callback, options) {
-    let handler = e => {
-        // Don't do anything if the click came from the element or within it.
-        if (el.contains(e.target)) return
-
-        // Don't do anything if this element isn't currently visible.
-        if (el.offsetWidth < 1 && el.offsetHeight < 1) return
-
-        // Now that we are sure the element is visible, AND the click
-        // is from outside it, let's run the expression.
-        callback(e)
-
-        if (modifiers.includes('once')) {
-            document.removeEventListener(event, handler, options)
-        }
-    }
-
-    // Listen for this event at the root level.
-    document.addEventListener(event, handler, options)
-
-    return () => {
-        document.removeEventListener(event, handler, options)
-    }
 }
 
 function debounce(func, wait) {
@@ -109,7 +102,6 @@ function isNumeric(subject){
 function kebabCase(subject) {
     return subject.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/[_\s]/, '-').toLowerCase()
 }
-
 
 function isKeyEvent(event) {
     return ['keydown', 'keyup'].includes(event)

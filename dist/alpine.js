@@ -1267,14 +1267,25 @@ Expression: "${expression}"
 
   // src/utils/on.js
   function on(el, event, modifiers, callback) {
+    let handler3, listenerTarget;
     let options = {passive: modifiers.includes("passive")};
     if (modifiers.includes("camel"))
       event = camelCase2(event);
     if (modifiers.includes("away")) {
-      return addAwayListener(el, event, modifiers, callback, options);
+      listenerTarget = document;
+      handler3 = (e) => {
+        if (el.contains(e.target))
+          return;
+        if (el.offsetWidth < 1 && el.offsetHeight < 1)
+          return;
+        callback(e);
+        if (modifiers.includes("once")) {
+          document.removeEventListener(event, handler3, options);
+        }
+      };
     } else {
-      let listenerTarget = modifiers.includes("window") ? window : modifiers.includes("document") ? document : el;
-      let handler3 = (e) => {
+      listenerTarget = modifiers.includes("window") ? window : modifiers.includes("document") ? document : el;
+      handler3 = (e) => {
         if (isKeyEvent(event)) {
           if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
             return;
@@ -1291,40 +1302,24 @@ Expression: "${expression}"
           listenerTarget.removeEventListener(event, handler3, options);
         }
       };
-      if (modifiers.includes("debounce")) {
-        let nextModifier = modifiers[modifiers.indexOf("debounce") + 1] || "invalid-wait";
-        let wait = isNumeric2(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
-        handler3 = debounce(handler3, wait, this);
-      }
-      if (modifiers.includes("throttle")) {
-        let nextModifier = modifiers[modifiers.indexOf("throttle") + 1] || "invalid-wait";
-        let wait = isNumeric2(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
-        handler3 = throttle(handler3, wait, this);
-      }
-      listenerTarget.addEventListener(event, handler3, options);
-      return () => {
-        listenerTarget.removeEventListener(event, handler3, options);
-      };
     }
+    if (modifiers.includes("debounce")) {
+      let nextModifier = modifiers[modifiers.indexOf("debounce") + 1] || "invalid-wait";
+      let wait = isNumeric2(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
+      handler3 = debounce(handler3, wait, this);
+    }
+    if (modifiers.includes("throttle")) {
+      let nextModifier = modifiers[modifiers.indexOf("throttle") + 1] || "invalid-wait";
+      let wait = isNumeric2(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
+      handler3 = throttle(handler3, wait, this);
+    }
+    listenerTarget.addEventListener(event, handler3, options);
+    return () => {
+      listenerTarget.removeEventListener(event, handler3, options);
+    };
   }
   function camelCase2(subject) {
     return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
-  }
-  function addAwayListener(el, event, modifiers, callback, options) {
-    let handler3 = (e) => {
-      if (el.contains(e.target))
-        return;
-      if (el.offsetWidth < 1 && el.offsetHeight < 1)
-        return;
-      callback(e);
-      if (modifiers.includes("once")) {
-        document.removeEventListener(event, handler3, options);
-      }
-    };
-    document.addEventListener(event, handler3, options);
-    return () => {
-      document.removeEventListener(event, handler3, options);
-    };
   }
   function debounce(func, wait) {
     var timeout;

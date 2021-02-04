@@ -162,7 +162,7 @@ test('.once modifier',
     }
 )
 
-test.only('.once modifier with @keyup',
+test('.once modifier with @keyup',
     `
         <div x-data="{ count: 0 }">
             <input type="text" x-on:keyup.once="count = count+1">
