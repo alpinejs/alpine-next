@@ -1,6 +1,8 @@
 import Alpine from '../alpine'
 import scheduler from '../scheduler'
 import { setClasses } from '../utils/classes'
+import { once } from '../utils/once'
+import { setStyles } from '../utils/styles'
 
 let handler = (el, value, modifiers, expression, effect) => {
     if (! el._x_transition) {
@@ -10,7 +12,7 @@ let handler = (el, value, modifiers, expression, effect) => {
             leave: { during: '', start: '', end: '' },
 
             in(before = () => {}, after = () => {}) {
-                return transitionClasses(el, {
+                return transitionClasses(this.resolveElement(), {
                     during: this.enter.during,
                     start: this.enter.start,
                     end: this.enter.end,
@@ -18,12 +20,16 @@ let handler = (el, value, modifiers, expression, effect) => {
             },
 
             out(before = () => {}, after = () => {}) {
-                return transitionClasses(el, {
+                return transitionClasses(this.resolveElement(), {
                     during: this.leave.during,
                     start: this.leave.start,
                     end: this.leave.end,
                 }, before, after)
-            }
+            },
+
+            resolveElement: () => { return el },
+
+            setElementResolver(callback) { this.resolveElement = callback },
         }
     }
 
@@ -67,7 +73,7 @@ export function transitionClasses(el, { during = '', start = '', end = '' } = {}
     })
 }
 
-export function registerTranstions(el, modifiers) {
+window.Element.prototype._x_registerTransitionsFromHelper = function (el, modifiers) {
     el._x_transition = {
         enter: { during: {}, start: {}, end: {} },
 
@@ -142,68 +148,59 @@ export function registerTranstions(el, modifiers) {
             transform: `scale(${modifierValue(modifiers, 'scale', 95) / 100})`,
         }
     }
+}
 
-    return
+window.Element.prototype._x_toggleAndCascadeWithTransitions = function (el, value, show, hide) {
+    if (value) {
+        el._x_transition
+            ? el._x_transition.in(show)
+            : show()
 
-
-    let settingBothSidesOfTransition = modifiers.includes('in') && modifiers.includes('out')
-
-    // // If x-show.transition.in...out... only use "in" related modifiers for this transition.
-    let inModifiers = settingBothSidesOfTransition
-        ? modifiers.filter((i, index) => index < modifiers.indexOf('out')) : modifiers
-
-    let outModifiers = settingBothSidesOfTransition
-        ? modifiers.filter((i, index) => index > modifiers.indexOf('out')) : modifiers
-
-
-    // clear the previous transition if exists to avoid caching the wrong styles
-    if (el.__x_transition) {
-        el.__x_transition.cancel && el.__x_transition.cancel()
+        return
     }
 
-    // If the user set these style values, we'll put them back when we're done with them.
-    let opacityCache = el.style.opacity
-    let transformCache = el.style.transform
-    let transformOriginCache = el.style.transformOrigin
+    el._x_do_hide = el._x_transition
+        ? (resolve, reject) => {
+            el._x_transition.out(() => {}, () => resolve(hide))
 
-    // If no modifiers are present: x-show.transition, we'll default to both opacity and scale.
-    let noModifiers = ! modifiers.includes('opacity') && ! modifiers.includes('scale')
-    let transitionOpacity = noModifiers || modifiers.includes('opacity')
-    let transitionScale = noModifiers || modifiers.includes('scale')
+            el._x_transitioning.beforeCancel(() => reject({ isFromCancelledTransition: true }))
+        }
+        : (resolve) => resolve(hide)
 
-    // These are the explicit stages of a transition (same stages for in and for out).
-    // This way you can get a birds eye view of the hooks, and the differences
-    // between them.
-    let stages = {
-        start() {
-            if (transitionOpacity) el.style.opacity = styleValues.first.opacity
-            if (transitionScale) el.style.transform = `scale(${styleValues.first.scale / 100})`
-        },
-        during() {
-            if (transitionScale) el.style.transformOrigin = styleValues.origin
-            el.style.transitionProperty = [(transitionOpacity ? `opacity` : ``), (transitionScale ? `transform` : ``)].join(' ').trim()
-            el.style.transitionDuration = `${styleValues.duration / 1000}s`
-            el.style.transitionTimingFunction = `cubic-bezier(0.4, 0.0, 0.2, 1)`
-        },
-        show() {
-            hook1()
-        },
-        end() {
-            if (transitionOpacity) el.style.opacity = styleValues.second.opacity
-            if (transitionScale) el.style.transform = `scale(${styleValues.second.scale / 100})`
-        },
-        hide() {
-            hook2()
-        },
-        cleanup() {
-            if (transitionOpacity) el.style.opacity = opacityCache
-            if (transitionScale) el.style.transform = transformCache
-            if (transitionScale) el.style.transformOrigin = transformOriginCache
-            el.style.transitionProperty = null
-            el.style.transitionDuration = null
-            el.style.transitionTimingFunction = null
-        },
-    }
+    queueMicrotask(() => {
+        let closest = closestHide(el)
+
+        if (closest) {
+            closest._x_hide_child = el
+        } else {
+            queueMicrotask(() => {
+                let hidePromises = []
+                let current = el
+
+                while (current) {
+                    hidePromises.push(new Promise(current._x_do_hide))
+
+                    current = current._x_hide_child
+                }
+
+                hidePromises.reverse().reduce((promiseChain, promise) => {
+                    return promiseChain.then(() => {
+                        return promise.then(doHide => doHide())
+                    })
+                }, Promise.resolve(() => {})).catch((e) => {
+                    if (! e.isFromCancelledTransition) throw e
+                })
+            })
+        }
+    })
+}
+
+function closestHide(el) {
+    let parent = el.parentNode
+
+    if (! parent) return
+
+    return parent._x_do_hide ? parent : closestHide(parent)
 }
 
 function transitionStyles(el, { during = {}, start = {}, end = {} }, before = () => {}, after = () => {}) {
@@ -230,20 +227,6 @@ function transitionStyles(el, { during = {}, start = {}, end = {} }, before = ()
             undoEnd()
         },
     })
-}
-
-function setStyles(el, styleObject) {
-    let previousStyles = {}
-
-    Object.entries(styleObject).forEach(([key, value]) => {
-        previousStyles[key] = el.style[key]
-
-        el.style[key] = value
-    })
-
-    return () => {
-        setStyles(el, previousStyles)
-    }
 }
 
 export function performTransition(el, stages) {
@@ -289,17 +272,7 @@ export function performTransition(el, stages) {
     })
 }
 
-export function once(callback) {
-    let called = false
 
-    return function () {
-        if (! called) {
-            called = true
-
-            callback.apply(this, arguments)
-        }
-    }
-}
 
 function modifierValue(modifiers, key, fallback) {
     // If the modifier isn't present, use the default.

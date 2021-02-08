@@ -1,8 +1,9 @@
+import { warn } from './warn'
 
 export function setClasses(el, classString) {
     let isInvalidType = subject => (typeof subject === 'object' && ! subject instanceof String) || Array.isArray(subject)
 
-    if (isInvalidType(classString)) console.warn('Alpine: class bindings must return a string or a stringable type. Arrays and Objects are no longer supported.')
+    if (isInvalidType(classString)) warn('class bindings must return a string or a stringable type. Arrays and Objects are no longer supported.')
 
     // This is to allow short ifs like: :class="show || 'hidden'"
     if (classString === true) classString = ''

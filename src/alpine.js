@@ -1,8 +1,8 @@
 import scheduler from './scheduler.js'
-import { reactive, effect, markRaw, toRaw, pauseTracking, enableTracking } from './reactivity'
-import { directiveByType, directives } from './utils/directives'
+import { reactive, effect, markRaw, toRaw } from './reactivity'
+import { directives } from './utils/directives'
+import { warn } from './utils/warn'
 import { root } from './utils/root.js'
-import { closestDataStack } from './utils/closest.js'
 
 let Alpine = {
     reactive,
@@ -78,7 +78,11 @@ let Alpine = {
     start() {
         document.dispatchEvent(new CustomEvent('alpine:initializing'), { bubbles: true })
 
-        this.listenForAndReactToDomManipulations(document.querySelector('body'))
+        if (! document.body) {
+            warn('Unable to initialize. Trying to load Alpine before `<body>` is available. Did you forget to add `defer` in Alpine\'s `<script>` tag?')
+        }
+
+        this.listenForAndReactToDomManipulations(document.body)
 
         let outNestedComponents = el => ! root(el.parentNode || root(el))
 

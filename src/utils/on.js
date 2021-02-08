@@ -1,62 +1,66 @@
 
 export default function on (el, event, modifiers, callback) {
-    let handler, listenerTarget
+    let listenerTarget = el
 
-    let options = { passive: modifiers.includes('passive') }
+    let handler = e => callback(e)
+
+    let options = {}
+
+    // This little helper allows us to add functionality to the listener's
+    // handler more flexibly in a "middleware" style.
+    let wrapHandler = (callback, wrapper) => (e) => wrapper(callback, e)
 
     if (modifiers.includes('camel')) event = camelCase(event)
+    if (modifiers.includes('passive')) options.passive = true
+    if (modifiers.includes('window')) listenerTarget = window
+    if (modifiers.includes('document')) listenerTarget = document
+    if (modifiers.includes('prevent')) handler = wrapHandler(handler, (next, e) => { e.preventDefault(); next(e) })
+    if (modifiers.includes('stop')) handler = wrapHandler(handler, (next, e) => { e.stopPropagation(); next(e) })
+    if (modifiers.includes('self')) handler = wrapHandler(handler, (next, e) => { e.target === el && next(e) })
 
     if (modifiers.includes('away')) {
         listenerTarget = document
 
-        handler = e => {
-            // Don't do anything if the click came from the element or within it.
+        handler = wrapHandler(handler, (next, e) => {
             if (el.contains(e.target)) return
 
-            // Don't do anything if this element isn't currently visible.
             if (el.offsetWidth < 1 && el.offsetHeight < 1) return
 
-            // Now that we are sure the element is visible, AND the click
-            // is from outside it, let's run the expression.
-            callback(e)
-
-            if (modifiers.includes('once')) {
-                document.removeEventListener(event, handler, options)
-            }
-        }
-    } else {
-        listenerTarget = modifiers.includes('window')
-            ? window : (modifiers.includes('document') ? document : el)
-
-        handler = e => {
-            if (isKeyEvent(event)) {
-                if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
-                    return
-                }
-            }
-
-            if (modifiers.includes('prevent')) e.preventDefault()
-            if (modifiers.includes('stop')) e.stopPropagation()
-            if (modifiers.includes('self') && e.target !== el) return
-
-            callback(e)
-
-            if (modifiers.includes('once')) {
-                listenerTarget.removeEventListener(event, handler, options)
-            }
-        }
+            next(e)
+        })
     }
+
+    // Handle :keydown and :keyup listeners.
+    handler = wrapHandler(handler, (next, e) => {
+        if (isKeyEvent(event)) {
+            if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
+                return
+            }
+        }
+
+        next(e)
+    })
 
     if (modifiers.includes('debounce')) {
         let nextModifier = modifiers[modifiers.indexOf('debounce')+1] || 'invalid-wait'
         let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
+
         handler = debounce(handler, wait, this)
     }
 
     if (modifiers.includes('throttle')) {
         let nextModifier = modifiers[modifiers.indexOf('throttle')+1] || 'invalid-wait'
         let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
+
         handler = throttle(handler, wait, this)
+    }
+
+    if (modifiers.includes('once')) {
+        handler = wrapHandler(handler, (next, e) => {
+            next(e)
+
+            listenerTarget.removeEventListener(event, handler, options)
+        })
     }
 
     listenerTarget.addEventListener(event, handler, options)
@@ -72,24 +76,33 @@ function camelCase(subject) {
 
 function debounce(func, wait) {
     var timeout
+
     return function() {
         var context = this, args = arguments
+
         var later = function () {
             timeout = null
+
             func.apply(context, args)
         }
+
         clearTimeout(timeout)
+
         timeout = setTimeout(later, wait)
     }
 }
 
 function throttle(func, limit) {
     let inThrottle
+
     return function() {
         let context = this, args = arguments
+
         if (! inThrottle) {
             func.apply(context, args)
+
             inThrottle = true
+
             setTimeout(() => inThrottle = false, limit)
         }
     }
