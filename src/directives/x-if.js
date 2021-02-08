@@ -30,22 +30,23 @@ Alpine.directive('if', (el, value, modifiers, expression) => {
         value => {
             if (typeof el._x_toggleAndCascadeWithTransitions === 'function') {
                 if (value) {
-                    let clone = show()
+                    let currentIfEl = el._x_currentIfEl
 
+                    // We have to execute the actual transition in at the end
+                    // of the microtask queue, so that the newly added element
+                    // has a chance to get picked up and initialized from the
+                    // global Alpine mutation observer system.
                     queueMicrotask(() => {
-                        // We have to execute the actual transition in at the end
-                        // of the microtask queue, so that the newly added element
-                        // has a chance to get picked up and initialized from the
-                        // global Alpine mutation observer system.
-                        let undo = setStyles(clone, { display: 'none' })
+                        // Now that we've added the element to the page, we'll
+                        // immediately make it hidden so that we can transition it in.
+                        let undo = setStyles(currentIfEl, { display: 'none' })
 
-                        if (modifiers.includes('transition') && typeof clone._x_registerTransitionsFromHelper === 'function') {
-                            clone._x_registerTransitionsFromHelper(clone, modifiers)
+                        if (modifiers.includes('transition') && typeof currentIfEl._x_registerTransitionsFromHelper === 'function') {
+                            currentIfEl._x_registerTransitionsFromHelper(currentIfEl, modifiers)
                         }
 
                         el._x_toggleAndCascadeWithTransitions(clone, true, undo, () => {})
                     })
-
                 } else {
                     el._x_toggleAndCascadeWithTransitions(el._x_currentIfEl, false, () => {}, hide)
                 }

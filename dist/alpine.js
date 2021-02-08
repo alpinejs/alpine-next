@@ -1538,17 +1538,17 @@ Expression: "${expression}"
   }
   function addNodeTo(node, parent) {
     if (!shouldSkip(adding, node)) {
-      let clone = node.cloneNode(true);
-      parent.appendChild(clone);
-      added(clone);
+      let clone2 = node.cloneNode(true);
+      parent.appendChild(clone2);
+      added(clone2);
     }
   }
   function addNodeBefore(node, beforeMe) {
     if (!shouldSkip(adding, node)) {
-      let clone = node.cloneNode(true);
-      beforeMe.parentElement.insertBefore(clone, beforeMe);
-      added(clone);
-      return clone;
+      let clone2 = node.cloneNode(true);
+      beforeMe.parentElement.insertBefore(clone2, beforeMe);
+      added(clone2);
+      return clone2;
     }
     return beforeMe;
   }
@@ -1711,9 +1711,9 @@ Expression: "${expression}"
             existingScope[key3] = value;
           });
         } else {
-          let clone = document.importNode(templateEl.content, true).firstElementChild;
-          addScopeToNode(clone, ht(scope), templateEl);
-          element = clone;
+          let clone2 = document.importNode(templateEl.content, true).firstElementChild;
+          addScopeToNode(clone2, ht(scope), templateEl);
+          element = clone2;
         }
         return {key: key2, scope, element, remove() {
           element.remove();
@@ -1778,14 +1778,14 @@ Expression: "${expression}"
     let show = () => {
       if (el._x_currentIfEl)
         return el._x_currentIfEl;
-      let clone = el.content.cloneNode(true).firstElementChild;
-      el.after(clone);
-      el._x_currentIfEl = clone;
+      let clone2 = el.content.cloneNode(true).firstElementChild;
+      el.after(clone2);
+      el._x_currentIfEl = clone2;
       el._x_undoIf = () => {
-        clone.remove();
+        clone2.remove();
         delete el._x_currentIfEl;
       };
-      return clone;
+      return clone2;
     };
     let hide = () => {
       el._x_undoIf?.() || delete el._x_undoIf;
@@ -1793,11 +1793,11 @@ Expression: "${expression}"
     let toggle = once((value2) => value2 ? show() : hide(), (value2) => {
       if (typeof el._x_toggleAndCascadeWithTransitions === "function") {
         if (value2) {
-          let clone = show();
+          let currentIfEl = el._x_currentIfEl;
           queueMicrotask(() => {
-            let undo = setStyles(clone, {display: "none"});
-            if (modifiers.includes("transition") && typeof clone._x_registerTransitionsFromHelper === "function") {
-              clone._x_registerTransitionsFromHelper(clone, modifiers);
+            let undo = setStyles(currentIfEl, {display: "none"});
+            if (modifiers.includes("transition") && typeof currentIfEl._x_registerTransitionsFromHelper === "function") {
+              currentIfEl._x_registerTransitionsFromHelper(currentIfEl, modifiers);
             }
             el._x_toggleAndCascadeWithTransitions(clone, true, undo, () => {
             });
