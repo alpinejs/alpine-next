@@ -1,5 +1,5 @@
 import Alpine from '../alpine'
-import { evaluator } from '../utils/evaluate'
+import { evaluator } from '../evaluator'
 import on from '../utils/on'
 
 Alpine.directive('on', (el, value, modifiers, expression) => {

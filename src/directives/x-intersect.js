@@ -1,6 +1,5 @@
-import hyperactiv from 'hyperactiv'
 import Alpine from '../alpine'
-import { evaluator } from '../utils/evaluate'
+import { evaluator } from '../evaluator'
 
 Alpine.directive('intersect', (el, value, modifiers, expression, effect) => {
     let evaluate = evaluator(el, expression, {}, false)

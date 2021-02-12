@@ -4,34 +4,18 @@ import { setClasses } from '../utils/classes'
 import { once } from '../utils/once'
 import { setStyles } from '../utils/styles'
 
-let handler = (el, value, modifiers, expression, effect) => {
-    if (! el._x_transition) {
-        el._x_transition = {
-            enter: { during: '', start: '', end: '' },
-
-            leave: { during: '', start: '', end: '' },
-
-            in(before = () => {}, after = () => {}) {
-                return transitionClasses(this.resolveElement(), {
-                    during: this.enter.during,
-                    start: this.enter.start,
-                    end: this.enter.end,
-                }, before, after)
-            },
-
-            out(before = () => {}, after = () => {}) {
-                return transitionClasses(this.resolveElement(), {
-                    during: this.leave.during,
-                    start: this.leave.start,
-                    end: this.leave.end,
-                }, before, after)
-            },
-
-            resolveElement: () => { return el },
-
-            setElementResolver(callback) { this.resolveElement = callback },
-        }
+let handler = (el, value, modifiers, expression) => {
+    if (! expression) {
+        registerTransitionsFromHelper(el, modifiers, value)
+    } else {
+        registerTransitionsFromClassString(el, expression, value)
     }
+}
+
+Alpine.directive('transition', handler)
+
+function registerTransitionsFromClassString(el, classString, stage) {
+    registerTransitionObject(el, setClasses, '')
 
     let directiveStorageMap = {
         'enter': (classes) => { el._x_transition.enter.during = classes },
@@ -42,63 +26,17 @@ let handler = (el, value, modifiers, expression, effect) => {
         'leave-end': (classes) => { el._x_transition.leave.end = classes },
     }
 
-    directiveStorageMap[value](expression)
+    directiveStorageMap[stage](classString)
 }
 
-Alpine.directive('transition', handler)
+window.Element.prototype._x_registerTransitionsFromHelper = registerTransitionsFromHelper
 
-export function transitionClasses(el, { during = '', start = '', end = '' } = {}, before = () => {}, after = () => {}) {
-    if (el._x_transitioning) el._x_transitioning.cancel()
+function registerTransitionsFromHelper(el, modifiers, stage) {
+    registerTransitionObject(el, setStyles)
 
-    let undoStart, undoDuring, undoEnd
-
-    performTransition(el, {
-        start() {
-            undoStart = setClasses(el, start)
-        },
-        during() {
-            undoDuring = setClasses(el, during)
-        },
-        before,
-        end() {
-            undoStart()
-
-            undoEnd = setClasses(el, end)
-        },
-        after,
-        cleanup() {
-            undoDuring()
-            undoEnd()
-        },
-    })
-}
-
-window.Element.prototype._x_registerTransitionsFromHelper = function (el, modifiers) {
-    el._x_transition = {
-        enter: { during: {}, start: {}, end: {} },
-
-        leave: { during: {}, start: {}, end: {} },
-
-        in(before = () => {}, after = () => {}) {
-            return transitionStyles(el, {
-                during: this.enter.during,
-                start: this.enter.start,
-                end: this.enter.end,
-            }, before, after)
-        },
-
-        out(before = () => {}, after = () => {}) {
-            return transitionStyles(el, {
-                during: this.leave.during,
-                start: this.leave.start,
-                end: this.leave.end,
-            }, before, after)
-        }
-    }
-
-    let doesntSpecify = ! modifiers.includes('in') && ! modifiers.includes('out')
-    let transitioningIn = doesntSpecify || modifiers.includes('in')
-    let transitioningOut = doesntSpecify || modifiers.includes('out')
+    let doesntSpecify = (! modifiers.includes('in') && ! modifiers.includes('out')) && ! stage
+    let transitioningIn = doesntSpecify || modifiers.includes('in') || ['enter'].includes(stage)
+    let transitioningOut = doesntSpecify || modifiers.includes('out') || ['leave'].includes(stage)
 
     if (modifiers.includes('in') && ! doesntSpecify) {
         modifiers = modifiers.filter((i, index) => index < modifiers.indexOf('out'))
@@ -108,17 +46,30 @@ window.Element.prototype._x_registerTransitionsFromHelper = function (el, modifi
         modifiers = modifiers.filter((i, index) => index > modifiers.indexOf('out'))
     }
 
+    let wantsAll = ! modifiers.includes('opacity') && ! modifiers.includes('scale')
+    let wantsOpacity = wantsAll || modifiers.includes('opacity')
+    let wantsScale = wantsAll || modifiers.includes('scale')
+    let opacityValue = wantsOpacity ? 0 : 1
+    let scaleValue = wantsScale ? modifierValue(modifiers, 'scale', 95) / 100 : 1
+    let delay = modifierValue(modifiers, 'delay', 0)
+    let origin = modifierValue(modifiers, 'origin', 'center')
+    let property = 'opacity, transform'
+    let durationIn = modifierValue(modifiers, 'duration', 150) / 1000
+    let durationOut = modifierValue(modifiers, 'duration', 75) / 1000
+    let easing = `cubic-bezier(0.4, 0.0, 0.2, 1)`
+
     if (transitioningIn) {
         el._x_transition.enter.during = {
-            transitionOrigin: modifierValue(modifiers, 'origin', 'center'),
-            transitionProperty: 'opacity, transform',
-            transitionDuration: `${modifierValue(modifiers, 'duration', 150) / 1000}s`,
-            transitionTimingFunction: `cubic-bezier(0.4, 0.0, 0.2, 1)`,
+            transformOrigin: origin,
+            transitionDelay: delay,
+            transitionProperty: property,
+            transitionDuration: `${durationIn}s`,
+            transitionTimingFunction: easing,
         }
 
         el._x_transition.enter.start = {
-            opacity: 0,
-            transform: `scale(${modifierValue(modifiers, 'scale', 95) / 100})`,
+            opacity: opacityValue,
+            transform: `scale(${scaleValue})`,
         }
 
         el._x_transition.enter.end = {
@@ -127,15 +78,13 @@ window.Element.prototype._x_registerTransitionsFromHelper = function (el, modifi
         }
     }
 
-
     if (transitioningOut) {
-        let duration = modifierValue(modifiers, 'duration', 150) / 2
-
         el._x_transition.leave.during = {
-            transitionOrigin: modifierValue(modifiers, 'origin', 'center'),
-            transitionProperty: 'opacity, transform',
-            transitionDuration: `${duration / 1000}s`,
-            transitionTimingFunction: `cubic-bezier(0.4, 0.0, 0.2, 1)`,
+            transformOrigin: origin,
+            transitionDelay: delay,
+            transitionProperty: property,
+            transitionDuration: `${durationOut}s`,
+            transitionTimingFunction: easing,
         }
 
         el._x_transition.leave.start = {
@@ -144,9 +93,33 @@ window.Element.prototype._x_registerTransitionsFromHelper = function (el, modifi
         }
 
         el._x_transition.leave.end = {
-            opacity: 0,
-            transform: `scale(${modifierValue(modifiers, 'scale', 95) / 100})`,
+            opacity: opacityValue,
+            transform: `scale(${scaleValue})`,
         }
+    }
+}
+
+function registerTransitionObject(el, setFunction, defaultValue = {}) {
+    if (! el._x_transition) el._x_transition = {
+        enter: { during: defaultValue, start: defaultValue, end: defaultValue },
+
+        leave: { during: defaultValue, start: defaultValue, end: defaultValue },
+
+        in(before = () => {}, after = () => {}) {
+            return transition(el, setFunction, {
+                during: this.enter.during,
+                start: this.enter.start,
+                end: this.enter.end,
+            }, before, after)
+        },
+
+        out(before = () => {}, after = () => {}) {
+            return transition(el, setFunction, {
+                during: this.leave.during,
+                start: this.leave.start,
+                end: this.leave.end,
+            }, before, after)
+        },
     }
 }
 
@@ -159,35 +132,33 @@ window.Element.prototype._x_toggleAndCascadeWithTransitions = function (el, valu
         return
     }
 
-    el._x_do_hide = el._x_transition
-        ? (resolve, reject) => {
-            el._x_transition.out(() => {}, () => resolve(hide))
+    let hideAndCleanup = () => { hide(); delete el._x_hide_children }
+
+    el._x_hide_promise = el._x_transition
+        ? new Promise((resolve, reject) => {
+            el._x_transition.out(() => {}, () => resolve(hideAndCleanup))
 
             el._x_transitioning.beforeCancel(() => reject({ isFromCancelledTransition: true }))
-        }
-        : (resolve) => resolve(hide)
+        })
+        : Promise.resolve(hideAndCleanup)
 
     queueMicrotask(() => {
         let closest = closestHide(el)
 
         if (closest) {
-            closest._x_hide_child = el
+            if (! closest._x_hide_children) closest._x_hide_children = []
+
+            closest._x_hide_children.push(el)
         } else {
             queueMicrotask(() => {
-                let hidePromises = []
-                let current = el
-
-                while (current) {
-                    hidePromises.push(new Promise(current._x_do_hide))
-
-                    current = current._x_hide_child
+                let hideAfterChildren = el => {
+                    return Promise.all([
+                        el._x_hide_promise,
+                        ...(el._x_hide_children || []).map(hideAfterChildren)
+                    ]).then(([i]) => i())
                 }
 
-                hidePromises.reverse().reduce((promiseChain, promise) => {
-                    return promiseChain.then(() => {
-                        return promise.then(doHide => doHide())
-                    })
-                }, Promise.resolve(() => {})).catch((e) => {
+                hideAfterChildren(el).catch((e) => {
                     if (! e.isFromCancelledTransition) throw e
                 })
             })
@@ -200,26 +171,26 @@ function closestHide(el) {
 
     if (! parent) return
 
-    return parent._x_do_hide ? parent : closestHide(parent)
+    return parent._x_hide_promise ? parent : closestHide(parent)
 }
 
-function transitionStyles(el, { during = {}, start = {}, end = {} }, before = () => {}, after = () => {}) {
+export function transition(el, setFunction, { during, start, end } = {}, before = () => {}, after = () => {}) {
     if (el._x_transitioning) el._x_transitioning.cancel()
 
     let undoStart, undoDuring, undoEnd
 
     performTransition(el, {
         start() {
-            undoStart = setStyles(el, start)
+            undoStart = setFunction(el, start)
         },
         during() {
-            undoDuring = setStyles(el, during)
+            undoDuring = setFunction(el, during)
         },
         before,
         end() {
             undoStart()
 
-            undoEnd = setStyles(el, end)
+            undoEnd = setFunction(el, end)
         },
         after,
         cleanup() {
@@ -230,7 +201,22 @@ function transitionStyles(el, { during = {}, start = {}, end = {} }, before = ()
 }
 
 export function performTransition(el, stages) {
+    // All transitions need to be truly "cancellable". Meaning we need to
+    // account for interuptions at ALL stages of the transitions and
+    // immediately run the rest of the transition.
+    let interrupted, reachedBefore, reachedEnd
+
     let finish = once(() => {
+        interrupted = true
+
+        if (! reachedBefore) stages.before()
+
+        if (! reachedEnd) {
+            stages.end()
+
+            scheduler.releaseNextTicks()
+        }
+
         stages.after()
 
         // Adding an "isConnected" check, in case the callback removed the element from the DOM.
@@ -252,27 +238,32 @@ export function performTransition(el, stages) {
     scheduler.holdNextTicks()
 
     requestAnimationFrame(() => {
+        if (interrupted) return
+
         // Note: Safari's transitionDuration property will list out comma separated transition durations
         // for every single transition property. Let's grab the first one and call it a day.
         let duration = Number(getComputedStyle(el).transitionDuration.replace(/,.*/, '').replace('s', '')) * 1000
+        let delay = Number(getComputedStyle(el).transitionDelay.replace(/,.*/, '').replace('s', '')) * 1000
 
-        if (duration === 0) {
-            duration = Number(getComputedStyle(el).animationDuration.replace('s', '')) * 1000
-        }
+        if (duration === 0) duration = Number(getComputedStyle(el).animationDuration.replace('s', '')) * 1000
 
         stages.before()
 
+        reachedBefore = true
+
         requestAnimationFrame(() => {
+            if (interrupted) return
+
             stages.end()
 
             scheduler.releaseNextTicks()
 
-            setTimeout(el._x_transitioning.finish, duration)
+            setTimeout(el._x_transitioning.finish, duration + delay)
+
+            reachedEnd = true
         })
     })
 }
-
-
 
 function modifierValue(modifiers, key, fallback) {
     // If the modifier isn't present, use the default.
@@ -287,7 +278,7 @@ function modifierValue(modifiers, key, fallback) {
         // Check if the very next value is NOT a number and return the fallback.
         // If x-show.transition.scale, we'll use the default scale value.
         // That is how a user opts out of the opacity transition.
-        if (! isNumeric(rawValue)) return fallback
+        if (isNaN(rawValue)) return fallback
     }
 
     if (key === 'duration') {

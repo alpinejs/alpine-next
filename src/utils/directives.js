@@ -1,4 +1,8 @@
 
+export function directivesByType(el, type) {
+    return directives(el).filter(attribute => attribute.type === type)
+}
+
 export function directives(el, attributes) {
     let attributeNamesAndValues = attributes || Array.from(el.attributes).map(attr => ({name: attr.name, value: attr.value}))
 
@@ -9,22 +13,14 @@ export function directives(el, attributes) {
     return sortDirectives(directives)
 }
 
-export function directivesByType(el, type) {
-    return directives(el).filter(attribute => attribute.type === type)
-}
-
-export function directiveByType(el, type) {
-    return directivesByType(el, type)[0]
+function isXAttr({ name }) {
+    return xAttrRE.test(name)
 }
 
 let xAttrRE = /^x-([^:^.]+)\b/
 
-function isXAttr({ name, value }) {
-    return xAttrRE.test(name)
-}
-
 function sortDirectives(directives) {
-    let directiveOrder = ['data', 'spread', 'ref', 'init', 'bind', 'for', 'model', 'transition', 'show', 'if', 'catch-all', 'element']
+    let directiveOrder = ['data', 'bind', 'ref', 'init', 'for', 'model', 'transition', 'show', 'if', 'catch-all', 'element']
 
     return directives.sort((a, b) => {
         let typeA = directiveOrder.indexOf(a.type) === -1 ? 'catch-all' : a.type
@@ -50,17 +46,19 @@ function parseHtmlAttribute({ name, value }) {
 let interceptors = []
 
 function interceptNameAndValue({ name, value }, addAttributes) {
-    interceptors.push(({ name, value }) => {
-        if (name.startsWith('@')) name = name.replace('@', 'x-on:')
+    let intercept = (subject, replacement) => {
+        interceptors.push(({ name, value }) => {
+            if (name.startsWith(subject)) name = name.replace(subject, replacement)
 
-        return { name, value }
-    })
+            return { name, value }
+        })
+    }
 
-    interceptors.push(({ name, value }) => {
-        if (name.startsWith(':')) name = name.replace(':', 'x-bind:')
+    intercept('@', 'x-on:')
+    intercept(':', 'x-bind:')
 
-        return { name,  value }
-    })
+    // @depricated
+    intercept('x-spread', 'x-bind')
 
     return interceptors.reduce((carry, interceptor) => {
         return interceptor(carry, addAttributes)

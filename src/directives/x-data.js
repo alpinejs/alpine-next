@@ -1,7 +1,7 @@
 import Alpine from '../alpine'
 import { reactive } from '../reactivity'
 import { addScopeToNode } from '../scope'
-import { evaluate, evaluateSync } from '../utils/evaluate'
+import { evaluate, evaluateSync } from '../evaluator'
 
 Alpine.directive('data', (el, value, modifiers, expression, effect) => {
     expression = expression === '' ? '{}' : expression

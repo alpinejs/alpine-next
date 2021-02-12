@@ -1,6 +1,6 @@
-import Alpine from '../alpine.js'
-import mergeProxies from './mergeProxies'
-import { closestDataStack } from './closest'
+import Alpine from './alpine.js'
+import mergeProxies from './utils/mergeProxies'
+import { closestDataStack } from './utils/closest'
 
 export function evaluator(el, expression, extras = {}, returns = true) {
     // Ok, gear up for this method. It's a bit of a bumpy ride.

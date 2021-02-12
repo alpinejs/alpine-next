@@ -1,9 +1,16 @@
 
+export function domChange(callback) {
+    callback()
+    // setTimeout(callback)
+    // queueMicrotask(callback)
+}
+
 export default {
     tasks: [],
     lowPriorityTasks: [],
     nextTicks: [],
     shouldFlush: false,
+
 
     task(callback) {
         this.tasks.push(callback)

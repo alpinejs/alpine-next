@@ -1,6 +1,6 @@
 import Alpine from '../alpine'
 import { effect } from '../reactivity'
-import { evaluator } from '../utils/evaluate'
+import { evaluator } from '../evaluator'
 import { once } from '../utils/once'
 import { setStyles } from '../utils/styles'
 
@@ -41,6 +41,7 @@ Alpine.directive('if', (el, value, modifiers, expression) => {
                         // immediately make it hidden so that we can transition it in.
                         let undo = setStyles(currentIfEl, { display: 'none' })
 
+                        // @depricated
                         if (modifiers.includes('transition') && typeof currentIfEl._x_registerTransitionsFromHelper === 'function') {
                             currentIfEl._x_registerTransitionsFromHelper(currentIfEl, modifiers)
                         }

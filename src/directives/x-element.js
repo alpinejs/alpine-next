@@ -1,6 +1,6 @@
 import { reactive } from './../reactivity'
 import Alpine from '../alpine'
-import { evaluateSync } from '../utils/evaluate'
+import { evaluateSync } from '../evaluator'
 import { closestDataProxy, closestDataStack } from '../utils/closest'
 import { addScopeToNode } from '../scope'
 

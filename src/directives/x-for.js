@@ -3,7 +3,7 @@ import { reactive } from '../reactivity'
 import { addScopeToNode } from '../scope'
 import { closestDataStack } from '../utils/closest'
 import { directivesByType } from '../utils/directives'
-import { evaluator, evaluatorSync } from '../utils/evaluate'
+import { evaluator, evaluatorSync } from '../evaluator'
 
 Alpine.directive('for', (el, value, modifiers, expression, effect) => {
     let iteratorNames = parseForExpression(expression)

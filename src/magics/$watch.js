@@ -1,6 +1,6 @@
 import Alpine from '../alpine'
 import { pauseTracking, enableTracking } from './../reactivity'
-import { evaluator } from '../utils/evaluate'
+import { evaluator } from '../evaluator'
 
 Alpine.magic('watch', el => {
     return (key, callback) => {

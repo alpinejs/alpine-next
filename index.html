@@ -1,13 +1,43 @@
 <html>
     <script src="http://alpine-next.test/dist/alpine.js" defer></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
 
-    <div x-data="{ items: ['foo'] }">
-        <button x-on:click="items = ['foo', 'bar']">click me</button>
+    <div x-data="{ open: false }">
+        <button @click="open = ! open">Toggle</button>
 
-        <template x-for="item in items">
-            <span x-text="item"></span>
-        </template>
+        <div style="display: flex;">
+            <div x-show="open">
+                Hey
+            </div>
+        </div>
     </div>
+
+    <!-- <div x-data="dropdown()">
+        <button x-spread="trigger">Open Dropdown</button>
+
+        <span x-spread="dialogue">Dropdown Contents</span>
+    </div>
+
+    <script>
+        function dropdown() {
+            return {
+                open: false,
+                trigger: {
+                    ['@click']() {
+                        this.open = true
+                    },
+                },
+                dialogue: {
+                    ['x-show']() {
+                        return this.open
+                    },
+                    ['@click.away']() {
+                        this.open = false
+                    },
+                }
+            }
+        }
+    </script> -->
 </html>
 
 

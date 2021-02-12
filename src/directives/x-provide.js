@@ -1,6 +1,6 @@
 import Alpine from '../alpine'
 import scheduler from '../scheduler'
-import { evaluatorSync } from '../utils/evaluate'
+import { evaluatorSync } from '../evaluator'
 
 Alpine.directive('provide', (el, value, modifiers, expression) => {
     let evaluate = evaluatorSync(el, expression)

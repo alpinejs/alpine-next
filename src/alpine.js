@@ -103,7 +103,7 @@ let Alpine = {
     //     let root = true
 
     //     this.walk(newEl, (el, skipSubTree) => {
-    //         if (! root && !! directiveByType(el, 'data')) return skipSubTree()
+    //         if (! root && !! directiveByTypes(el, 'data')[0]) return skipSubTree()
 
     //         root = false
 
