@@ -763,15 +763,11 @@
       el._x_transition ? el._x_transition.in(show) : show();
       return;
     }
-    let hideAndCleanup = () => {
-      hide();
-      delete el._x_hide_children;
-    };
     el._x_hide_promise = el._x_transition ? new Promise((resolve, reject) => {
       el._x_transition.out(() => {
-      }, () => resolve(hideAndCleanup));
+      }, () => resolve(hide));
       el._x_transitioning.beforeCancel(() => reject({isFromCancelledTransition: true}));
-    }) : Promise.resolve(hideAndCleanup);
+    }) : Promise.resolve(hide);
     queueMicrotask(() => {
       let closest = closestHide(el);
       if (closest) {
@@ -781,10 +777,12 @@
       } else {
         queueMicrotask(() => {
           let hideAfterChildren = (el2) => {
-            return Promise.all([
+            let carry = Promise.all([
               el2._x_hide_promise,
               ...(el2._x_hide_children || []).map(hideAfterChildren)
             ]).then(([i2]) => i2());
+            delete el2._x_hide_children;
+            return carry;
           };
           hideAfterChildren(el).catch((e) => {
             if (!e.isFromCancelledTransition)
