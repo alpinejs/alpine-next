@@ -3,58 +3,31 @@ import Alpine from './alpine'
 /**
  * Register Directives
  */
-import xtransition from './directives/x-transition'
-Alpine.directive('transition', xtransition)
-
-import xdestroy from './directives/x-destroy'
-Alpine.directive('destroy', xdestroy)
-
-import xmorph from './directives/x-morph'
-Alpine.directive('morph', xmorph)
-
-import xmodel from './directives/x-model'
-Alpine.directive('model', xmodel)
-
-import xcloak from './directives/x-cloak'
-Alpine.directive('cloak', xcloak)
-
-import xinit from './directives/x-init'
-Alpine.directive('init', xinit)
-
-import xtext from './directives/x-text'
-Alpine.directive('text', xtext)
-
-import xbind from './directives/x-bind'
-Alpine.directive('bind', xbind)
-
-import xdata from './directives/x-data'
-Alpine.directive('data', xdata)
-
-import xshow from './directives/x-show'
-Alpine.directive('show', xshow)
-
-import xfor from './directives/x-for'
-Alpine.directive('for', xfor)
-
-import xref from './directives/x-ref'
-Alpine.directive('ref', xref)
-
-import xif from './directives/x-if'
-Alpine.directive('if', xif)
-
-import xon from './directives/x-on'
-Alpine.directive('on', xon)
+import xTransition from './directives/x-transition'; Alpine.directive('transition', xTransition)
+import xDestroy from './directives/x-destroy'; Alpine.directive('destroy', xDestroy)
+import xMorph from './directives/x-morph'; Alpine.directive('morph', xMorph)
+import xModel from './directives/x-model'; Alpine.directive('model', xModel)
+import xCloak from './directives/x-cloak'; Alpine.directive('cloak', xCloak)
+import xInit from './directives/x-init'; Alpine.directive('init', xInit)
+import xText from './directives/x-text'; Alpine.directive('text', xText)
+import xBind from './directives/x-bind'; Alpine.directive('bind', xBind)
+import xData from './directives/x-data'; Alpine.directive('data', xData)
+import xShow from './directives/x-show'; Alpine.directive('show', xShow)
+import xFor from './directives/x-for'; Alpine.directive('for', xFor)
+import xRef from './directives/x-ref'; Alpine.directive('ref', xRef)
+import xIf from './directives/x-if'; Alpine.directive('if', xIf)
+import xOn from './directives/x-on'; Alpine.directive('on', xOn)
 
 
 /**
  * Register Magics
  */
-Alpine.magic('nextTick', import('./magics/$nextTick'))
-Alpine.magic('dispatch', import('./magics/$dispatch'))
-Alpine.magic('watch', import('./magics/$watch'))
-Alpine.magic('store', import('./magics/$store'))
-Alpine.magic('refs', import('./magics/$refs'))
-Alpine.magic('el', import('./magics/$el'))
+import nextTick from './magics/$nextTick'; Alpine.magic('nextTick', nextTick)
+import dispatch from './magics/$dispatch'; Alpine.magic('dispatch', dispatch)
+import watch from './magics/$watch'; Alpine.magic('watch', watch)
+import store from './magics/$store'; Alpine.magic('store', store)
+import refs from './magics/$refs'; Alpine.magic('refs', refs)
+import el from './magics/$el'; Alpine.magic('el', el)
 
 /**
  * Start It Up

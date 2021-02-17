@@ -1,99 +1,4 @@
 (() => {
-  var __create = Object.create;
-  var __defProp = Object.defineProperty;
-  var __getProtoOf = Object.getPrototypeOf;
-  var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __getOwnPropNames = Object.getOwnPropertyNames;
-  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-  var __markAsModule = (target) => __defProp(target, "__esModule", {value: true});
-  var __commonJS = (callback, module) => () => {
-    if (!module) {
-      module = {exports: {}};
-      callback(module.exports, module);
-    }
-    return module.exports;
-  };
-  var __export = (target, all) => {
-    __markAsModule(target);
-    for (var name in all)
-      __defProp(target, name, {get: all[name], enumerable: true});
-  };
-  var __exportStar = (target, module, desc) => {
-    __markAsModule(target);
-    if (module && typeof module === "object" || typeof module === "function") {
-      for (let key2 of __getOwnPropNames(module))
-        if (!__hasOwnProp.call(target, key2) && key2 !== "default")
-          __defProp(target, key2, {get: () => module[key2], enumerable: !(desc = __getOwnPropDesc(module, key2)) || desc.enumerable});
-    }
-    return target;
-  };
-  var __toModule = (module) => {
-    if (module && module.__esModule)
-      return module;
-    return __exportStar(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", {value: module, enumerable: true}), module);
-  };
-
-  // src/magics/$nextTick.js
-  var require_nextTick = __commonJS((exports) => {
-    __export(exports, {
-      default: () => nextTick_default
-    });
-    var nextTick_default = () => nextTick;
-  });
-
-  // src/magics/$dispatch.js
-  var require_dispatch = __commonJS((exports) => {
-    __export(exports, {
-      default: () => dispatch_default
-    });
-    var dispatch_default = dispatch;
-  });
-
-  // src/magics/$watch.js
-  var require_watch = __commonJS((exports) => {
-    __export(exports, {
-      default: () => watch_default
-    });
-    var watch_default = (el) => (key2, callback) => {
-      let evaluate3 = evaluator(el, key2);
-      let firstTime = true;
-      w(() => evaluate3((value) => {
-        let div = document.createElement("div");
-        div.dataset.throwAway = value;
-        if (!firstTime) {
-          m();
-          callback(value);
-          j();
-        }
-        firstTime = false;
-      }));
-    };
-  });
-
-  // src/magics/$store.js
-  var require_store = __commonJS((exports) => {
-    __export(exports, {
-      default: () => store_default
-    });
-    var store_default = () => (name) => getStore(name);
-  });
-
-  // src/magics/$refs.js
-  var require_refs = __commonJS((exports) => {
-    __export(exports, {
-      default: () => refs_default
-    });
-    var refs_default = (el) => root(el)._x_refs || {};
-  });
-
-  // src/magics/$el.js
-  var require_el = __commonJS((exports) => {
-    __export(exports, {
-      default: () => el_default
-    });
-    var el_default = (el) => el;
-  });
-
   // node_modules/@vue/reactivity/dist/reactivity.esm-browser.prod.js
   var t = {};
   var n = Object.assign;
@@ -1808,6 +1713,37 @@ Expression: "${expression}"
     onDestroy(el, removeListener);
   };
 
+  // src/magics/$nextTick.js
+  var nextTick_default = () => nextTick;
+
+  // src/magics/$dispatch.js
+  var dispatch_default = dispatch;
+
+  // src/magics/$watch.js
+  var watch_default = (el) => (key2, callback) => {
+    let evaluate3 = evaluator(el, key2);
+    let firstTime = true;
+    w(() => evaluate3((value) => {
+      let div = document.createElement("div");
+      div.dataset.throwAway = value;
+      if (!firstTime) {
+        m();
+        callback(value);
+        j();
+      }
+      firstTime = false;
+    }));
+  };
+
+  // src/magics/$store.js
+  var store_default = () => (name) => getStore(name);
+
+  // src/magics/$refs.js
+  var refs_default = (el) => root(el)._x_refs || {};
+
+  // src/magics/$el.js
+  var el_default = (el) => el;
+
   // src/index.js
   alpine_default.directive("transition", x_transition_default);
   alpine_default.directive("destroy", x_destroy_default);
@@ -1823,12 +1759,12 @@ Expression: "${expression}"
   alpine_default.directive("ref", x_ref_default);
   alpine_default.directive("if", x_if_default);
   alpine_default.directive("on", x_on_default);
-  alpine_default.magic("nextTick", Promise.resolve().then(() => __toModule(require_nextTick())));
-  alpine_default.magic("dispatch", Promise.resolve().then(() => __toModule(require_dispatch())));
-  alpine_default.magic("watch", Promise.resolve().then(() => __toModule(require_watch())));
-  alpine_default.magic("store", Promise.resolve().then(() => __toModule(require_store())));
-  alpine_default.magic("refs", Promise.resolve().then(() => __toModule(require_refs())));
-  alpine_default.magic("el", Promise.resolve().then(() => __toModule(require_el())));
+  alpine_default.magic("nextTick", nextTick_default);
+  alpine_default.magic("dispatch", dispatch_default);
+  alpine_default.magic("watch", watch_default);
+  alpine_default.magic("store", store_default);
+  alpine_default.magic("refs", refs_default);
+  alpine_default.magic("el", el_default);
   alpine_default.start();
   window.Alpine = alpine_default;
 })();
