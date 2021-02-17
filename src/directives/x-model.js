@@ -1,4 +1,5 @@
 import { evaluator } from '../evaluator'
+import { effect } from '../reactivity'
 import bind from '../utils/bind'
 import on from '../utils/on'
 
@@ -17,10 +18,10 @@ export default (el, { value, modifiers, expression }) => {
     let assigmentFunction = generateAssignmentFunction(el, modifiers, expression)
 
     let removeListener = on(el, event, modifiers, (e) => {
-        evaluateAssignment(() => {}, {
+        evaluateAssignment(() => {}, { scope: {
             '$event': e,
             rightSideOfExpression: assigmentFunction
-        })
+        }})
     })
 
     el._x_forceModelUpdate = () => {

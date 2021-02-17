@@ -4,7 +4,7 @@ import { effect } from '../reactivity'
 import { once } from '../utils/once'
 
 export default (el, { value, modifiers, expression }) => {
-    let evaluate = evaluator(el, expression, true)
+    let evaluate = evaluator(el, expression)
 
     let show = () => {
         if (el._x_currentIfEl) return el._x_currentIfEl

@@ -1,4 +1,3 @@
-import Alpine from '../alpine'
 import scheduler from '../scheduler'
 import { closestDataStack } from '../utils/closest'
 

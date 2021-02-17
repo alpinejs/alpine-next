@@ -1,3 +1,4 @@
+import { releaseNextTicks, holdNextTicks } from '../nextTick'
 import { setClasses } from '../utils/classes'
 import { setStyles } from '../utils/styles'
 import { once } from '../utils/once'
@@ -210,7 +211,7 @@ export function performTransition(el, stages) {
         if (! reachedEnd) {
             stages.end()
 
-            scheduler.releaseNextTicks()
+            releaseNextTicks()
         }
 
         stages.after()
@@ -231,7 +232,7 @@ export function performTransition(el, stages) {
     stages.start()
     stages.during()
 
-    scheduler.holdNextTicks()
+    holdNextTicks()
 
     requestAnimationFrame(() => {
         if (interrupted) return
@@ -252,7 +253,7 @@ export function performTransition(el, stages) {
 
             stages.end()
 
-            scheduler.releaseNextTicks()
+            releaseNextTicks()
 
             setTimeout(el._x_transitioning.finish, duration + delay)
 

@@ -1,9 +1,10 @@
 import { setStyles } from '../utils/styles'
 import { evaluator } from '../evaluator'
+import { effect } from '../reactivity'
 import { once } from '../utils/once'
 
 export default (el, { value, modifiers, expression }) => {
-    let evaluate = evaluator(el, expression, true)
+    let evaluate = evaluator(el, expression)
 
     let hide = () => {
         el._x_undoHide = setStyles(el, { display: 'none' })

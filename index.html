@@ -6,12 +6,11 @@
 <!-- <script src="https://unpkg.com/stimulus@2.0.0/dist/stimulus.umd.js"></script> -->
 
 
+<div x-data="{ foo: 'bar' }" x-on:event-name.camel="foo = 'baz'">
+    <button x-on:click="$dispatch('eventName')"></button>
 
-
-<div x-data="{ foo() { console.log('hey there') } }">
-    <span x-on:click="foo">clicky</span>
+    <span x-text="foo"></span>
 </div>
-
 <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src https://*; child-src 'none';">
 <div x-data="foo">
     <h1 x-text="yo">hey</h1>

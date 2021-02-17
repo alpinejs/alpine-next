@@ -1,9 +1,20 @@
-import Alpine from './alpine'
 import { injectMagics } from './magics'
 import { scope, closestDataStack, mergeProxies, closestDataProxy } from './scope'
 
-export function evaluatorSync(el, expression, extras = {}, returns = true) {
-    let evaluate = evaluator(el, expression, returns)
+export function evaluate(el, expression, extras = {}) {
+    return evaluator(el, expression)(() => {}, extras)
+}
+
+export function evaluateSync(el, expression, extras = {}) {
+    let result
+
+    evaluator(el, expression)(value => result = value, extras)
+
+    return result
+}
+
+export function evaluatorSync(el, expression, extras = {}) {
+    let evaluate = evaluator(el, expression)
 
     return (extras) => {
         let result
@@ -14,19 +25,7 @@ export function evaluatorSync(el, expression, extras = {}, returns = true) {
     }
 }
 
-export function evaluate(el, expression, extras = {}, returns = true) {
-    return evaluator(el, expression, returns)(() => {}, extras)
-}
-
-export function evaluateSync(el, expression, extras = {}, returns = true) {
-    let result
-
-    evaluator(el, expression, returns)(value => result = value, extras)
-
-    return result
-}
-
-export function evaluator(el, expression, extras = {}, returns = true) {
+export function evaluator(el, expression, extras = {}) {
     let overriddenMagics = {}
 
     injectMagics(overriddenMagics, el)
@@ -37,16 +36,14 @@ export function evaluator(el, expression, extras = {}, returns = true) {
         return generateEvaluatorFromFunction(dataStack, expression)
     }
 
-    let evaluator = generateEvaluatorFromString(dataStack, expression, returns)
+    let evaluator = generateEvaluatorFromString(dataStack, expression)
 
     return tryCatch.bind(null, el, expression, evaluator)
 }
 
-function generateEvaluatorFromFunction(dataStack, expression) {
-    return (receiver = () => {}, runtimeScope = {}) => {
-        let expressionWithContext = expression.bind(mergeProxies([runtimeScope, ...dataStack]))
-
-        let result = expressionWithContext()
+function generateEvaluatorFromFunction(dataStack, func) {
+    return (receiver = () => {}, { scope = {}, params = [] } = {}) => {
+        let result = func.apply(mergeProxies([scope, ...dataStack]), params)
 
         if (result instanceof Promise) {
             result.then(i => runIfTypeOfFunction(receiver, i))
@@ -67,36 +64,39 @@ function generateEvaluatorFromFunction(dataStack, expression) {
 //    }
 // }
 
-function generateEvaluatorFromString(dataStack, expression, returns) {
+function generateEvaluatorFromString(dataStack, expression) {
     let AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
 
-    let assignmentPrefix = returns ? '__self.result = ' : ''
+    let func = new AsyncFunction(['__self', 'scope'], `with (scope) { __self.result = ${expression} }; __self.finished = true; return __self.result;`)
 
-    let func = new AsyncFunction(['__self', 'scope'], `with (scope) { ${assignmentPrefix}${expression} }; __self.finished = true; return __self.result;`)
-
-    return (receiver = () => {}, runtimeScope = {}) => {
+    return (receiver = () => {}, { scope = {}, params = [] } = {}) => {
         func.result = undefined
         func.finished = false
 
         // Run the function.
-        let promise = func(...[func, mergeProxies([runtimeScope, ...dataStack])])
+
+        let completeScope = mergeProxies([ scope, ...dataStack ])
+
+        let promise = func(func, completeScope)
 
         // Check if the function ran synchronously,
         if (func.finished) {
             // Return the immediate result.
-            runIfTypeOfFunction(receiver, func.result)
+            runIfTypeOfFunction(receiver, func.result, completeScope, params)
         } else {
             // If not, return the result when the promise resolves.
             promise.then(result => {
-                runIfTypeOfFunction(receiver, result)
+                runIfTypeOfFunction(receiver, result, completeScope, params)
             })
         }
     }
 }
 
-function runIfTypeOfFunction(receiver, value) {
+function runIfTypeOfFunction(receiver, value, scope, params) {
     if (typeof value === 'function') {
-        receiver(value())
+        receiver(
+            value.apply(scope, params)
+        )
     } else {
         receiver(value)
     }

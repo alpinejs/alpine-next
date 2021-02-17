@@ -1,14 +1,15 @@
-import { warn } from './warn'
 
-export function setClasses(el, classString) {
-    let isInvalidType = subject => (typeof subject === 'object' && ! subject instanceof String) || Array.isArray(subject)
+export function setClasses(el, value) {
+    if (Array.isArray(value)) {
+        return setClassesFromString(el, value.join(' '))
+    } else if (typeof value === 'object' && value !== null) {
+        return setClassesFromObject(el, value)
+    }
 
-    // @todo
-    if (isInvalidType(classString)) warn('class bindings must return a string or a stringable type. Arrays and Objects are no longer supported.')
+    return setClassesFromString(el, value)
+}
 
-    // This is to allow short ifs like: :class="show || 'hidden'"
-    if (classString === true) classString = ''
-
+function setClassesFromString(el, classString) {
     let split = classString => classString.split(' ').filter(Boolean)
 
     let missingClasses = classString => classString.split(' ').filter(i => ! el.classList.contains(i)).filter(Boolean)
@@ -19,10 +20,13 @@ export function setClasses(el, classString) {
         return () => { el.classList.remove(...classes) }
     }
 
-    return addClassesAndReturnUndo(missingClasses(classString || ''))
+    // This is to allow short-circuit expressions like: :class="show || 'hidden'" && "show && 'block'"
+    classString = (classString === true) ? classString = '' : (classString || '')
+
+    return addClassesAndReturnUndo(missingClasses(classString))
 }
 
-export function toggleClasses(el, classObject) {
+function setClassesFromObject(el, classObject) {
     let split = classString => classString.split(' ').filter(Boolean)
 
     let forAdd = Object.entries(classObject).flatMap(([classString, bool]) => bool ? split(classString) : false).filter(Boolean)

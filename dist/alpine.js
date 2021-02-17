@@ -363,7 +363,11 @@
 
   // src/nextTick.js
   function nextTick(callback) {
-    callback();
+    setTimeout(callback);
+  }
+  function releaseNextTicks() {
+  }
+  function holdNextTicks() {
   }
 
   // src/utils/dispatch.js
@@ -489,7 +493,7 @@
   }
 
   // src/alpine.js
-  var Alpine2 = {
+  var Alpine = {
     mapAttributes,
     component,
     directive,
@@ -500,15 +504,18 @@
     store,
     start
   };
-  var alpine_default = Alpine2;
+  var alpine_default = Alpine;
 
   // src/utils/classes.js
-  function setClasses(el, classString) {
-    let isInvalidType = (subject) => typeof subject === "object" && !subject instanceof String || Array.isArray(subject);
-    if (isInvalidType(classString))
-      warn("class bindings must return a string or a stringable type. Arrays and Objects are no longer supported.");
-    if (classString === true)
-      classString = "";
+  function setClasses(el, value) {
+    if (Array.isArray(value)) {
+      return setClassesFromString(el, value.join(" "));
+    } else if (typeof value === "object" && value !== null) {
+      return setClassesFromObject(el, value);
+    }
+    return setClassesFromString(el, value);
+  }
+  function setClassesFromString(el, classString) {
     let split = (classString2) => classString2.split(" ").filter(Boolean);
     let missingClasses = (classString2) => classString2.split(" ").filter((i2) => !el.classList.contains(i2)).filter(Boolean);
     let addClassesAndReturnUndo = (classes) => {
@@ -517,9 +524,10 @@
         el.classList.remove(...classes);
       };
     };
-    return addClassesAndReturnUndo(missingClasses(classString || ""));
+    classString = classString === true ? classString = "" : classString || "";
+    return addClassesAndReturnUndo(missingClasses(classString));
   }
-  function toggleClasses(el, classObject) {
+  function setClassesFromObject(el, classObject) {
     let split = (classString) => classString.split(" ").filter(Boolean);
     let forAdd = Object.entries(classObject).flatMap(([classString, bool]) => bool ? split(classString) : false).filter(Boolean);
     let forRemove = Object.entries(classObject).flatMap(([classString, bool]) => !bool ? split(classString) : false).filter(Boolean);
@@ -761,7 +769,7 @@
         stages.before();
       if (!reachedEnd) {
         stages.end();
-        scheduler.releaseNextTicks();
+        releaseNextTicks();
       }
       stages.after();
       if (el.isConnected)
@@ -784,7 +792,7 @@
     };
     stages.start();
     stages.during();
-    scheduler.holdNextTicks();
+    holdNextTicks();
     requestAnimationFrame(() => {
       if (interrupted)
         return;
@@ -798,7 +806,7 @@
         if (interrupted)
           return;
         stages.end();
-        scheduler.releaseNextTicks();
+        releaseNextTicks();
         setTimeout(el._x_transitioning.finish, duration + delay);
         reachedEnd = true;
       });
@@ -866,58 +874,65 @@
   }
 
   // src/evaluator.js
-  function evaluate2(el, expression, extras = {}, returns = true) {
-    return evaluator(el, expression, returns)(() => {
+  function evaluate(el, expression, extras = {}) {
+    return evaluator(el, expression)(() => {
     }, extras);
   }
-  function evaluateSync(el, expression, extras = {}, returns = true) {
+  function evaluateSync(el, expression, extras = {}) {
     let result;
-    evaluator(el, expression, returns)((value) => result = value, extras);
+    evaluator(el, expression)((value) => result = value, extras);
     return result;
   }
-  function evaluator(el, expression, extras = {}, returns = true) {
+  function evaluatorSync(el, expression, extras = {}) {
+    let evaluate2 = evaluator(el, expression);
+    return (extras2) => {
+      let result;
+      evaluate2((value) => result = value, extras2);
+      return result;
+    };
+  }
+  function evaluator(el, expression, extras = {}) {
     let overriddenMagics = {};
     injectMagics(overriddenMagics, el);
     let dataStack = [overriddenMagics, ...closestDataStack(el)];
     if (typeof expression === "function") {
       return generateEvaluatorFromFunction(dataStack, expression);
     }
-    let evaluator2 = generateEvaluatorFromString(dataStack, expression, returns);
+    let evaluator2 = generateEvaluatorFromString(dataStack, expression);
     return tryCatch.bind(null, el, expression, evaluator2);
   }
-  function generateEvaluatorFromFunction(dataStack, expression) {
+  function generateEvaluatorFromFunction(dataStack, func) {
     return (receiver = () => {
-    }, runtimeScope = {}) => {
-      let expressionWithContext = expression.bind(mergeProxies([runtimeScope, ...dataStack]));
-      let result = expressionWithContext();
+    }, {scope: scope2 = {}, params = []} = {}) => {
+      let result = func.apply(mergeProxies([scope2, ...dataStack]), params);
       if (result instanceof Promise) {
         result.then((i2) => runIfTypeOfFunction(receiver, i2));
       }
       runIfTypeOfFunction(receiver, result);
     };
   }
-  function generateEvaluatorFromString(dataStack, expression, returns) {
+  function generateEvaluatorFromString(dataStack, expression) {
     let AsyncFunction = Object.getPrototypeOf(async function() {
     }).constructor;
-    let assignmentPrefix = returns ? "__self.result = " : "";
-    let func = new AsyncFunction(["__self", "scope"], `with (scope) { ${assignmentPrefix}${expression} }; __self.finished = true; return __self.result;`);
+    let func = new AsyncFunction(["__self", "scope"], `with (scope) { __self.result = ${expression} }; __self.finished = true; return __self.result;`);
     return (receiver = () => {
-    }, runtimeScope = {}) => {
+    }, {scope: scope2 = {}, params = []} = {}) => {
       func.result = void 0;
       func.finished = false;
-      let promise = func(...[func, mergeProxies([runtimeScope, ...dataStack])]);
+      let completeScope = mergeProxies([scope2, ...dataStack]);
+      let promise = func(func, completeScope);
       if (func.finished) {
-        runIfTypeOfFunction(receiver, func.result);
+        runIfTypeOfFunction(receiver, func.result, completeScope, params);
       } else {
         promise.then((result) => {
-          runIfTypeOfFunction(receiver, result);
+          runIfTypeOfFunction(receiver, result, completeScope, params);
         });
       }
     };
   }
-  function runIfTypeOfFunction(receiver, value) {
+  function runIfTypeOfFunction(receiver, value, scope2, params) {
     if (typeof value === "function") {
-      receiver(value());
+      receiver(value.apply(scope2, params));
     } else {
       receiver(value);
     }
@@ -938,7 +953,7 @@ Expression: "${expression}"
 
   // src/directives/x-destroy.js
   var x_destroy_default = (el, {value, modifiers, expression}) => {
-    onDestroy(el, () => evaluate2(el, expression, {}, false));
+    onDestroy(el, () => evaluate(el, expression, {}, false));
   };
 
   // src/morph.js
@@ -1163,9 +1178,9 @@ Expression: "${expression}"
 
   // src/directives/x-morph.js
   var x_morph_default = (el, {value, modifiers, expression}) => {
-    let evaluate3 = evaluator(el, expression);
-    effect(() => {
-      evaluate3((value2) => {
+    let evaluate2 = evaluator(el, expression);
+    w(() => {
+      evaluate2((value2) => {
         if (!el.firstElementChild) {
           if (el.firstChild)
             el.firstChild.remove();
@@ -1179,7 +1194,7 @@ Expression: "${expression}"
   // src/utils/bind.js
   function bind(el, name, value, modifiers = []) {
     if (!el._x_bindings)
-      el._x_bindings = Alpine.reactive({});
+      el._x_bindings = ht({});
     el._x_bindings[name] = value;
     name = modifiers.includes("camel") ? camelCase(name) : name;
     switch (name) {
@@ -1225,17 +1240,15 @@ Expression: "${expression}"
   function bindClasses(el, value) {
     if (el._x_undoAddedClasses)
       el._x_undoAddedClasses();
-    if (typeof value === "object" && value !== null) {
-      el._x_undoAddedClasses = toggleClasses(el, value);
-    } else {
-      el._x_undoAddedClasses = setClasses(el, value);
-    }
+    el._x_undoAddedClasses = setClasses(el, value);
   }
   function bindAttribute(el, name, value) {
     if ([null, void 0, false].includes(value)) {
       el.removeAttribute(name);
     } else {
-      isBooleanAttr(name) ? setIfChanged(el, name, name) : setIfChanged(el, name, value);
+      if (isBooleanAttr(name))
+        value = name;
+      setIfChanged(el, name, value);
     }
   }
   function setIfChanged(el, attrName, value) {
@@ -1432,20 +1445,20 @@ Expression: "${expression}"
 
   // src/directives/x-model.js
   var x_model_default = (el, {value, modifiers, expression}) => {
-    let evaluate3 = evaluator(el, expression);
+    let evaluate2 = evaluator(el, expression);
     let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`;
     let evaluateAssignment = evaluator(el, assignmentExpression);
     var event = el.tagName.toLowerCase() === "select" || ["checkbox", "radio"].includes(el.type) || modifiers.includes("lazy") ? "change" : "input";
     let assigmentFunction = generateAssignmentFunction(el, modifiers, expression);
     let removeListener = on(el, event, modifiers, (e) => {
       evaluateAssignment(() => {
-      }, {
+      }, {scope: {
         $event: e,
         rightSideOfExpression: assigmentFunction
-      });
+      }});
     });
     el._x_forceModelUpdate = () => {
-      evaluate3((value2) => {
+      evaluate2((value2) => {
         if (value2 === void 0 && expression.match(/\./))
           value2 = "";
         window.fromModel = true;
@@ -1453,7 +1466,7 @@ Expression: "${expression}"
         delete window.fromModel;
       });
     };
-    effect(() => {
+    w(() => {
       if (modifiers.includes("unintrusive") && document.activeElement.isSameNode(el))
         return;
       el._x_forceModelUpdate();
@@ -1506,8 +1519,8 @@ Expression: "${expression}"
 
   // src/directives/x-text.js
   var x_text_default = (el, {expression}) => {
-    let evaluate3 = evaluator(el, expression);
-    effect(() => evaluate3((value) => el.textContent = value));
+    let evaluate2 = evaluator(el, expression);
+    w(() => evaluate2((value) => el.textContent = value));
   };
 
   // src/directives/x-bind.js
@@ -1516,8 +1529,8 @@ Expression: "${expression}"
       return applyBindingsObject(el, expression);
     if (value === "key")
       return storeKeyForXFor(el, expression);
-    let evaluate3 = evaluator(el, expression);
-    w(() => evaluate3((result) => {
+    let evaluate2 = evaluator(el, expression);
+    w(() => evaluate2((result) => {
       bind(el, value, result, modifiers);
     }));
   };
@@ -1550,7 +1563,7 @@ Expression: "${expression}"
 
   // src/directives/x-show.js
   var x_show_default = (el, {value, modifiers, expression}) => {
-    let evaluate3 = evaluator(el, expression, true);
+    let evaluate2 = evaluator(el, expression);
     let hide = () => {
       el._x_undoHide = setStyles(el, {display: "none"});
       el._x_is_shown = false;
@@ -1566,7 +1579,7 @@ Expression: "${expression}"
         value2 ? show() : hide();
       }
     });
-    effect(() => evaluate3((value2) => {
+    w(() => evaluate2((value2) => {
       if (modifiers.includes("immediate"))
         value2 ? show() : hide();
       toggle(value2);
@@ -1576,20 +1589,20 @@ Expression: "${expression}"
   // src/directives/x-for.js
   var x_for_default = (el, {value, modifiers, expression}) => {
     let iteratorNames = parseForExpression(expression);
-    let evaluateItems = Alpine.evaluator(el, iteratorNames.items);
-    let evaluateKey = Alpine.evaluatorSync(el, el._x_key_expression || "index");
-    effect(() => loop(el, iteratorNames, evaluateItems, evaluateKey));
+    let evaluateItems = evaluator(el, iteratorNames.items);
+    let evaluateKey = evaluatorSync(el, el._x_key_expression || "index");
+    w(() => loop(el, iteratorNames, evaluateItems, evaluateKey));
   };
   function loop(el, iteratorNames, evaluateItems, evaluateKey) {
     let templateEl = el;
     evaluateItems((items) => {
-      if (isNumeric3(items) && items > 0) {
+      if (isNumeric3(items) && items >= 0) {
         items = Array.from(Array(items).keys(), (i2) => i2 + 1);
       }
       let oldIterations = templateEl._x_old_iterations || [];
       let iterations = Array.from(items).map((item, index) => {
         let scope2 = getIterationScopeVariables(iteratorNames, item, index, items);
-        let key2 = evaluateKey({index, ...scope2});
+        let key2 = evaluateKey({scope: {index, ...scope2}});
         let element = oldIterations.find((i2) => i2.key === key2)?.element;
         if (element) {
           let existingScope = element._x_dataStack[0];
@@ -1658,7 +1671,7 @@ Expression: "${expression}"
 
   // src/directives/x-if.js
   var x_if_default = (el, {value, modifiers, expression}) => {
-    let evaluate3 = evaluator(el, expression, true);
+    let evaluate2 = evaluator(el, expression);
     let show = () => {
       if (el._x_currentIfEl)
         return el._x_currentIfEl;
@@ -1695,7 +1708,7 @@ Expression: "${expression}"
         value2 ? show() : hide();
       }
     });
-    w(() => evaluate3((value2) => {
+    w(() => evaluate2((value2) => {
       if (modifiers.includes("immediate"))
         value2 ? show() : hide();
       toggle(value2);
@@ -1704,11 +1717,11 @@ Expression: "${expression}"
 
   // src/directives/x-on.js
   var x_on_default = (el, {value, modifiers, expression}) => {
-    let evaluate3 = expression ? evaluator(el, expression, false) : () => {
+    let evaluate2 = expression ? evaluator(el, expression) : () => {
     };
     let removeListener = on(el, value, modifiers, (e) => {
-      evaluate3(() => {
-      }, {$event: e});
+      evaluate2(() => {
+      }, {scope: {$event: e}, params: [e]});
     });
     onDestroy(el, removeListener);
   };
@@ -1717,13 +1730,13 @@ Expression: "${expression}"
   var nextTick_default = () => nextTick;
 
   // src/magics/$dispatch.js
-  var dispatch_default = dispatch;
+  var dispatch_default = (el) => dispatch.bind(dispatch, el);
 
   // src/magics/$watch.js
   var watch_default = (el) => (key2, callback) => {
-    let evaluate3 = evaluator(el, key2);
+    let evaluate2 = evaluator(el, key2);
     let firstTime = true;
-    w(() => evaluate3((value) => {
+    w(() => evaluate2((value) => {
       let div = document.createElement("div");
       div.dataset.throwAway = value;
       if (!firstTime) {
@@ -1765,6 +1778,6 @@ Expression: "${expression}"
   alpine_default.magic("store", store_default);
   alpine_default.magic("refs", refs_default);
   alpine_default.magic("el", el_default);
-  alpine_default.start();
   window.Alpine = alpine_default;
+  alpine_default.start();
 })();

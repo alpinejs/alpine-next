@@ -1,7 +1,7 @@
 import { evaluator } from '../evaluator'
 
 export default (el, { value, modifiers, expression }) => {
-    let evaluate = evaluator(el, expression, false)
+    let evaluate = evaluator(el, expression)
 
     if (['in', 'leave'].includes(value)) {
         el._x_intersectLeave(evaluate, modifiers)

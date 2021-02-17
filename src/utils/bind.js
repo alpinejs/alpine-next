@@ -1,8 +1,9 @@
-import { setClasses, toggleClasses } from '../utils/classes'
+import { reactive } from '../reactivity'
+import { setClasses } from '../utils/classes'
 
 export default function bind(el, name, value, modifiers = []) {
     // Register bound data as pure observable data for other APIs to use.
-    if (! el._x_bindings) el._x_bindings = Alpine.reactive({})
+    if (! el._x_bindings) el._x_bindings = reactive({})
 
     el._x_bindings[name] = value
 
@@ -63,19 +64,16 @@ function bindInputValue(el, value) {
 function bindClasses(el, value) {
     if (el._x_undoAddedClasses) el._x_undoAddedClasses()
 
-    if (typeof value === 'object' && value !== null) {
-        el._x_undoAddedClasses = toggleClasses(el, value)
-    } else {
-        el._x_undoAddedClasses = setClasses(el, value)
-    }
+    el._x_undoAddedClasses = setClasses(el, value)
 }
 
 function bindAttribute(el, name, value) {
-    // If an attribute's bound value is null, undefined or false, remove the attribute
     if ([null, undefined, false].includes(value)) {
         el.removeAttribute(name)
     } else {
-        isBooleanAttr(name) ? setIfChanged(el, name, name) : setIfChanged(el, name, value)
+        if (isBooleanAttr(name)) value = name
+
+        setIfChanged(el, name, value)
     }
 }
 

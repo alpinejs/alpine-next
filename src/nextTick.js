@@ -1,4 +1,12 @@
 
 export function nextTick(callback) {
-    callback()
+    setTimeout(callback)
+}
+
+export function releaseNextTicks() {
+
+}
+
+export function holdNextTicks() {
+
 }

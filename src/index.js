@@ -30,11 +30,11 @@ import refs from './magics/$refs'; Alpine.magic('refs', refs)
 import el from './magics/$el'; Alpine.magic('el', el)
 
 /**
- * Start It Up
- */
-Alpine.start()
-
-/**
  * Make It Available
  */
 window.Alpine = Alpine
+
+/**
+ * Start It Up
+ */
+Alpine.start()

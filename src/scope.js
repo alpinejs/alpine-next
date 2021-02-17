@@ -46,7 +46,7 @@ export function mergeProxies(objects) {
         },
 
         get: (target, name) => {
-            return (objects.find(object => Object.keys(object).includes(name)) || {})[name];
+            return (objects.find(object => Object.keys(object).includes(name)) || {})[name]
         },
 
         set: (target, name, value) => {

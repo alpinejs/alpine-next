@@ -1,12 +1,14 @@
+import { evaluator, evaluatorSync } from '../evaluator'
 import { closestDataStack } from '../scope'
 import { addScopeToNode } from '../scope'
 import { reactive } from '../reactivity'
+import { effect } from '../reactivity'
 
 export default (el, { value, modifiers, expression }) => {
     let iteratorNames = parseForExpression(expression)
 
-    let evaluateItems = Alpine.evaluator(el, iteratorNames.items)
-    let evaluateKey = Alpine.evaluatorSync(el,
+    let evaluateItems = evaluator(el, iteratorNames.items)
+    let evaluateKey = evaluatorSync(el,
         // the x-bind:key expression is stored for our use instead of evaluated.
         el._x_key_expression || 'index'
     )
@@ -19,7 +21,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
 
     evaluateItems(items => {
         // This adds support for the `i in n` syntax.
-        if (isNumeric(items) && items > 0) {
+        if (isNumeric(items) && items >= 0) {
             items = Array.from(Array(items).keys(), i => i + 1)
         }
 
@@ -28,7 +30,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
         let iterations = Array.from(items).map((item, index) => {
             let scope = getIterationScopeVariables(iteratorNames, item, index, items)
 
-            let key = evaluateKey({ index, ...scope })
+            let key = evaluateKey({ scope: { index, ...scope }})
 
             let element = oldIterations.find(i => i.key === key)?.element
 
