@@ -1,8 +1,3 @@
-import Alpine from '../alpine'
-import scheduler from '../scheduler'
+import { nextTick } from '../nextTick'
 
-Alpine.directive('cloak', (el) => {
-    scheduler.nextTick(() => {
-        el.removeAttribute('x-cloak')
-    })
-})
+export default el => nextTick(() => el.removeAttribute('x-cloak'))

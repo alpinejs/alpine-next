@@ -1,3 +1,2 @@
-import Alpine from '../alpine'
 
-Alpine.magic('el', el => el)
+export default el => el

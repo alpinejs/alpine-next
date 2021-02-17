@@ -1,11 +1,10 @@
-import Alpine from '../alpine'
-import { effect } from '../reactivity'
-import { evaluator } from '../evaluator'
-import { once } from '../utils/once'
 import { setStyles } from '../utils/styles'
+import { evaluator } from '../evaluator'
+import { effect } from '../reactivity'
+import { once } from '../utils/once'
 
-Alpine.directive('if', (el, value, modifiers, expression) => {
-    let evaluate = evaluator(el, expression, {}, true, true)
+export default (el, { value, modifiers, expression }) => {
+    let evaluate = evaluator(el, expression, true)
 
     let show = () => {
         if (el._x_currentIfEl) return el._x_currentIfEl
@@ -30,6 +29,8 @@ Alpine.directive('if', (el, value, modifiers, expression) => {
         value => {
             if (typeof el._x_toggleAndCascadeWithTransitions === 'function') {
                 if (value) {
+                    show()
+
                     let currentIfEl = el._x_currentIfEl
 
                     // We have to execute the actual transition in at the end
@@ -46,7 +47,7 @@ Alpine.directive('if', (el, value, modifiers, expression) => {
                             currentIfEl._x_registerTransitionsFromHelper(currentIfEl, modifiers)
                         }
 
-                        el._x_toggleAndCascadeWithTransitions(clone, true, undo, () => {})
+                        el._x_toggleAndCascadeWithTransitions(currentIfEl, true, undo, () => {})
                     })
                 } else {
                     el._x_toggleAndCascadeWithTransitions(el._x_currentIfEl, false, () => {}, hide)
@@ -57,9 +58,9 @@ Alpine.directive('if', (el, value, modifiers, expression) => {
         }
     )
 
-    effect(() => evaluate()(value => {
+    effect(() => evaluate(value => {
         if (modifiers.includes('immediate')) value ? show() : hide()
 
         toggle(value)
     }))
-})
+}

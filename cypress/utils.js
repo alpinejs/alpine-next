@@ -41,7 +41,7 @@ function injectHtmlAndBootAlpine(cy, template, callback) {
     })
 }
 
-export let haveData = (key, value) => ([ el ]) => expect(Array.from(root(el)._x_dataStack).slice(-1)[0][key]).to.equal(value)
+export let haveData = (key, value) => ([ el ]) => expect(root(el)._x_dataStack[0][key]).to.equal(value)
 
 export let haveAttribute = (name, value) => el => expect(el).to.have.attr(name, value)
 

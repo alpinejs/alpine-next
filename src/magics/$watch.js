@@ -1,28 +1,26 @@
-import Alpine from '../alpine'
-import { pauseTracking, enableTracking } from './../reactivity'
+import { pauseTracking, enableTracking, effect } from './../reactivity'
 import { evaluator } from '../evaluator'
 
-Alpine.magic('watch', el => {
-    return (key, callback) => {
-        let evaluate = evaluator(el, key)
+export default el => (key, callback) => {
+    let evaluate = evaluator(el, key)
 
-        let firstTime = true
+    let firstTime = true
 
-        let effect = Alpine.effect(() => evaluate()(value => {
-            // This is a hack to force deep reactivity for things like "items.push()"
-            let div = document.createElement('div')
-            div.dataset.hey = value
+    effect(() => evaluate(value => {
+        // This is a hack to force deep reactivity for things like "items.push()".
+        let div = document.createElement('div')
 
-            if (! firstTime) {
-                // Stop reactivity while running the watcher.
-                pauseTracking()
+        div.dataset.throwAway = value
 
-                callback(value)
+        if (! firstTime) {
+            // Stop reactivity while running the watcher to avoid race conditions.
+            pauseTracking()
 
-                enableTracking()
-            }
+            callback(value)
 
-            firstTime = false
-        }))
-    }
-})
+            enableTracking()
+        }
+
+        firstTime = false
+    }))
+}

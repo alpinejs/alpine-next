@@ -1,28 +1,26 @@
-import Alpine from '../alpine'
-import { reactive } from '../reactivity'
+import { getComponent } from '../components'
+import { evaluateSync } from '../evaluator'
 import { addScopeToNode } from '../scope'
-import { evaluate, evaluateSync } from '../evaluator'
+import { reactive } from '../reactivity'
+import { injectMagics } from '../magics'
+import { onDestroy } from '../lifecycle'
 
-Alpine.directive('data', (el, value, modifiers, expression, effect) => {
+export default (el, { value, modifiers, expression }) => {
     expression = expression === '' ? '{}' : expression
 
-    let components = Alpine.components
+    let component = getComponent(expression)
 
-    let data = Object.keys(components).includes(expression)
-        ? components[expression]()
-        : evaluateSync(el, expression)
+    let data = component ? component() : evaluateSync(el, expression)
 
-    Alpine.injectMagics(data, el)
+    injectMagics(data, el)
 
     addScopeToNode(el, reactive(data))
 
-    if (data['init']) {
-        evaluateSync(el, data['init'].bind(data))
-    }
+    if (data['init']) data['init']()
 
     if (data['destroy']) {
-        Alpine.addDestroyCallback(el, () => {
-            evaluate(el, data['destroy'].bind(data))
+        onDestroy(el, () => {
+            data['destory']()
         })
     }
-})
+}

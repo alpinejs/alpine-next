@@ -1,12 +1,11 @@
 import Alpine from '../alpine'
 import scheduler from '../scheduler'
 import { closestDataStack } from '../utils/closest'
-import { evaluateSync, evaluator } from '../evaluator'
 
-Alpine.directive('scope', (el, value, modifiers, expression) => {
+export default (el, { value, modifiers, expression }) => {
     console.log('scope')
     // })
-})
+}
 
 function closestCustomElementRoot(el) {
     if (el.host) return el.host

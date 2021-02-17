@@ -1,16 +1,13 @@
-import Alpine from '../alpine'
-import morph from '../morph'
 import { evaluator } from '../evaluator'
+import morph from '../morph'
 
-Alpine.directive('morph', (el, value, modifiers, expression, effect) => {
+export default (el, { value, modifiers, expression }) => {
     let evaluate = evaluator(el, expression)
 
     effect(() => {
-        evaluate()(value => {
+        evaluate(value => {
             if (! el.firstElementChild) {
-                if (el.firstChild) {
-                    el.firstChild.remove()
-                }
+                if (el.firstChild) el.firstChild.remove()
 
                 el.appendChild(document.createElement('div'))
             }
@@ -18,4 +15,4 @@ Alpine.directive('morph', (el, value, modifiers, expression, effect) => {
             morph(el.firstElementChild, value)
         })
     })
-})
+}

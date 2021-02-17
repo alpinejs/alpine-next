@@ -1,7 +1,6 @@
-import { reactive } from './../reactivity'
-import Alpine from '../alpine'
-import { evaluateSync } from '../evaluator'
 import { closestDataProxy, closestDataStack } from '../utils/closest'
+import { reactive } from './../reactivity'
+import { evaluateSync } from '../evaluator'
 import { addScopeToNode } from '../scope'
 
 document.addEventListener('alpine:initializing', () => {
@@ -34,7 +33,7 @@ function registerElement(name, template) {
     })
 }
 
-Alpine.directive('element', (el, value, modifiers, expression, effect) => {
+export default (el, { value, modifiers, expression }) => {
     let template = el._x_template
     let defaultProps = el._x_defaultProps
 
@@ -81,7 +80,7 @@ Alpine.directive('element', (el, value, modifiers, expression, effect) => {
 
         slot && slot.replaceWith(...el.childNodes)
     })
-})
+}
 
 function generateInjectDataObject(template, el) {
     let reactiveRoot = {}

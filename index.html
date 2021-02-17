@@ -1,16 +1,24 @@
 <html>
-    <script src="http://alpine-next.test/dist/alpine.js" defer></script>
-    <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
+<script src="http://alpine-next.test/dist/alpine.js" defer></script>
+<!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
+<!-- <script src="https://unpkg.com/json5@^2.0.0/dist/index.min.js"></script> -->
 
-    <div x-data="{ open: false }">
-        <button @click="open = ! open">Toggle</button>
+<!-- <script src="https://unpkg.com/stimulus@2.0.0/dist/stimulus.umd.js"></script> -->
 
-        <div style="display: flex;">
-            <div x-show="open">
-                Hey
-            </div>
-        </div>
-    </div>
+
+
+
+<div x-data="{ foo() { console.log('hey there') } }">
+    <span x-on:click="foo">clicky</span>
+</div>
+
+<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src https://*; child-src 'none';">
+<div x-data="foo">
+    <h1 x-text="yo">hey</h1>
+</div>
+
+<script src="/script.js"></script> -->
+
 
     <!-- <div x-data="dropdown()">
         <button x-spread="trigger">Open Dropdown</button>
@@ -38,32 +46,30 @@
             }
         }
     </script> -->
-</html>
+    </html>
 
 
-<!--
-    // Light-dom story:
-    // add "x-element" to all custom elements
-    // walk through and initialize
-    // when you hit x-element, process element bindings
+    <!--
+        // Light-dom story:
+        // add "x-element" to all custom elements
+        // walk through and initialize
+        // when you hit x-element, process element bindings
         // on the side:
         // initialize template element with props
         // get bindings on slot
         // attach bindings as scope on x-scope to element
-    // continue rendering tree
-    // when all is over, replace x-element with real elements
-    // attach scope to slotted element roots
-    // replace slots with slotted elements
+        // continue rendering tree
+        // when all is over, replace x-element with real elements
+        // attach scope to slotted element roots
+        // replace slots with slotted elements
 
-    // Shadow-dom story:
-    // Should be same except handling of slot replacement and element replacement
-    // Just attach shadow instead
+        // Shadow-dom story:
+        // Should be same except handling of slot replacement and element replacement
+        // Just attach shadow instead
 
-    // Stand-alone story
-    // Upgrade elements, but don't wait for Alpine to hit "x-element" directive.
-    // Just initialize element tree -->
-
-
+        // Stand-alone story
+        // Upgrade elements, but don't wait for Alpine to hit "x-element" directive.
+        // Just initialize element tree -->
 
 
 
@@ -83,7 +89,9 @@
 
 
 
-<!--
+
+
+        <!--
 
 
 
@@ -92,154 +100,154 @@
 
 
 
-    <div x-data="{ foo: 'baz' }">
-        <the-outer class="bg-gray-100" :foo="foo + '-nested'">
-            <div>
-                <span x-text="foo"></span>
+            <div x-data="{ foo: 'baz' }">
+                <the-outer class="bg-gray-100" :foo="foo + '-nested'">
+                    <div>
+                        <span x-text="foo"></span>
+                    </div>
+                </the-outer>
             </div>
-        </the-outer>
-    </div>
 
-    <template x-element="the-outer" x-props="{ foo: 'fiiii' }">
-        <div class="border-b-8" x-data="{ hey: 'there' }" x-provide="hey">
-            <h1 x-text="foo"></h1>
+            <template x-element="the-outer" x-props="{ foo: 'fiiii' }">
+                <div class="border-b-8" x-data="{ hey: 'there' }" x-provide="hey">
+                    <h1 x-text="foo"></h1>
 
-            <the-inner :foo="foo + '-nested-deep'">
-                <span x-text="foo"></span>
-            </the-inner>
+                    <the-inner :foo="foo + '-nested-deep'">
+                        <span x-text="foo"></span>
+                    </the-inner>
 
-            <slot></slot>
-        </div>
-    </template>
-
-    <template x-element="the-inner" x-props="{ foo: '' }" x-inject="hey">
-        <div class="border-b-8">
-            <h1 x-text="hey"></h1>
-
-            <slot></slot>
-        </div>
-    </template> -->
-
-    <!--
-        Problems:
-        - Shadow DOM styling
-        - Root element?
-        - Attribute/event forwarding
-        - Attribute/event attaching to root from component
-        - x-scope?
-        - Spruce? $store?
-    -->
-
-    <!--
-        Homework:
-        - inject styles cost
-        - compare to x-spread
-     -->
-
-    <!-- <body class="bg-gray-100 text-gray-900 font-sans antialiased">
-        <div class="flex items-center justify-center p-12" x-data="{ checked: false }">
-            <div class="w-full max-w-xs mx-auto">
-
-                <div x-spread="window.headlessUI.switchGroup">
-                    <label x-spread="window.headlessUI.switchLabel">Thing Here</label>
-
-                    <button x-spread="window.headlessUI.switchButton">
-                        <span :class="checked && 'bg-blue-500'">Hey Hey</span>
-                    </button>
+                    <slot></slot>
                 </div>
+            </template>
 
-                <switch-group class="flex items-center space-x-4">
-                    <switch-label>Enable notifications</switch-label>
+            <template x-element="the-inner" x-props="{ foo: '' }" x-inject="hey">
+                <div class="border-b-8">
+                    <h1 x-text="hey"></h1>
 
-                    <the-switch x-model="checked" x-scope="{ props }">
-                        <button
-                            x-spread="{ props }"
-                            class="relative inline-flex flex-shrink-0 h-6 transition-colors duration-200 ease-in-out border-2 border-transparent rounded-full cursor-pointer w-11 focus:outline-none focus:ring"
-                            :class="checked ? 'bg-indigo-600' : 'bg-gray-200'"
-                        >
-                            <span
+                    <slot></slot>
+                </div>
+            </template> -->
+
+            <!--
+                Problems:
+                - Shadow DOM styling
+                - Root element?
+                - Attribute/event forwarding
+                - Attribute/event attaching to root from component
+                - x-scope?
+                - Spruce? $store?
+            -->
+
+            <!--
+                Homework:
+                - inject styles cost
+                - compare to x-spread
+            -->
+
+            <!-- <body class="bg-gray-100 text-gray-900 font-sans antialiased">
+                <div class="flex items-center justify-center p-12" x-data="{ checked: false }">
+                    <div class="w-full max-w-xs mx-auto">
+
+                        <div x-spread="window.headlessUI.switchGroup">
+                            <label x-spread="window.headlessUI.switchLabel">Thing Here</label>
+
+                            <button x-spread="window.headlessUI.switchButton">
+                                <span :class="checked && 'bg-blue-500'">Hey Hey</span>
+                            </button>
+                        </div>
+
+                        <switch-group class="flex items-center space-x-4">
+                            <switch-label>Enable notifications</switch-label>
+
+                            <the-switch x-model="checked" x-scope="{ props }">
+                                <button
+                                x-spread="{ props }"
+                                class="relative inline-flex flex-shrink-0 h-6 transition-colors duration-200 ease-in-out border-2 border-transparent rounded-full cursor-pointer w-11 focus:outline-none focus:ring"
+                                :class="checked ? 'bg-indigo-600' : 'bg-gray-200'"
+                                >
+                                <span
                                 class="inline-block w-5 h-5 transition duration-200 ease-in-out transform bg-white rounded-full"
                                 :class="{ 'translate-x-5': checked, 'translate-x-0': ! checked }"
-                            ></span>
-                        </button>
-                    </the-switch>
-                </switch-group>
+                                ></span>
+                            </button>
+                        </the-switch>
+                    </switch-group>
 
+                </div>
             </div>
-        </div>
 
-        <template x-element="switch-group">
-            <slot :foo="'bar'" x-data="{ api: { labelEl: null, switchEl: null} }" x-provide="api"></slot>
-        </template>
+            <template x-element="switch-group">
+                <slot :foo="'bar'" x-data="{ api: { labelEl: null, switchEl: null} }" x-provide="api"></slot>
+            </template>
 
-        <template x-element="switch-label" x-inject="api">
-            <label
+            <template x-element="switch-label" x-inject="api">
+                <label
                 x-data="{ id: Math.random().toString(36).substring(7) }"
                 x-init="api.labelEl = $el"
                 :id="'headlessui-switch-label-' + id"
                 @pointerup="api.switchEl.click() && api.switchEl.focus({ preventScroll: true })"
-            >
+                >
                 <slot></slot>
             </label>
         </template>
 
         <template x-element="the-switch" x-props="{ value: false }" x-inject="api" x-as="label">
             <slot
-                x-init="if(api) api.switchEl = $el"
-                @click.prevent="$dispatch('input', ! value)"
-                @keyup.space.prevent="$dispatch('input', ! value)"
-                @keypress.prevent
-                role="switch"
-                tabindex="0"
-                :aria-checked="!! value"
-                :aria-labelledby="api && api.labelEl.id"
+            x-init="if(api) api.switchEl = $el"
+            @click.prevent="$dispatch('input', ! value)"
+            @keyup.space.prevent="$dispatch('input', ! value)"
+            @keypress.prevent
+            role="switch"
+            tabindex="0"
+            :aria-checked="!! value"
+            :aria-labelledby="api && api.labelEl.id"
             ></slot>
         </template>
     </body> -->
-</html>
+    </html>
 
-<!-- Todo: work with "value" props and models -->
+    <!-- Todo: work with "value" props and models -->
 
-<!--
-Alpine Portage || x-element?
+    <!--
+        Alpine Portage || x-element?
 
-Alpine Evolve || x-morph?
+        Alpine Evolve || x-morph?
 
-Alpine Evolve
+        Alpine Evolve
 
-Alpine Erode
+        Alpine Erode
 
-Alpenglow
+        Alpenglow
 
-Glacier
+        Glacier
 
-Groves
+        Groves
 
-Guide
+        Guide
 
-Alpa
+        Alpa
 
-Altitude
+        Altitude
 
-Slide
+        Slide
 
-Biome
+        Biome
 
-Lake
+        Lake
 
-Lodge
+        Lodge
 
-Tundra
+        Tundra
 
-Yak
+        Yak
 
-Yodle
+        Yodle
 
-Cairn
+        Cairn
 
-Soar
+        Soar
 
-Frost -->
+        Frost -->
 
 
         <!-- <div class="space-x-4">

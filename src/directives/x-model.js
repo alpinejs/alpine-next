@@ -1,9 +1,8 @@
-import Alpine from '../alpine'
-import bind from '../utils/bind'
 import { evaluator } from '../evaluator'
+import bind from '../utils/bind'
 import on from '../utils/on'
 
-Alpine.directive('model', (el, value, modifiers, expression, effect) => {
+export default (el, { value, modifiers, expression }) => {
     let evaluate = evaluator(el, expression)
     let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`
     let evaluateAssignment = evaluator(el, assignmentExpression)
@@ -18,14 +17,14 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
     let assigmentFunction = generateAssignmentFunction(el, modifiers, expression)
 
     let removeListener = on(el, event, modifiers, (e) => {
-        evaluateAssignment({
+        evaluateAssignment(() => {}, {
             '$event': e,
             rightSideOfExpression: assigmentFunction
         })
     })
 
     el._x_forceModelUpdate = () => {
-        evaluate()(value => {
+        evaluate(value => {
             // If nested model key is undefined, set the default value to empty string.
             if (value === undefined && expression.match(/\./)) value = ''
 
@@ -42,7 +41,7 @@ Alpine.directive('model', (el, value, modifiers, expression, effect) => {
 
         el._x_forceModelUpdate()
     })
-})
+}
 
 function generateAssignmentFunction(el, modifiers, expression) {
     if (el.type === 'radio') {
@@ -82,7 +81,6 @@ function generateAssignmentFunction(el, modifiers, expression) {
         }
     }
 }
-
 
 function safeParseNumber(rawValue) {
     let number = rawValue ? parseFloat(rawValue) : null

@@ -1,9 +1,5 @@
 
 export function setStyles(el, styleObject) {
-    if (styleObject['display'] && styleObject['display'] === 'none') {
-        // debugger
-    }
-
     let previousStyles = {}
 
     Object.entries(styleObject).forEach(([key, value]) => {

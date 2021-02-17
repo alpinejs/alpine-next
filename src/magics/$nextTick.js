@@ -1,4 +1,3 @@
-import Alpine from '../alpine'
-import scheduler from '../scheduler'
+import { nextTick } from '../nextTick'
 
-Alpine.magic('nextTick', el => callback => scheduler.nextTick(callback))
+export default () => nextTick

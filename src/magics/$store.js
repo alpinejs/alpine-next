@@ -1,5 +1,3 @@
-import Alpine from '../alpine'
+import { getStore } from '../stores'
 
-Alpine.magic('store', () => {
-    return name => Alpine.getStore(name)
-})
+export default () => name => getStore(name)

@@ -1,18 +1,14 @@
-import Alpine from '../alpine'
-import scheduler from '../scheduler'
 import { setClasses } from '../utils/classes'
-import { once } from '../utils/once'
 import { setStyles } from '../utils/styles'
+import { once } from '../utils/once'
 
-let handler = (el, value, modifiers, expression) => {
+export default (el, { value, modifiers, expression }) => {
     if (! expression) {
         registerTransitionsFromHelper(el, modifiers, value)
     } else {
         registerTransitionsFromClassString(el, expression, value)
     }
 }
-
-Alpine.directive('transition', handler)
 
 function registerTransitionsFromClassString(el, classString, stage) {
     registerTransitionObject(el, setClasses, '')
@@ -28,8 +24,6 @@ function registerTransitionsFromClassString(el, classString, stage) {
 
     directiveStorageMap[stage](classString)
 }
-
-window.Element.prototype._x_registerTransitionsFromHelper = registerTransitionsFromHelper
 
 function registerTransitionsFromHelper(el, modifiers, stage) {
     registerTransitionObject(el, setStyles)

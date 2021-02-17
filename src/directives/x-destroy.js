@@ -1,6 +1,6 @@
-import Alpine from '../alpine'
+import { onDestroy } from '../lifecycle'
 import { evaluate } from '../evaluator'
 
-Alpine.directive('destroy', (el, value, modifiers, expression) => {
-    Alpine.addDestroyCallback(el, () => evaluate(el, expression, {}, false))
-})
+export default (el, { value, modifiers, expression }) => {
+    onDestroy(el, () => evaluate(el, expression, {}, false))
+}

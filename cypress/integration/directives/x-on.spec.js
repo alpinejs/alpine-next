@@ -1,4 +1,4 @@
-import { beChecked, haveAttribute, haveData, haveText, test } from '../../utils'
+import { beChecked, notBeChecked, haveAttribute, haveData, haveText, test } from '../../utils'
 
 test('data modified in event listener updates affected attribute bindings',
     `
@@ -90,12 +90,12 @@ test('.self modifier',
 test('.prevent modifier',
     `
         <div x-data="{}">
-            <input type="checkbox" x-on:click>
+            <input type="checkbox" x-on:click.prevent>
         </div>
     `,
     get => {
         get('input').check()
-        get('input').should(beChecked())
+        get('input').should(notBeChecked())
     }
 )
 
@@ -294,7 +294,7 @@ test('event with colon',
 test('event instance can be passed to method reference',
     `
         <div x-data="{ foo: 'bar', changeFoo(e) { this.foo = e.target.id } }">
-            <button x-on:click="changeFoo($event)" id="baz"></button>
+            <button x-on:click="changeFoo" id="baz"></button>
 
             <span x-text="foo"></span>
         </div>

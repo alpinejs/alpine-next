@@ -1,8 +1,6 @@
-import Alpine from '../alpine'
-import scheduler from '../scheduler'
-import { evaluatorSync } from '../evaluator'
+import { evaluatorSync } from "../evaluator"
 
-Alpine.directive('provide', (el, value, modifiers, expression) => {
+export default (el, { expression }) => {
     let evaluate = evaluatorSync(el, expression)
 
     let root = closestCustomElementRoot(el)
@@ -12,7 +10,7 @@ Alpine.directive('provide', (el, value, modifiers, expression) => {
     Object.defineProperty(root._x_provides, expression, {
         get() { return evaluate() }
     })
-})
+}
 
 function closestCustomElementRoot(el) {
     if (el._x_customElementRoot) return el

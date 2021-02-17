@@ -1,14 +1,9 @@
-import Alpine from '../alpine'
-import { root } from '../utils/root'
+import { root as getRoot } from '../utils/root'
 
-let handler = function (el, value, modifiers, expression, effect, before) {
-    let theRoot = root(el)
+export default (el, { expression }) => {
+    let root = getRoot(el)
 
-    if (! theRoot._x_refs) theRoot._x_refs = {}
+    if (! root._x_refs) root._x_refs = {}
 
-    theRoot._x_refs[expression] = el
+    root._x_refs[expression] = el
 }
-
-handler.immediate = true
-
-Alpine.directive('ref', handler)

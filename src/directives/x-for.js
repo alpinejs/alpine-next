@@ -1,30 +1,23 @@
-import Alpine from '../alpine'
-import { reactive } from '../reactivity'
+import { closestDataStack } from '../scope'
 import { addScopeToNode } from '../scope'
-import { closestDataStack } from '../utils/closest'
-import { directivesByType } from '../utils/directives'
-import { evaluator, evaluatorSync } from '../evaluator'
+import { reactive } from '../reactivity'
 
-Alpine.directive('for', (el, value, modifiers, expression, effect) => {
+export default (el, { value, modifiers, expression }) => {
     let iteratorNames = parseForExpression(expression)
 
-    let evaluateItems = evaluator(el, iteratorNames.items)
-    let evaluateKey = evaluatorSync(el,
-        // Look for a :key="..." expression
-        directivesByType(el, 'bind').filter(attribute => attribute.value === 'key')[0]?.expression
-        // Otherwise, use "index"
-        || 'index'
+    let evaluateItems = Alpine.evaluator(el, iteratorNames.items)
+    let evaluateKey = Alpine.evaluatorSync(el,
+        // the x-bind:key expression is stored for our use instead of evaluated.
+        el._x_key_expression || 'index'
     )
 
-    effect(() => {
-        loop(el, iteratorNames, evaluateItems, evaluateKey)
-    })
-})
+    effect(() => loop(el, iteratorNames, evaluateItems, evaluateKey))
+}
 
 function loop(el, iteratorNames, evaluateItems, evaluateKey) {
     let templateEl = el
 
-    evaluateItems()(items => {
+    evaluateItems(items => {
         // This adds support for the `i in n` syntax.
         if (isNumeric(items) && items > 0) {
             items = Array.from(Array(items).keys(), i => i + 1)
@@ -41,7 +34,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
 
             if (element) {
                 // Refresh the scope in case it was overwritten rather than mutated.
-                let existingScope = Array.from(element._x_dataStack).slice(-1)[0]
+                let existingScope = element._x_dataStack[0]
 
                 Object.entries(scope).forEach(([key, value]) => {
                     existingScope[key] = value
@@ -69,44 +62,6 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
         queueMicrotask(() => {
             templateEl.after(...iterations.map(i => i.element))
         })
-    })
-}
-
-function _loop(el, iteratorNames, evaluateItems, evaluateKey) {
-    let templateEl = el
-
-    evaluateItems()(items => {
-        let closestParentContext = closestDataStack(el)
-
-        // As we walk the array, we'll also walk the DOM (updating/creating as we go).
-        let currentEl = templateEl
-        items.forEach((item, index) => {
-            let iterationScopeVariables = getIterationScopeVariables(iteratorNames, item, index, items)
-
-            let currentKey = evaluateKey({ index, ...iterationScopeVariables })
-
-            let nextEl = lookAheadForMatchingKeyedElementAndMoveItIfFound(currentEl.nextElementSibling, currentKey)
-
-            // If we haven't found a matching key, insert the element at the current position.
-            if (! nextEl) {
-                nextEl = addElementInLoopAfterCurrentEl(templateEl, currentEl)
-
-                addScopeToNode(nextEl, reactive(iterationScopeVariables))
-
-                nextEl._x_for = iterationScopeVariables
-            }
-
-            // Refresh scope
-            console.log('refreshed')
-            Object.entries(iterationScopeVariables).forEach(([key, value]) => {
-                Array.from(nextEl._x_dataStack).slice(-1)[0][key] = value
-            })
-
-            currentEl = nextEl
-            currentEl._x_for_key = currentKey
-        })
-
-        removeAnyLeftOverElementsFromPreviousUpdate(currentEl)
     })
 }
 

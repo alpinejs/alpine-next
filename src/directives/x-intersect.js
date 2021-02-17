@@ -1,15 +1,14 @@
-import Alpine from '../alpine'
 import { evaluator } from '../evaluator'
 
-Alpine.directive('intersect', (el, value, modifiers, expression, effect) => {
-    let evaluate = evaluator(el, expression, {}, false)
+export default (el, { value, modifiers, expression }) => {
+    let evaluate = evaluator(el, expression, false)
 
     if (['in', 'leave'].includes(value)) {
         el._x_intersectLeave(evaluate, modifiers)
     } else {
         el._x_intersectEnter(evaluate, modifiers)
     }
-})
+}
 
 window.Element.prototype._x_intersectEnter = function (callback, modifiers) {
     this._x_intersect((entry, observer) => {
