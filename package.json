@@ -16,10 +16,11 @@
     },
     "devDependencies": {
         "@vue/reactivity": "^3.0.2",
-        "esbuild": "^0.8.39"
+        "esbuild": "^0.8.39",
+        "hyperactiv": "^0.8.6"
     },
     "scripts": {
-        "build": "esbuild src/index.js --bundle --outfile=dist/alpine.js --minify",
+        "build": "esbuild src/index.js --bundle --outfile=dist/alpine.js --minify --define:process.env.NODE_ENV=\\\"production\\\"",
         "watch": "esbuild src/index.js --bundle --outfile=dist/alpine.js --watch",
         "test": "cypress open"
     },

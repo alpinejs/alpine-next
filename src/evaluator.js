@@ -25,7 +25,13 @@ export function evaluatorSync(el, expression, extras = {}) {
     }
 }
 
-export function evaluator(el, expression, extras = {}) {
+export function setEvaluator(newEvaluator) {
+    evaluator = newEvaluator
+}
+
+export let evaluator
+
+export function normalEvaluator(el, expression, extras = {}) {
     let overriddenMagics = {}
 
     injectMagics(overriddenMagics, el)
@@ -53,16 +59,27 @@ function generateEvaluatorFromFunction(dataStack, func) {
     }
 }
 
-// CSP Compatibility
-// function generateEvaluatorFromString(dataStack, expression, returns) {
-//    return (receiver = () => {}, runtimeScope = {}) => {
-//         let scope = mergeProxies([runtimeScope, ...dataStack])
+export function cspCompliantEvaluator(el, expression, extras = {}) {
+    let overriddenMagics = {}
 
-//         if (scope[expression] !== undefined) {
-//             runIfTypeOfFunction(receiver, scope[expression])
-//         }
-//    }
-// }
+    injectMagics(overriddenMagics, el)
+
+    let dataStack = [overriddenMagics, ...closestDataStack(el)]
+
+    if (typeof expression === 'function') {
+        return generateEvaluatorFromFunction(dataStack, expression)
+    }
+
+    let evaluator = (receiver = () => {}, { scope = {}, params = [] } = {}) => {
+        let completeScope = mergeProxies([scope, ...dataStack])
+
+        if (completeScope[expression] !== undefined) {
+            runIfTypeOfFunction(receiver, completeScope[expression], completeScope, params)
+        }
+   }
+
+    return tryCatch.bind(null, el, expression, evaluator)
+}
 
 function generateEvaluatorFromString(dataStack, expression) {
     let AsyncFunction = Object.getPrototypeOf(async function(){}).constructor

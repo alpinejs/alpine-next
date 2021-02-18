@@ -5,18 +5,21 @@
 
 <!-- <script src="https://unpkg.com/stimulus@2.0.0/dist/stimulus.umd.js"></script> -->
 
+<!-- <div x-data="{ show: false, loggedDisplayStyle: null }" x-init="$nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })">
+    <h1 x-show="show" x-transition:enter="animation-enter"></h1>
 
-<div x-data="{ foo: 'bar' }" x-on:event-name.camel="foo = 'baz'">
-    <button x-on:click="$dispatch('eventName')"></button>
+    <h2 x-text="loggedDisplayStyle"></h2>
 
-    <span x-text="foo"></span>
-</div>
-<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src https://*; child-src 'none';">
+    <button @click="show = true; $nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })">click</button>
+</div> -->
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src https://*; child-src 'none';">
 <div x-data="foo">
     <h1 x-text="yo">hey</h1>
+    <button @click="doSomething">do something</button>
 </div>
 
-<script src="/script.js"></script> -->
+<script src="/script.js"></script>
 
 
     <!-- <div x-data="dropdown()">

@@ -1,4 +1,4 @@
-import { pauseTracking, enableTracking, effect } from './../reactivity'
+import { effect } from './../reactivity'
 import { evaluator } from '../evaluator'
 
 export default el => (key, callback) => {
@@ -12,14 +12,7 @@ export default el => (key, callback) => {
 
         div.dataset.throwAway = value
 
-        if (! firstTime) {
-            // Stop reactivity while running the watcher to avoid race conditions.
-            pauseTracking()
-
-            callback(value)
-
-            enableTracking()
-        }
+        if (! firstTime) callback(value)
 
         firstTime = false
     }))

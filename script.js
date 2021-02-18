@@ -4,6 +4,10 @@ document.addEventListener('alpine:initializing', () => {
 
         yo() {
             return this.hey
-        }
+        },
+
+        doSomething() {
+            this.hey = 'yoyoy'
+        },
     }))
 })

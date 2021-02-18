@@ -6,9 +6,13 @@ import { nextTick } from './nextTick'
 import { start } from './lifecycle'
 import { magic } from './magics'
 import { store } from './stores'
+import { setEvaluator } from './evaluator'
+import { setReactivity } from './reactivity'
 
 let Alpine = {
+    setReactivity,
     mapAttributes,
+    setEvaluator,
     component,
     directive,
     nextTick,
