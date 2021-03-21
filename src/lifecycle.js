@@ -24,10 +24,14 @@ export function start() {
 let selectors = ['[x-data]', '[x-data\\.append]']
 
 function initTree(el) {
-    walk(el, el => {
+    walk(el, (el, skip) => {
         directives(el).forEach(directive => {
+            if (el.__x_ignore || el.__x_ignore_self) return
+
             applyDirective(el, directive)
         })
+
+        if (el.__x_ignore) skip()
     })
 }
 

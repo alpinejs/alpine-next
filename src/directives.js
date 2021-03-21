@@ -64,11 +64,26 @@ function intoParsedDirectives({ name, value }) {
     }
 }
 
-let directiveOrder = ['data', 'bind', 'ref', 'init', 'for', 'model', 'transition', 'show', 'if', 'catch-all', 'element']
+const DEFAULT = 'DEFAULT'
+
+let directiveOrder = [
+    'ignore',
+    'data',
+    'bind',
+    'ref',
+    'init',
+    'for',
+    'model',
+    'transition',
+    'show',
+    'if',
+    DEFAULT,
+    'element',
+]
 
 function byPriority(a, b) {
-    let typeA = directiveOrder.indexOf(a.type) === -1 ? 'catch-all' : a.type
-    let typeB = directiveOrder.indexOf(b.type) === -1 ? 'catch-all' : b.type
+    let typeA = directiveOrder.indexOf(a.type) === -1 ? DEFAULT : a.type
+    let typeB = directiveOrder.indexOf(b.type) === -1 ? DEFAULT : b.type
 
     return directiveOrder.indexOf(typeA) - directiveOrder.indexOf(typeB)
 }

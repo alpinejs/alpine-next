@@ -1,6 +1,6 @@
 <html>
-<!-- <script src="http://alpine-next.test/dist/alpine.js" defer></script> -->
-<script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+<script src="http://alpine-next.test/dist/alpine.js" defer></script>
+<!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
 <!-- <script src="https://unpkg.com/json5@^2.0.0/dist/index.min.js"></script> -->
 
 <!-- <script src="https://unpkg.com/stimulus@2.0.0/dist/stimulus.umd.js"></script> -->
@@ -12,6 +12,18 @@
 
     <button @click="show = true; $nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })">click</button>
 </div> -->
+
+<div x-data="{ foo: 'bar' }">
+    <div x-ignore>
+        <span x-text="foo"></span>
+    </div>
+</div>
+
+<div x-data="{ foo: 'bar' }">
+    <div x-ignore.self :class="'foo'">
+        <span x-text="foo"></span>
+    </div>
+</div>
 
 <div x-data="{ item: 'blabl', items: ['foo', 'bar'] }">
     <button @click="console.log('yoyo')">youy</button>

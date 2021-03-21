@@ -15,7 +15,7 @@
     },
     "scripts": {
         "build": "esbuild src/index.js --bundle --outfile=dist/alpine.js --minify --define:process.env.NODE_ENV=\\\"production\\\"",
-        "watch": "esbuild src/index.js --bundle --outfile=dist/alpine.js --watch",
+        "watch": "esbuild src/index.js --bundle --outfile=dist/alpine.js --watch --define:process.env.NODE_ENV=\\\"production\\\"",
         "test": "cypress open"
     }
 }

@@ -55,6 +55,7 @@ import xDestroy from './directives/x-destroy'; Alpine.directive('destroy', xDest
 import xMorph from './directives/x-morph'; Alpine.directive('morph', xMorph)
 import xModel from './directives/x-model'; Alpine.directive('model', xModel)
 import xCloak from './directives/x-cloak'; Alpine.directive('cloak', xCloak)
+import xIgnore from './directives/x-ignore'; Alpine.directive('ignore', xIgnore)
 import xInit from './directives/x-init'; Alpine.directive('init', xInit)
 import xText from './directives/x-text'; Alpine.directive('text', xText)
 import xBind from './directives/x-bind'; Alpine.directive('bind', xBind)

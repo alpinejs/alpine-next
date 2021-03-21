@@ -1,5 +1,6 @@
 import { reactive } from '../reactivity'
 import { setClasses } from '../utils/classes'
+import { setStyles } from '../utils/styles'
 
 export default function bind(el, name, value, modifiers = []) {
     // Register bound data as pure observable data for other APIs to use.
@@ -12,6 +13,10 @@ export default function bind(el, name, value, modifiers = []) {
     switch (name) {
         case 'value':
             bindInputValue(el, value)
+            break;
+
+        case 'style':
+            bindStyles(el, value)
             break;
 
         case 'class':
@@ -65,6 +70,12 @@ function bindClasses(el, value) {
     if (el._x_undoAddedClasses) el._x_undoAddedClasses()
 
     el._x_undoAddedClasses = setClasses(el, value)
+}
+
+function bindStyles(el, value) {
+    if (el._x_undoAddedStyles) el._x_undoAddedStyles()
+
+    el._x_undoAddedStyles = setStyles(el, value)
 }
 
 function bindAttribute(el, name, value) {
