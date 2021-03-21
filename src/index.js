@@ -14,6 +14,11 @@
  */
 import Alpine from './alpine'
 
+Alpine.directive('x-intersect')
+
+Alpine.start()
+
+
 /**
  * _______________
  * The Evaluator |

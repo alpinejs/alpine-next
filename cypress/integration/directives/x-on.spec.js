@@ -1,4 +1,4 @@
-import { beChecked, notBeChecked, haveAttribute, haveData, haveText, test } from '../../utils'
+import { beChecked, notBeChecked, haveAttribute, haveData, haveText, test, beVisible, notBeVisible } from '../../utils'
 
 test('data modified in event listener updates affected attribute bindings',
     `
@@ -255,7 +255,7 @@ test('keydown with specified key and stop modifier only stops for specified key'
     }
 )
 
-test('click away',
+test.only('@click.away',
     `
         <div x-data="{ foo: 'bar' }">
             <h1 @click.away="foo = 'baz'">h1</h1>
@@ -271,6 +271,23 @@ test('click away',
         get('span').should(haveText('bar'))
         get('h2').click()
         get('span').should(haveText('baz'))
+    }
+)
+
+test.only('@click.away with x-show (prevent race condition)',
+    `
+        <div x-data="{ show: false }">
+            <button @click="show = true">Show</button>
+
+            <h1 x-show="show" @click.away="show = false">h1</h1>
+
+            <h2>h2</h2>
+        </div>
+    `,
+    get => {
+        get('h1').should(notBeVisible())
+        get('button').click()
+        get('h1').should(beVisible())
     }
 )
 

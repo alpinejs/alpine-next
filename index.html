@@ -1,73 +1,25 @@
 <html>
-<script src="http://alpine-next.test/dist/alpine.js" defer></script>
-<!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
-<!-- <script src="https://unpkg.com/json5@^2.0.0/dist/index.min.js"></script> -->
+    <script src="http://alpine-next.test/dist/alpine.js" defer></script>
 
-<!-- <script src="https://unpkg.com/stimulus@2.0.0/dist/stimulus.umd.js"></script> -->
+    <div x-data="{ show: false }">
+        <button @click="show = true">Show</button>
 
-<!-- <div x-data="{ show: false, loggedDisplayStyle: null }" x-init="$nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })">
-    <h1 x-show="show" x-transition:enter="animation-enter"></h1>
-
-    <h2 x-text="loggedDisplayStyle"></h2>
-
-    <button @click="show = true; $nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })">click</button>
-</div> -->
-
-<div x-data="{ foo: 'bar' }">
-    <div x-ignore>
-        <span x-text="foo"></span>
+        <h1 x-show="show" @click.away="show = false">h1</h1>
     </div>
-</div>
+</html>
 
-<div x-data="{ foo: 'bar' }">
-    <div x-ignore.self :class="'foo'">
-        <span x-text="foo"></span>
-    </div>
-</div>
-
-<div x-data="{ item: 'blabl', items: ['foo', 'bar'] }">
-    <button @click="console.log('yoyo')">youy</button>
-    <template x-for="item in items">
-        <h1 x-text="item"></h1>
-    </template>
-</div>
-
-<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src https://*; child-src 'none';">
-<div x-data="foo">
-    <h1 x-text="yo">hey</h1>
-    <button @click="doSomething">do something</button>
-</div>
-
-<script src="/script.js"></script> -->
+<!--
+    Solutions:
+    - No batching
+    - Batch effects
+-->
 
 
-    <!-- <div x-data="dropdown()">
-        <button x-spread="trigger">Open Dropdown</button>
 
-        <span x-spread="dialogue">Dropdown Contents</span>
-    </div>
 
-    <script>
-        function dropdown() {
-            return {
-                open: false,
-                trigger: {
-                    ['@click']() {
-                        this.open = true
-                    },
-                },
-                dialogue: {
-                    ['x-show']() {
-                        return this.open
-                    },
-                    ['@click.away']() {
-                        this.open = false
-                    },
-                }
-            }
-        }
-    </script> -->
-    </html>
+
+
+
 
 
     <!--

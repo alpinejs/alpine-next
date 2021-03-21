@@ -13,9 +13,14 @@ export default (el, { value, modifiers, expression }) => {
     }
 
     let show = () => {
-        el._x_undoHide?.() || delete el._x_undoHide
+        // Don't actually "show" an element until JavaScript has completely
+        // finished its execution. This way things like @click.away work
+        // properly instead of causing race-conditions when toggling.
+        setTimeout(() => {
+            el._x_undoHide?.() || delete el._x_undoHide
 
-        el._x_is_shown = true
+            el._x_is_shown = true
+        });
     }
 
     let toggle = once(
