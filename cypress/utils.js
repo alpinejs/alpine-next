@@ -25,15 +25,25 @@ test.retry = (count) => (name, template, callback) => {
     })
 }
 
-function injectHtmlAndBootAlpine(cy, template, callback) {
-    cy.visit('http://alpine-next.test/cypress/spec.html')
+test.csp = (name, template, callback) => {
+    it(name, () => {
+        injectHtmlAndBootAlpine(cy, template, callback, 'http://alpine-next.test/cypress/spec-csp.html')
+    })
+}
+
+function injectHtmlAndBootAlpine(cy, templateAndPotentiallyScripts, callback, page) {
+    let [template, scripts] = Array.isArray(templateAndPotentiallyScripts)
+        ? templateAndPotentiallyScripts
+        : [templateAndPotentiallyScripts]
+
+    cy.visit(page || 'http://alpine-next.test/cypress/spec.html')
 
     cy.get('#root').then(([el]) => {
         el.innerHTML = template
 
         let thing = cy.get
 
-        el.evalScripts()
+        el.evalScripts(scripts)
 
         cy.get('[alpine-is-ready]', { timeout: 5000 }).should('be.visible');
 

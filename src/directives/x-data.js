@@ -12,6 +12,8 @@ export default (el, { value, modifiers, expression }) => {
 
     let data = component ? component() : evaluateSync(el, expression)
 
+    console.log(data);
+
     injectMagics(data, el)
 
     addScopeToNode(el, reactive(data))

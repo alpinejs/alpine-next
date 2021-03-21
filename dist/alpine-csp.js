@@ -289,16 +289,6 @@
     evaluator = newEvaluator;
   }
   var evaluator;
-  function normalEvaluator(el, expression, extras = {}) {
-    let overriddenMagics = {};
-    injectMagics(overriddenMagics, el);
-    let dataStack = [overriddenMagics, ...closestDataStack(el)];
-    if (typeof expression === "function") {
-      return generateEvaluatorFromFunction(dataStack, expression);
-    }
-    let evaluator2 = generateEvaluatorFromString(dataStack, expression);
-    return tryCatch.bind(null, el, expression, evaluator2);
-  }
   function generateEvaluatorFromFunction(dataStack, func) {
     return (receiver = () => {
     }, {scope: scope2 = {}, params = []} = {}) => {
@@ -309,24 +299,21 @@
       runIfTypeOfFunction(receiver, result);
     };
   }
-  function generateEvaluatorFromString(dataStack, expression) {
-    let AsyncFunction = Object.getPrototypeOf(async function() {
-    }).constructor;
-    let func = new AsyncFunction(["__self", "scope"], `with (scope) { __self.result = ${expression} }; __self.finished = true; return __self.result;`);
-    return (receiver = () => {
+  function cspCompliantEvaluator(el, expression, extras = {}) {
+    let overriddenMagics = {};
+    injectMagics(overriddenMagics, el);
+    let dataStack = [overriddenMagics, ...closestDataStack(el)];
+    if (typeof expression === "function") {
+      return generateEvaluatorFromFunction(dataStack, expression);
+    }
+    let evaluator2 = (receiver = () => {
     }, {scope: scope2 = {}, params = []} = {}) => {
-      func.result = void 0;
-      func.finished = false;
       let completeScope = mergeProxies([scope2, ...dataStack]);
-      let promise = func(func, completeScope);
-      if (func.finished) {
-        runIfTypeOfFunction(receiver, func.result, completeScope, params);
-      } else {
-        promise.then((result) => {
-          runIfTypeOfFunction(receiver, result, completeScope, params);
-        });
+      if (completeScope[expression] !== void 0) {
+        runIfTypeOfFunction(receiver, completeScope[expression], completeScope, params);
       }
     };
+    return tryCatch.bind(null, el, expression, evaluator2);
   }
   function runIfTypeOfFunction(receiver, value, scope2, params) {
     if (typeof value === "function") {
@@ -1942,6 +1929,7 @@ Expression: "${expression}"
     expression = expression === "" ? "{}" : expression;
     let component2 = getComponent(expression);
     let data = component2 ? component2() : evaluateSync(el, expression);
+    console.log(data);
     injectMagics(data, el);
     addScopeToNode(el, reactive(data));
     if (data["init"])
@@ -2146,8 +2134,8 @@ Expression: "${expression}"
   // src/magics/$el.js
   var el_default = (el) => el;
 
-  // builds/index.js
-  alpine_default.setEvaluator(normalEvaluator);
+  // builds/csp.js
+  alpine_default.setEvaluator(cspCompliantEvaluator);
   alpine_default.setReactivity(reactive2, effect2);
   alpine_default.directive("transition", x_transition_default);
   alpine_default.directive("destroy", x_destroy_default);
