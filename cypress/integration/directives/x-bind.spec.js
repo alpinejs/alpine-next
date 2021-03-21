@@ -35,6 +35,15 @@ test('class attribute bindings are added by string syntax',
     get => get('span').should(haveClasses(['foo']))
 )
 
+test('style attribute bindings are added by string syntax',
+    `
+        <div x-data="{ initialClass: 'foo' }">
+            <span x-bind:class="initialClass"></span>
+        </div>
+    `,
+    get => get('span').should(haveClasses(['foo']))
+)
+
 test('non-boolean attributes set to null/undefined/false are removed from the element',
     `
         <div x-data="{}">

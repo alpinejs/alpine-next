@@ -1,29 +1,21 @@
 {
-    "source": "src/index.js",
-    "main": "dist/alpine.js",
-    "exports": "./dist/alpine.modern.js",
-    "unpkg": "dist/alpine.umd.js",
-    "module": "dist/alpine.m.js",
-    "esmodule": "dist/alpine.modern.js",
     "name": "alpine-next",
     "version": "1.0.0",
-    "description": "",
-    "directories": {
-        "test": "tests"
-    },
+    "description": "The rugged, minimal framework for building a simpler web.",
+    "author": "Caleb Porzio",
+    "license": "MIT",
+    "source": "src/index.js",
+    "main": "dist/alpine.js",
     "dependencies": {
         "cypress": "^5.5.0"
     },
     "devDependencies": {
         "@vue/reactivity": "^3.0.2",
-        "esbuild": "^0.8.39",
-        "hyperactiv": "^0.8.6"
+        "esbuild": "^0.8.39"
     },
     "scripts": {
         "build": "esbuild src/index.js --bundle --outfile=dist/alpine.js --minify --define:process.env.NODE_ENV=\\\"production\\\"",
         "watch": "esbuild src/index.js --bundle --outfile=dist/alpine.js --watch",
         "test": "cypress open"
-    },
-    "author": "",
-    "license": "ISC"
+    }
 }
