@@ -1,6 +1,6 @@
 import { evaluator } from '../evaluator'
 import { effect } from '../reactivity'
-import morph from '../morph'
+import { morph } from '../morph'
 
 export default (el, { value, modifiers, expression }) => {
     let evaluate = evaluator(el, expression)

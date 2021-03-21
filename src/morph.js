@@ -1,5 +1,5 @@
 
-export default function morph(dom, toHtml, options) {
+export function morph(dom, toHtml, options) {
     assignOptions(options)
 
     patch(dom, createElement(toHtml))

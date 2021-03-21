@@ -11,7 +11,8 @@
     },
     "devDependencies": {
         "@vue/reactivity": "^3.0.2",
-        "esbuild": "^0.8.39"
+        "esbuild": "^0.8.39",
+        "jest": "^26.6.3"
     },
     "scripts": {
         "build": "esbuild builds/index.js --bundle --outfile=dist/alpine.js --minify --define:process.env.NODE_ENV=\\\"production\\\"",

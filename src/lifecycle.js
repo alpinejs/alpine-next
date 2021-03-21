@@ -87,8 +87,6 @@ function listenForAndReactToDomManipulations(el) {
     observer.observe(el, { subtree: true, childList: true, deep: false })
 }
 
-
-
 // copyTree(originalEl, newEl) {
 //     newEl._x_data = originalEl._x_data
 //     newEl._x_$data = this.reactive(originalEl._x_data)

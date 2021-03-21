@@ -26,6 +26,15 @@ test('class attribute bindings are added by string syntax',
     get => get('span').should(haveClasses(['foo']))
 )
 
+test.only('class attribute bindings are added by array syntax',
+    `
+        <div x-data="{ initialClass: 'foo' }">
+            <span x-bind:class="[initialClass, 'bar']"></span>
+        </div>
+    `,
+    get => get('span').should(haveClasses(['foo', 'bar']))
+)
+
 test('classes are removed before being added',
     `
         <div x-data="{ isOpen: true }">
