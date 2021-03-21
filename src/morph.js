@@ -31,7 +31,7 @@ function assignOptions(options = {}) {
     added = options.added || noop
 }
 
-export function createElement(html) {
+function createElement(html) {
     return document.createRange().createContextualFragment(html).firstElementChild
 }
 
@@ -193,7 +193,7 @@ function patchChildren(dom, to) {
         currentFrom = currentFrom && currentFrom.nextSibling
     }
 
-    // cleanup extra froms
+    // Cleanup extra froms
     while (currentFrom) {
         if(! shouldSkip(removing, currentFrom)) {
             let domForRemoval = currentFrom
