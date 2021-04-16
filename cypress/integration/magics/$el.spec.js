@@ -6,7 +6,7 @@ test('$el returns the current element',
             <button @click="$el.innerText = 'foo'">click me</button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('button').should(haveText('click me'))
         get('button').click()
         get('button').should(haveText('foo'))

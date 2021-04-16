@@ -6,7 +6,7 @@ test('sets text on init',
             <span x-text="foo"></span>
         </div>
     `,
-    get => get('span').should(haveText('baz'))
+    ({ get }) => get('span').should(haveText('baz'))
 )
 
 test('changes made in x-init happen before the rest of the component',
@@ -15,7 +15,7 @@ test('changes made in x-init happen before the rest of the component',
             <span x-text="foo" x-ref="foo">baz</span>
         </div>
     `,
-    get => get('span').should(haveText('bar'))
+    ({ get }) => get('span').should(haveText('bar'))
 )
 
 test('can make deferred changes with $nextTick',
@@ -24,5 +24,5 @@ test('can make deferred changes with $nextTick',
             <span x-text="foo" x-ref="foo">baz</span>
         </div>
     `,
-    get => get('span').should(haveText('yo'))
+    ({ get }) => get('span').should(haveText('yo'))
 )

@@ -1,0 +1,10 @@
+{
+    "name": "@alpinejs/history",
+    "version": "0.1.0",
+    "description": "A convenience plugin for binding data to history state AlpineJS.",
+    "author": "Caleb Porzio",
+    "license": "MIT",
+    "main": "dist/intersect.js",
+    "module": "builds/module.js",
+    "dependencies": {}
+}

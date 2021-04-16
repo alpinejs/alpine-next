@@ -6,7 +6,7 @@ test('sets attribute bindings on initialize',
             <span x-ref="me" x-bind:foo="foo">[Subject]</span>
         </div>
     `,
-    get => get('span').should(haveAttribute('foo', 'bar'))
+    ({ get }) => get('span').should(haveAttribute('foo', 'bar'))
 )
 
 test('style attribute bindings are added by string syntax',
@@ -15,7 +15,7 @@ test('style attribute bindings are added by string syntax',
             <span x-bind:class="initialClass"></span>
         </div>
     `,
-    get => get('span').should(haveClasses(['foo']))
+    ({ get }) => get('span').should(haveClasses(['foo']))
 )
 
 test('non-boolean attributes set to null/undefined/false are removed from the element',
@@ -30,7 +30,7 @@ test('non-boolean attributes set to null/undefined/false are removed from the el
             <span visible="true" x-bind:visible="undefined">undefined</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('a:nth-child(1)').should(notHaveAttribute('href'))
         get('a:nth-child(2)').should(notHaveAttribute('href'))
         get('a:nth-child(3)').should(notHaveAttribute('href'))
@@ -46,7 +46,7 @@ test('non-boolean empty string attributes are not removed',
             <a href="#hello" x-bind:href="''"></a>
         </div>
     `,
-    get => get('a').should(haveAttribute('href', ''))
+    ({ get }) => get('a').should(haveAttribute('href', ''))
 )
 
 test('boolean attribute values are set to their attribute name if true and removed if false',
@@ -81,7 +81,7 @@ test('boolean attribute values are set to their attribute name if true and remov
             <ol x-bind:reversed="isSet"></ol>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('input:nth-of-type(1)').should(haveAttribute('disabled', 'disabled'))
         get('input:nth-of-type(2)').should(haveAttribute('checked', 'checked'))
         get('input:nth-of-type(3)').should(haveAttribute('required', 'required'))
@@ -139,7 +139,7 @@ test('boolean empty string attributes are not removed',
             <input x-bind:disabled="''">
         </div>
     `,
-    get => get('input').should(haveAttribute('disabled', 'disabled'))
+    ({ get }) => get('input').should(haveAttribute('disabled', 'disabled'))
 )
 
 test('binding supports short syntax',
@@ -148,7 +148,7 @@ test('binding supports short syntax',
             <span :class="foo"></span>
         </div>
     `,
-    get => get('span').should(haveClasses(['bar']))
+    ({ get }) => get('span').should(haveClasses(['bar']))
 )
 
 test('checkbox is unchecked by default',
@@ -161,7 +161,7 @@ test('checkbox is unchecked by default',
             <input type="checkbox" x-bind:value="10"></input>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('input:nth-of-type(1)').should(notBeChecked())
         get('input:nth-of-type(2)').should(notBeChecked())
         get('input:nth-of-type(3)').should(notBeChecked())
@@ -180,7 +180,7 @@ test('radio is unchecked by default',
             <input type="radio" x-bind:value="10"></input>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('input:nth-of-type(1)').should(notBeChecked())
         get('input:nth-of-type(2)').should(notBeChecked())
         get('input:nth-of-type(3)').should(notBeChecked())
@@ -197,7 +197,7 @@ test('checkbox values are set correctly',
             <input type="checkbox" name="falseCheckbox" :value="falseValue" />
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('input:nth-of-type(1)').should(haveValue('foo'))
         get('input:nth-of-type(2)').should(haveValue('on'))
         get('input:nth-of-type(3)').should(haveValue('on'))
@@ -213,7 +213,7 @@ test('radio values are set correctly',
             <input type="radio" id="list-test" value="test" x-model="selectedListID">
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('#list-1').should(haveValue('1'))
         get('#list-1').should(notBeChecked())
         get('#list-8').should(haveValue('8'))
@@ -229,7 +229,7 @@ test('.camel modifier correctly sets name of attribute',
             <svg x-bind:view-box.camel="'0 0 42 42'"></svg>
         </div>
     `,
-    get => get('svg').should(haveAttribute('viewBox', '0 0 42 42'))
+    ({ get }) => get('svg').should(haveAttribute('viewBox', '0 0 42 42'))
 )
 
 test('attribute binding names can contain numbers',
@@ -238,7 +238,7 @@ test('attribute binding names can contain numbers',
             <line x1="1" y1="2" :x2="3" x-bind:y2="4" />
         </svg>
     `,
-    get => {
+    ({ get }) => {
         get('line').should(haveAttribute('x2', '3'))
         get('line').should(haveAttribute('y2', '4'))
     }
@@ -253,7 +253,7 @@ test('non-string and non-boolean attributes are cast to string when bound to che
             <input type="checkbox" id="null" :value="nullProp">
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('input:nth-of-type(1)').should(haveValue('100'))
         get('input:nth-of-type(2)').should(haveValue('0'))
         get('input:nth-of-type(3)').should(haveValue('on'))
@@ -283,7 +283,7 @@ test('can bind an object of directives',
             <span x-bind="dialogue">Modal Body</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('baz'))
@@ -308,7 +308,7 @@ test('x-bind object syntax supports x-for',
             </ul>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('li:nth-of-type(1)').should(haveText('foo'))
         get('li:nth-of-type(2)').should(haveText('bar'))
     }
@@ -340,7 +340,7 @@ test('x-bind object syntax syntax supports x-transition',
             <span x-bind="outputTransitionExpression">thing</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(beVisible())
         get('button').click()
         get('span').should(beVisible())
@@ -365,7 +365,7 @@ test('x-bind object syntax event handlers defined as functions receive the event
             <span x-ref="span">foo</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('foo'))
         get('button').click()
         get('span').should(haveText('bar'))

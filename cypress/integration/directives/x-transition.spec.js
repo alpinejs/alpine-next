@@ -17,7 +17,7 @@ test('transition in',
             >thing</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(beHidden())
         get('span').should(notHaveClasses(['enter', 'enter-start', 'enter-end']))
         get('button').click()
@@ -44,7 +44,7 @@ test('transition out',
             >thing</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(beVisible())
         get('span').should(notHaveClasses(['leave', 'leave-start', 'leave-end']))
         get('button').click()
@@ -73,7 +73,7 @@ test('transition in with x-if',
             </template>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(notBeVisible())
         get('span').should(notHaveClasses(['enter', 'enter-start', 'enter-end']))
         get('button').click()
@@ -101,7 +101,7 @@ test('transition out with x-if',
             </template>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(beVisible())
         get('span').should(notHaveClasses(['leave', 'leave-start', 'leave-end']))
         get('button').click()

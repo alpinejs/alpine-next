@@ -6,7 +6,7 @@ test('sets text on init',
             <span x-text="foo"></span>
         </div>
     `,
-    get => get('span').should(haveText('bar'))
+    ({ get }) => { get('span').should(haveText('bar')) }
 )
 
 test('sets text on update',
@@ -17,7 +17,7 @@ test('sets text on update',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(notHaveText('bar'))
         get('button').click()
         get('span').should(haveText('bar'))
@@ -32,5 +32,5 @@ test('sets text on SVG elements',
             </svg>
         </div>
     `,
-    get => get('svg text').should(haveText('bar'))
+    ({ get }) => get('svg text').should(haveText('bar'))
 )

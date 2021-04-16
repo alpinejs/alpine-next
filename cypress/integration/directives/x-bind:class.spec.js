@@ -8,7 +8,7 @@ test('class attribute bindings are merged by string syntax',
             <button @click="isOn = ! isOn">button</button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveClasses(['foo']))
         get('span').should(notHaveClasses(['bar']))
         get('button').click()
@@ -23,16 +23,16 @@ test('class attribute bindings are added by string syntax',
             <span x-bind:class="initialClass"></span>
         </div>
     `,
-    get => get('span').should(haveClasses(['foo']))
+    ({ get }) => get('span').should(haveClasses(['foo']))
 )
 
-test.only('class attribute bindings are added by array syntax',
+test('class attribute bindings are added by array syntax',
     `
         <div x-data="{ initialClass: 'foo' }">
             <span x-bind:class="[initialClass, 'bar']"></span>
         </div>
     `,
-    get => get('span').should(haveClasses(['foo', 'bar']))
+    ({ get }) => get('span').should(haveClasses(['foo', 'bar']))
 )
 
 test('classes are removed before being added',
@@ -44,7 +44,7 @@ test('classes are removed before being added',
             <button @click="isOpen = !isOpen">click me</button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveClasses(['block', 'text-red']))
         get('button').click()
         get('span').should(haveClasses(['hidden', 'text-red']))
@@ -58,7 +58,7 @@ test('extra whitespace in class binding string syntax is ignored',
             <span x-bind:class="'  foo  bar  '"></span>
         </div>
     `,
-    get => get('span').should(haveClasses(['foo', 'bar']))
+    ({ get }) => get('span').should(haveClasses(['foo', 'bar']))
 )
 
 test('undefined class binding resolves to empty string',
@@ -68,7 +68,7 @@ test('undefined class binding resolves to empty string',
             <span id="empty" x-bind:class="errorClass(false)">should be empty</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span:nth-of-type(1)').should(haveClasses(['red']))
         get('span:nth-of-type(2)').should(notHaveClasses(['red']))
     }

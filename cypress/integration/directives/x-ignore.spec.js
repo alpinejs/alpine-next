@@ -8,7 +8,7 @@ test('x-ignore',
             </div>
         </div>
     `,
-    get => get('span').should(notHaveText('bar'))
+    ({ get }) => get('span').should(notHaveText('bar'))
 )
 
 test('x-ignore.self',
@@ -19,7 +19,7 @@ test('x-ignore.self',
             </h1>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('h1').should(notHaveClasses(['bar']))
     }

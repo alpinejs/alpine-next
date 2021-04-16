@@ -6,6 +6,7 @@
         <!-- This is where our test subjects will be injected. -->
     </blockquote>
 
+    <script src="http://alpine-next.test/packages/history/dist/history.js"></script>
     <script>
         let root = document.querySelector('#root')
 
@@ -21,7 +22,7 @@
             // Load Alpine.
             let script = document.createElement('script')
 
-            script.src = 'http://alpine-next.test/dist/alpine.js'
+            script.src = 'http://alpine-next.test/packages/alpinejs/dist/alpine.js'
 
             root.after(script)
 

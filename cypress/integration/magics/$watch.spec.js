@@ -12,7 +12,7 @@ test('$watch',
             <button x-on:click="foo = 'baz'"></button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('h1').should(haveText('bar'))
         get('h2').should(haveText('lob'))
         get('button').click()
@@ -32,7 +32,7 @@ test('$watch nested properties',
             <button x-on:click="foo.bar = 'law'"></button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('h1').should(haveText('baz'))
         get('h2').should(haveText('lob'))
         get('button').click()
@@ -57,7 +57,7 @@ test('$watch arrays',
             <button id="reverse" x-on:click="foo.reverse()"></button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('h1').should(haveText('one'))
         get('h2').should(haveText('lob'))
 
@@ -100,7 +100,7 @@ test('$watch nested arrays',
             <button id="push" x-on:click="foo.baz.push('two')"></button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('h1').should(haveText('one'))
         get('h2').should(haveText('lob'))
 

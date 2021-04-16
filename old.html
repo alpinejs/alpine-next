@@ -1,0 +1,26 @@
+<html>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
+    <script src="/packages/alpinejs/dist/alpine.js" defer></script>
+
+    <div x-data="{ foo: { ['x-text']() { return 'yo' }}}">
+        <span x-spread="foo"></span>
+    </div>
+
+    <div x-data="{ foo: '<h1>heading</h1>'}">
+        <span x-html="foo"></span>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:initializing', () => {
+            // x-spread
+            Alpine.directive('spread', () => {
+                console.log('[x-spread] is no longer supported.');
+            })
+
+            // x-html
+            Alpine.directive('html', () => {
+                console.log('[x-html] is no longer supported.');
+            })
+        })
+    </script>
+</html>

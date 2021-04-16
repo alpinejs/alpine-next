@@ -2,7 +2,7 @@ import { haveData, haveText, haveValue, test } from '../../utils'
 
 test('The name of the test',
     `<h1 x-data x-text="'HEY'"></h1>`,
-    get => get('h1').should(haveText('HEY'))
+    ({ get }) => get('h1').should(haveText('HEY'))
 )
 
 test('x-model has value binding when initialized',
@@ -11,7 +11,7 @@ test('x-model has value binding when initialized',
         <input x-model="foo"></input>
     </div>
     `,
-    get => get('input').should(haveValue('bar'))
+    ({ get }) => { get('input').should(haveValue('bar')) }
 )
 
 test('x-model updates value when updated via input event',
@@ -21,7 +21,7 @@ test('x-model updates value when updated via input event',
         <span x-text="foo"></span>
     </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('input').type('baz')
         get('span').should(haveText('barbaz'))
@@ -36,7 +36,7 @@ test('x-model has value binding when updated',
         <button x-on:click="foo = 'baz'">click me</button>
     </div>
     `,
-    get => {
+    ({ get }) => {
         get('input').should(haveValue('bar'))
         get('button').click()
         get('input').should(haveValue('baz'))
@@ -49,7 +49,7 @@ test('x-model casts value to number if number modifier is present',
         <input type="number" x-model.number="foo"></input>
     </div>
     `,
-    get => {
+    ({ get }) => {
         get('input').type('123')
         get('div').should(haveData('foo', 123))
 
@@ -63,7 +63,7 @@ test('x-model with number modifier returns: null if empty, original value if cas
         <input x-model.number="bar"></input>
     </div>
     `,
-    get => {
+    ({ get }) => {
         get('input:nth-of-type(1)').clear()
         get('div').should(haveData('foo', null))
         get('input:nth-of-type(1)').clear().type('-')
@@ -87,7 +87,7 @@ test('x-model trims value if trim modifier is present',
         <span x-text="foo"></span>
     </div>
     `,
-    get => {
+    ({ get }) => {
         get('input').type('bar     ')
         get('div').should(haveData('foo', 'bar'))
     }

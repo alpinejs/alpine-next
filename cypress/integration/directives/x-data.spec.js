@@ -6,7 +6,7 @@ test('x-data attribute value is optional',
             <span x-text="'foo'"></span>
         </div>
     `,
-    get => get('span').should(haveText('foo'))
+    ({ get }) => get('span').should(haveText('foo'))
 )
 
 test('x-data can be nested',
@@ -23,7 +23,7 @@ test('x-data can be nested',
             <button id="outer" @click="foo = 'law'; bar = 'blog'">click</button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('h1').should(haveText('bar'))
         get('h2').should(haveText('bob'))
         get('h3').should(haveText('bar'))
@@ -56,7 +56,7 @@ test('x-data can use attributes from a reusable function',
             <span x-text="foo"></span>
         </div>
     `,
-    get => get('span').should(haveText('bar'))
+    ({ get }) => get('span').should(haveText('bar'))
 )
 
 test('x-data can use $el',
@@ -65,7 +65,7 @@ test('x-data can use $el',
             <span x-text="text"></span>
         </div>
     `,
-    get => get('span').should(haveText('test'))
+    ({ get }) => get('span').should(haveText('test'))
 )
 
 test('functions in x-data are reactive',
@@ -75,7 +75,7 @@ test('functions in x-data are reactive',
             <button x-on:click="foo = 'baz'">click me</button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('baz'))

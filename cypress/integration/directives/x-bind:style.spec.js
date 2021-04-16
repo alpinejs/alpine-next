@@ -6,7 +6,7 @@ test('style attribute object binding',
             <span x-bind:style="{ color: 'red' }">I should be red</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveAttribute('style', 'color: red;'))
     }
 )
@@ -17,7 +17,7 @@ test('style attribute object bindings are merged with existing styles',
             <span style="display: block" x-bind:style="{ color: 'red' }">I should be red</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveAttribute('style', 'display: block; color: red;'))
     }
 )

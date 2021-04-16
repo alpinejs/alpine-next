@@ -8,10 +8,40 @@ test('x-show toggles display: none; with no other style attributes',
             <button x-on:click="show = false"></button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(beVisible())
         get('button').click()
         get('span').should(beHidden())
+    }
+)
+
+test('x-show (with true default) toggles display: none; even if it exists with the page load',
+    `
+        <div x-data="{ show: true }">
+            <span x-show="show" style="display: none;">thing</span>
+
+            <button x-on:click="show = false"></button>
+        </div>
+    `,
+    ({ get }) => {
+        get('span').should(beVisible())
+        get('button').click()
+        get('span').should(beHidden())
+    }
+)
+
+test('x-show (with false default) toggles display: none; even if it exists with the page load',
+    `
+        <div x-data="{ show: false }">
+            <span x-show="show" style="display: none;">thing</span>
+
+            <button x-on:click="show = true"></button>
+        </div>
+    `,
+    ({ get }) => {
+        get('span').should(beHidden())
+        get('button').click()
+        get('span').should(beVisible())
     }
 )
 
@@ -23,7 +53,7 @@ test('x-show toggles display: none; with other style attributes',
             <button x-on:click="show = false"></button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(beVisible())
         get('span').should(haveAttribute('style', 'color: blue;'))
         get('button').click()
@@ -46,7 +76,7 @@ test('x-show waits for transitions within it to finish before hiding an elements
             <button x-on:click="show = false"></button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(beVisible())
         get('button').click()
         get('span').should(beVisible())
@@ -69,7 +99,7 @@ test('x-show does NOT wait for transitions to finish if .immediate is present',
             <button x-on:click="show = false"></button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(beVisible())
         get('button').click()
         get('span').should(beHidden())
@@ -88,7 +118,7 @@ test('x-show with x-bind:style inside x-for works correctly',
             </template>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('button:nth-of-type(1)').should(beVisible())
         get('button:nth-of-type(1)').should(haveAttribute('style', 'background: #999'))
         get('button:nth-of-type(2)').should(beVisible())
@@ -108,7 +138,7 @@ test('x-show takes precedence over style bindings for display property',
             <span :style="'color: red;'" x-show="show">thing</span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span:nth-of-type(1)').should(haveAttribute('style', 'color: red; display: none;'))
         get('span:nth-of-type(2)').should(haveAttribute('style', 'color: red; display: none;'))
     }

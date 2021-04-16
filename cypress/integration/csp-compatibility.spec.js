@@ -14,7 +14,7 @@ test.csp('Can use components and basic expressions with CSP-compatible build',
             change() { this.foo = 'baz' },
         }))
     `],
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('baz'))

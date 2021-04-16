@@ -14,5 +14,5 @@ test('can register custom magic properties',
             <span x-text="$foo.bar"></span>
         </div>
     `,
-    get => get('span').should(haveText('baz'))
+    ({ get }) => get('span').should(haveText('baz'))
 )

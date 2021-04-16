@@ -6,5 +6,5 @@ test('x-cloak is removed',
             <span x-cloak></span>
         </div>
     `,
-    get => get('span').should(notHaveAttribute('x-cloak'))
+    ({ get }) => get('span').should(notHaveAttribute('x-cloak'))
 )

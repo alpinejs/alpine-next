@@ -8,7 +8,7 @@ test('$dispatch dispatches events properly',
             <button x-on:click="$dispatch('custom-event', {newValue: 'baz'})">click me</button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('baz'))

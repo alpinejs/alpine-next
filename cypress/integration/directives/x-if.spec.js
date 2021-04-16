@@ -10,7 +10,7 @@ test('x-if',
             </template>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('h1').should(notBeVisible())
         get('button').click()
         get('h1').should(beVisible())

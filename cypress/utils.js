@@ -1,4 +1,3 @@
-import { root } from "../src/utils/root"
 
 export let test = function (name, template, callback) {
     it(name, () => {
@@ -41,13 +40,26 @@ function injectHtmlAndBootAlpine(cy, templateAndPotentiallyScripts, callback, pa
     cy.get('#root').then(([el]) => {
         el.innerHTML = template
 
-        let thing = cy.get
-
         el.evalScripts(scripts)
 
         cy.get('[alpine-is-ready]', { timeout: 5000 }).should('be.visible');
 
-        callback(thing)
+        // We can't just simply reload a page from a test, because we need to
+        // re-inject all the templates and such. This is a helper to allow
+        // a test-subject method to perform a redirect all on their own.
+        let reload = () => {
+            cy.reload()
+
+            cy.get('#root').then(([el]) => {
+                el.innerHTML = template
+
+                el.evalScripts(scripts)
+
+                cy.get('[alpine-is-ready]', { timeout: 5000 }).should('be.visible');
+            })
+        }
+
+        callback(cy, reload)
     })
 }
 
@@ -78,3 +90,11 @@ export let notHaveClasses = classes => el => classes.forEach(aClass => expect(el
 export let haveValue = value => el => expect(el).to.have.value(value)
 
 export let haveLength = length => el => expect(el).to.have.length(length)
+
+export function root(el) {
+    if (el._x_dataStack) return el
+
+    if (! el.parentElement) return
+
+    return closestRoot(el.parentElement)
+}

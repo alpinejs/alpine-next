@@ -8,7 +8,7 @@ test('can reference elements from event listeners',
             <span x-ref="bob"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('button').click()
         get('span').should(haveText('lob'))
     }
@@ -22,8 +22,19 @@ test('can reference elements from data object methods',
             <span x-ref="bob"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('button').click()
+        get('span').should(haveText('lob'))
+    }
+)
+
+test('can reference elements from x-init',
+    `
+        <div x-data x-init="$refs.foo.textContent = 'lob'">
+            <span x-ref="foo">bob</span>
+        </div>
+    `,
+    ({ get }) => {
         get('span').should(haveText('lob'))
     }
 )

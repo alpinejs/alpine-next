@@ -8,7 +8,7 @@ test('$nextTick runs code on the next available managed tick',
             <button x-on:click="foo = 'baz'; $nextTick(() => {$refs.span.textContent = 'bob'})">click</button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('bob'))
@@ -27,7 +27,7 @@ test('$nextTick waits for x-for to finish rendering',
             <button x-on:click="list = ['one', 'two', 'three']; $nextTick(() => {check = document.querySelectorAll('span').length})">click</button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('p').should(haveText('2'))
         get('button').click()
         get('p').should(haveText('3'))
@@ -44,7 +44,7 @@ test('$nextTick works with transition',
             <button @click="show = true; $nextTick(() => { loggedDisplayStyle = document.querySelector('h1').style.display })">click</button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('h2').should(haveText('none'))
         get('button').click()
         get('h2').should(haveText(''))

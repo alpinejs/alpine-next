@@ -8,10 +8,25 @@ test('data modified in event listener updates affected attribute bindings',
             <span x-bind:foo="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveAttribute('foo', 'bar'))
         get('button').click()
         get('span').should(haveAttribute('foo', 'baz'))
+    }
+)
+
+test('can call a method without parenthesis',
+    `
+        <div x-data="{ foo: 'bar', baz($event) { this.foo = $event.target.dataset.bob } }">
+            <button x-on:click="baz" data-bob="lob"></button>
+
+            <span x-text="foo"></span>
+        </div>
+    `,
+    ({ get }) => {
+        get('span').should(haveText('bar'))
+        get('button').click()
+        get('span').should(haveText('lob'))
     }
 )
 
@@ -23,7 +38,7 @@ test('nested data modified in event listener updates affected attribute bindings
             <span x-bind:foo="nested.foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveAttribute('foo', 'bar'))
         get('button').click()
         get('span').should(haveAttribute('foo', 'baz'))
@@ -43,7 +58,7 @@ test('.passive modifier should disable e.preventDefault()',
             </button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('button').click()
         get('div').should(haveData('defaultPrevented', false))
     }
@@ -58,7 +73,7 @@ test('.stop modifier',
             </button>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('div').should(haveData('foo', 'bar'))
         get('h2').click()
         get('div').should(haveData('foo', 'bar'))
@@ -78,7 +93,7 @@ test('.self modifier',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('bar'))
@@ -93,7 +108,7 @@ test('.prevent modifier',
             <input type="checkbox" x-on:click.prevent>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('input').check()
         get('input').should(notBeChecked())
     }
@@ -107,7 +122,7 @@ test('.window modifier',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('span').click()
         get('span').should(haveText('baz'))
@@ -123,7 +138,7 @@ test('unbind global event handler when element is removed',
             <span x-text="count"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('button').click()
         get('span').click()
         get('span').should(haveText('1'))
@@ -138,7 +153,7 @@ test('.document modifier',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('span').click()
         get('span').should(haveText('baz'))
@@ -153,7 +168,7 @@ test('.once modifier',
             <span x-text="count"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('0'))
         get('button').click()
         get('span').should(haveText('1'))
@@ -170,7 +185,7 @@ test('.once modifier with @keyup',
             <span x-text="count"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('0'))
         get('input').type('f')
         get('span').should(haveText('1'))
@@ -187,7 +202,7 @@ test('.debounce modifier',
             <span x-text="count"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('0'))
         get('input').type('f')
         get('span').should(haveText('1'))
@@ -208,7 +223,7 @@ test('keydown modifiers',
             <span x-text="count"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('0'))
         get('input').type('f')
         get('span').should(haveText('1'))
@@ -227,7 +242,7 @@ test('keydown combo modifiers',
             <span x-text="count"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('0'))
         get('input').type('f')
         get('span').should(haveText('0'))
@@ -246,7 +261,7 @@ test('keydown with specified key and stop modifier only stops for specified key'
             <span x-text="count"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('0'))
         get('input').type('f')
         get('span').should(haveText('1'))
@@ -255,7 +270,7 @@ test('keydown with specified key and stop modifier only stops for specified key'
     }
 )
 
-test.only('@click.away',
+test('@click.away',
     `
         <div x-data="{ foo: 'bar' }">
             <h1 @click.away="foo = 'baz'">h1</h1>
@@ -265,7 +280,7 @@ test.only('@click.away',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('h1').click()
         get('span').should(haveText('bar'))
@@ -274,7 +289,7 @@ test.only('@click.away',
     }
 )
 
-test.only('@click.away with x-show (prevent race condition)',
+test('@click.away with x-show (prevent race condition)',
     `
         <div x-data="{ show: false }">
             <button @click="show = true">Show</button>
@@ -284,7 +299,7 @@ test.only('@click.away with x-show (prevent race condition)',
             <h2>h2</h2>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('h1').should(notBeVisible())
         get('button').click()
         get('h1').should(beVisible())
@@ -301,7 +316,7 @@ test('event with colon',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('baz'))
@@ -316,7 +331,7 @@ test('event instance can be passed to method reference',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('baz'))
@@ -331,7 +346,7 @@ test('.camel modifier correctly binds event listener',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('baz'))
@@ -346,7 +361,7 @@ test('.camel modifier correctly binds event listener with namespace',
             <span x-text="foo"></span>
         </div>
     `,
-    get => {
+    ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
         get('span').should(haveText('baz'))

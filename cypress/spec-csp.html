@@ -26,11 +26,6 @@
                 root.after(script)
             }
 
-            // Load Alpine.
-            let script = document.createElement('script')
-            script.src = 'http://alpine-next.test/dist/alpine-csp.js'
-            root.after(script)
-
             document.addEventListener('alpine:initialized', () => {
                 let readyEl = document.createElement('blockquote')
                 readyEl.setAttribute('alpine-is-ready', true)
@@ -39,6 +34,11 @@
 
                 document.querySelector('blockquote').after(readyEl)
             })
+
+            // Load Alpine.
+            let script = document.createElement('script')
+            script.src = 'http://alpine-next.test/packages/alpinejs/dist/alpine-csp.js'
+            root.after(script)
         }
     </script>
 </html>
