@@ -9,15 +9,29 @@
 
     <script src="http://alpine-next.test/packages/history/dist/history.js"></script>
 
+
     <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
 
     <!-- <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet"> -->
 
-    <div x-data="{ search: '', html: '' }" x-history="search" x-effect="html = '<h1>'+search+'</h1>'">
+
+    <div x-data="{ count: 1 }">
+        <button @click="count++">inc</button>
+
+        <span x-text></span>
+    </div>
+
+    <div x-data="{ county: 1 }" x-history="county">
+        <button @click="county++">inc</button>
+
+        <span x-text="county"></span>
+    </div>
+
+    <!-- <div x-data="{ search: '', html: '' }" x-history="search" x-effect="html = '<h1>'+search+'</h1>'">
         <input type="text" x-model="search">
 
         <div x-morph="html"></div>
-    </div>
+    </div> -->
 
     <div x-data="{ foo: 'bar' }">
         <button @click="$el.remove()" x-destroy="foo = 'baz'">Remove Me</button>
@@ -25,7 +39,7 @@
         <span x-text="foo"></span>
     </div>
 
-    <div x-data="{ foo: 1 }" x-history="foo">
+    <!-- <div x-data="{ foo: 1 }" x-history="foo">
         <button @click="foo++">inc</button>
 
         foo: <span x-text="foo"></span>
@@ -43,7 +57,7 @@
                 baz: <span x-text="baz"></span>
             </div>
         </template>
-    </div>
+    </div> -->
 
     <script>
         window.historyStateManager = {

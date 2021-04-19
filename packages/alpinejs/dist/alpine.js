@@ -810,7 +810,7 @@ Expression: "${expression}"
     el._x_undoAddedStyles = setStyles(el, value);
   }
   function bindAttribute(el, name, value) {
-    if ([null, void 0, false].includes(value)) {
+    if ([null, void 0, false].includes(value) && attributeShouldntBePreservedIfFalsy(name)) {
       el.removeAttribute(name);
     } else {
       if (isBooleanAttr(name))
@@ -867,6 +867,9 @@ Expression: "${expression}"
     ];
     return booleanAttributes.includes(attrName);
   }
+  function attributeShouldntBePreservedIfFalsy(name) {
+    return !["aria-pressed", "aria-checked"].includes(name);
+  }
 
   // packages/alpinejs/src/utils/on.js
   function on(el, event, modifiers, callback) {
@@ -896,7 +899,7 @@ Expression: "${expression}"
       handler3 = wrapHandler(handler3, (next, e) => {
         e.target === el && next(e);
       });
-    if (modifiers.includes("away")) {
+    if (modifiers.includes("away") || modifiers.includes("outside")) {
       listenerTarget = document;
       handler3 = wrapHandler(handler3, (next, e) => {
         if (el.contains(e.target))

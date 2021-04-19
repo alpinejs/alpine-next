@@ -18,7 +18,7 @@ export default function on (el, event, modifiers, callback) {
     if (modifiers.includes('stop')) handler = wrapHandler(handler, (next, e) => { e.stopPropagation(); next(e) })
     if (modifiers.includes('self')) handler = wrapHandler(handler, (next, e) => { e.target === el && next(e) })
 
-    if (modifiers.includes('away')) {
+    if (modifiers.includes('away') || modifiers.includes('outside')) {
         listenerTarget = document
 
         handler = wrapHandler(handler, (next, e) => {

@@ -3,7 +3,6 @@ import Alpine from 'alpinejs'
 export default function (el, { expression }) {
     let getValue = Alpine.evaluateLater(el, expression)
 
-    alert('hey')
     track(
         expression,
         (setMeta) => {

@@ -79,7 +79,7 @@ function bindStyles(el, value) {
 }
 
 function bindAttribute(el, name, value) {
-    if ([null, undefined, false].includes(value)) {
+    if ([null, undefined, false].includes(value) && attributeShouldntBePreservedIfFalsy(name)) {
         el.removeAttribute(name)
     } else {
         if (isBooleanAttr(name)) value = name
@@ -122,4 +122,8 @@ function isBooleanAttr(attrName) {
     ]
 
     return booleanAttributes.includes(attrName)
+}
+
+function attributeShouldntBePreservedIfFalsy(name) {
+    return ! ['aria-pressed', 'aria-checked'].includes(name)
 }
