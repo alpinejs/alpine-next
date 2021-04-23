@@ -1,5 +1,5 @@
 {
-    "name": "@alpinejs/history",
+    "name": "@alpinejs/intersect",
     "version": "0.1.0",
     "description": "A convenience plugin for binding data to history state AlpineJS.",
     "author": "Caleb Porzio",

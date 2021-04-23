@@ -15,21 +15,31 @@ export function directive(name, callback) {
     directiveHandlers[name] = callback
 }
 
-export function getDirectiveHandler(directive) {
-    let noop = () => {}
-
-    return directiveHandlers[directive.type] || noop
+export function handleDirective(el, directive) {
+    getDirectiveHandler(el, directive)()
 }
 
-export function handleDirective(el, directive, domSideEffectsOnly) {
-    let handler = getDirectiveHandler(directive)
+export function getDirectiveHandler(el, directive) {
+    let noop = () => {}
+
+    let handler = directiveHandlers[directive.type] || noop
 
     handler.inline && handler.inline(el, directive)
 
-    handler(el, directive)
+    return handler.bind(handler, el, directive)
 }
 
-export function directives(el, alternativeAttributes, domEffectsOnly) {
+export function deferHandlingDirectives(loopingCallback) {
+    let directiveHandlerStack = []
+
+    loopingCallback((el, directive) => {
+        directiveHandlerStack.push(getDirectiveHandler(el, directive))
+    })
+
+    while (directiveHandlerStack.length) directiveHandlerStack.shift()()
+}
+
+export function directives(el, alternativeAttributes) {
     return Array.from(alternativeAttributes || el.attributes)
         .map(toTransformedAttributes)
         .filter(outNonAlpineAttributes)
@@ -59,10 +69,6 @@ export function mapAttributes(callback) {
 
 function outNonAlpineAttributes({ name }) {
     return alpineAttributeRegex().test(name)
-}
-
-function outNonDomEffectDirectives({ name }) {
-
 }
 
 let alpineAttributeRegex = () => (new RegExp(`^${prefixAsString}([^:^.]+)\\b`))

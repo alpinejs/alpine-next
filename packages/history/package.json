@@ -1,5 +1,5 @@
 {
-    "name": "@alpinejs/morph",
+    "name": "@alpinejs/history",
     "version": "0.1.0",
     "description": "A convenience plugin for reacting to page intersections in AlpineJS.",
     "author": "Caleb Porzio",

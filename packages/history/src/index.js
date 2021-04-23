@@ -1,7 +1,7 @@
-import Alpine from 'alpinejs'
+import { alpineGlobal } from '@alpinejs/shared'
 
 export default function (el, { expression }) {
-    let getValue = Alpine.evaluateLater(el, expression)
+    let getValue = alpineGlobal().evaluateLater(el, expression)
 
     track(
         expression,
@@ -10,7 +10,7 @@ export default function (el, { expression }) {
             let result; getValue(value => result = value); return result;
         },
         (value, getMeta) => {
-            Alpine.evaluate(el, `${expression} = value`, { scope: { 'value': value } })
+            alpineGlobal().evaluate(el, `${expression} = value`, { scope: { 'value': value } })
         },
     )
 }

@@ -1,10 +1,15 @@
-import Alpine from './../src/index'
-import { cspCompliantEvaluator } from './../src/evaluator'
+import Alpine from './../src/alpine'
 
-window.Alpine = Alpine
+import { cspCompliantEvaluator } from './../src/evaluator'
 
 Alpine.setEvaluator(cspCompliantEvaluator)
 
-Alpine.start()
+import { reactive, effect } from '@vue/reactivity/dist/reactivity.esm-browser.prod.js'
+
+Alpine.setReactivity(reactive, effect)
+
+import './../src/magics/index'
+
+import './../src/directives/index'
 
 export default Alpine

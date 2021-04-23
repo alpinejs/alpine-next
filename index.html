@@ -2,20 +2,57 @@
 
     <style>.bottom-100 { bottom: 100%; }</style>
 
-    <script src="http://alpine-next.test/packages/intersect/dist/intersect.js" defer></script>
-    <!-- <script src="http://alpine-next.test/packages/history/dist/history.js" defer></script> -->
-    <script src="http://alpine-next.test/packages/morph/dist/morph.js" defer></script>
-    <script src="http://alpine-next.test/packages/alpinejs/dist/alpine.js" defer></script>
-
-    <script src="http://alpine-next.test/packages/history/dist/history.js"></script>
-
+    <!-- <script src="http://alpine-next.test/packages/intersect/dist/intersect.js" defer></script>
+    <script src="http://alpine-next.test/packages/morph/dist/morph.js" defer></script> -->
+    <script src="http://alpine-next.test/packages/history/dist/alpine-cdn.js"></script>
+    <script src="http://alpine-next.test/packages/alpinejs/dist/alpine-cdn.js" defer></script>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
     <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
 
-    <!-- <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet"> -->
+    <div x-data="{ count: 9 }" x-history="count" x-text="count"></div>
+    <!-- Use Cases: -->
+    <!-- Animating in -->
+        <!-- only animate once -->
+        <!-- only animate from one direction -->
+    <!-- Popper type functionality -->
+    <!-- Animating based on position in viewport -->
+    <!-- Infinite Scroll -->
+    <!-- Lazzy loading -->
+    <!-- Show some dirty modal to sign up if the person read the whole blog post -->
+
+    <!-- When any portion of an element comes into the viewport -->
+    <div x-intersect=""></div>
+    <div x-intersect.once=""></div>
+
+    <!-- <script src="https://unpkg.com/wicg-inert@3.1.1/dist/inert.min.js" defer></script> -->
+
+    <div class="h-64"></div>
+    <div class="h-64"></div>
+    <div class="h-64" x-data x-effect="console.log($bound($el))">yoyoyo</div>
+    <!-- <div x-data @scroll.window="$el.style['margin-left'] = $el.getBoundingClientRect().top + 'px'">hey</div> -->
+    <div x-data :style="{ transform: 'translateX('+$bound($el).top+'px)' }" style="transition: all 1s">hey</div>
+    <div class="h-64"></div>
+    <div class="h-64"></div>
+
+    <script>
+        function $bound(el) {
+            let data = window.reactive({
+                top: el.getBoundingClientRect().top,
+            })
+
+            window.addEventListener('scroll', () => {
+                data.top = el.getBoundingClientRect().top
+            }, { passive: true })
+
+            return data
+        }
+    </script>
 
 
-    <div x-data="{ count: 1 }">
+
+
+    <!-- <div x-data="{ count: 1 }">
         <button @click="count++">inc</button>
 
         <span x-text></span>
@@ -25,7 +62,7 @@
         <button @click="county++">inc</button>
 
         <span x-text="county"></span>
-    </div>
+    </div> -->
 
     <!-- <div x-data="{ search: '', html: '' }" x-history="search" x-effect="html = '<h1>'+search+'</h1>'">
         <input type="text" x-model="search">

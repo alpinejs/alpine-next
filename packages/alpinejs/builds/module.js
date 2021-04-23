@@ -1,3 +1,3 @@
-import Alpine from './../src/index.js'
+import Alpine from './../src/index'
 
 export default Alpine

@@ -1,4 +1,4 @@
-import { directive, directives, handleDirective, into, mapAttributes, prefix, startingWith } from '.'
+import { directive, directives, handleDirective, into, mapAttributes, prefix, startingWith } from '../directives'
 import { evaluate, evaluateLater } from '../evaluator'
 import { effect } from '../reactivity'
 import bind from '../utils/bind'
@@ -10,7 +10,7 @@ directive('bind', (el, { value, modifiers, expression }) => {
 
     if (value === 'key') return storeKeyForXFor(el, expression)
 
-    let evaluate =evaluateLater(el, expression)
+    let evaluate = evaluateLater(el, expression)
 
     effect(() => evaluate(result => {
         bind(el, value, result, modifiers)

@@ -3,7 +3,7 @@ import { evaluateLater } from 'alpinejs/src/evaluator'
 let pauseReactions = false
 
 export function intersect (el, { value, modifiers, expression }) {
-    let evaluate =evaluateLater(el, expression)
+    let evaluate = evaluateLater(el, expression)
 
     if (['out', 'leave'].includes(value)) {
         el._x_intersectLeave(evaluate, modifiers)

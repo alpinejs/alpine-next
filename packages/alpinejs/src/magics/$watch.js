@@ -3,7 +3,7 @@ import { evaluateLater } from '../evaluator'
 import { magic } from '../magics'
 
 magic('watch', el => (key, callback) => {
-    let evaluate =evaluateLater(el, key)
+    let evaluate = evaluateLater(el, key)
 
     let firstTime = true
 

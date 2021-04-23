@@ -1,5 +1,7 @@
-import Alpine from './../src/index.js'
+import Alpine from './../src/index'
 
 window.Alpine = Alpine
 
-Alpine.start()
+queueMicrotask(() => {
+    Alpine.start()
+})

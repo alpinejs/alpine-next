@@ -1,4 +1,4 @@
-import { getDirectiveHandler, directives } from "./directives"
+import { directives } from "./directives"
 import { dispatch } from './utils/dispatch'
 import { nextTick } from './nextTick'
 import { walk } from "./utils/walk"
@@ -37,23 +37,17 @@ export function closestRoot(el) {
 }
 
 export function initTree(el) {
-    let directiveHandlerStack = []
+    deferHandlingDirectives(handleDirective => {
+        walk(el, (el, skip) => {
+            directives(el).forEach(directive => {
+                if (el._x_ignore || el._x_ignore_self) return
 
-    walk(el, (el, skip) => {
-        directives(el).forEach(directive => {
-            if (el._x_ignore || el._x_ignore_self) return
+                handleDirective(el, directive)
+            })
 
-            let handler = getDirectiveHandler(directive)
-
-            if (handler.inline) handler.inline(el, directive)
-
-            directiveHandlerStack.push(handler.bind(handler, el, directive))
+            if (el._x_ignore) skip()
         })
-
-        if (el._x_ignore) skip()
     })
-
-    while (directiveHandlerStack.length) directiveHandlerStack.shift()()
 }
 
 let onDestroys = new WeakMap

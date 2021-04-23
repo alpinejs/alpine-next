@@ -5,9 +5,9 @@ import bind from '../utils/bind'
 import on from '../utils/on'
 
 directive('model', (el, { value, modifiers, expression }) => {
-    let evaluate =evaluateLater(el, expression)
+    let evaluate = evaluateLater(el, expression)
     let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`
-    let evaluateAssignment =evaluateLater(el, assignmentExpression)
+    let evaluateAssignment = evaluateLater(el, assignmentExpression)
 
     // If the element we are binding to is a select, a radio, or checkbox
     // we'll listen for the change event instead of the "input" event.

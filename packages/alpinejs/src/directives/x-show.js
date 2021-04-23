@@ -5,7 +5,7 @@ import { effect } from '../reactivity'
 import { once } from '../utils/once'
 
 directive('show', (el, { value, modifiers, expression }) => {
-    let evaluate =evaluateLater(el, expression)
+    let evaluate = evaluateLater(el, expression)
 
     if (el.style.display) el.style.display = ''
 
