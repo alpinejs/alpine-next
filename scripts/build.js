@@ -3,26 +3,26 @@
  * Alpine Core
  */
 bundleForCdn('alpinejs', 'cdn.js')
-bundleForCdn('alpinejs', 'csp.js')
-bundleForNpm('alpinejs', 'module.js')
+// bundleForCdn('alpinejs', 'csp.js')
+// bundleForNpm('alpinejs', 'module.js')
 
-/**
- * History Plugin
- */
-bundleForCdn('history', 'cdn.js')
-bundleForNpm('history', 'module.js')
+// /**
+//  * History Plugin
+//  */
+// bundleForCdn('history', 'cdn.js')
+// bundleForNpm('history', 'module.js')
 
-/**
- * Intersect Plugin
- */
-bundleForCdn('intersect', 'cdn.js')
-bundleForNpm('intersect', 'module.js')
+// /**
+//  * Intersect Plugin
+//  */
+// bundleForCdn('intersect', 'cdn.js')
+// bundleForNpm('intersect', 'module.js')
 
-/**
- * Morph Plugin
- */
-bundleForCdn('morph', 'cdn.js')
-bundleForNpm('morph', 'module.js')
+// /**
+//  * Morph Plugin
+//  */
+// bundleForCdn('morph', 'cdn.js')
+// bundleForNpm('morph', 'module.js')
 
 // ---
 
