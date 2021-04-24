@@ -1,6 +1,6 @@
 import { haveText, test } from '../utils'
 
-test.only('can go back and forth',
+test('can go back and forth',
     [`
         <div x-data="{ count: 1 }" x-history="count">
             <button @click="count++">Inc</button>
@@ -22,7 +22,7 @@ test.only('can go back and forth',
     },
 )
 
-test.only('property is set from the query string on load',
+test('property is set from the query string on load',
     [`
         <div x-data="{ count: 1 }" x-history="count">
             <button @click="count++">Inc</button>
@@ -40,7 +40,7 @@ test.only('property is set from the query string on load',
     },
 )
 
-test.only('can go back and forth with multiple components',
+test('can go back and forth with multiple components',
     [`
         <div x-data="{ foo: 1 }" x-history="foo" id="foo">
             <button @click="foo++">Inc</button>

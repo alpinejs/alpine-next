@@ -1,4 +1,4 @@
-import { directives } from "./directives"
+import { deferHandlingDirectives, directives } from "./directives"
 import { dispatch } from './utils/dispatch'
 import { nextTick } from './nextTick'
 import { walk } from "./utils/walk"

@@ -1,10 +1,10 @@
-import Alpine from 'alpinejs'
+import { alpineGlobal } from '@alpinejs/shared'
 import { morph } from './morph'
 
 export default function (el, { expression }) {
-    let evaluate = Alpine.evaluateLater(el, expression)
+    let evaluate = alpineGlobal().evaluateLater(el, expression)
 
-    window.effect(() => {
+    alpineGlobal().effect(() => {
         evaluate(value => {
             if (! el.firstElementChild) {
                 if (el.firstChild) el.firstChild.remove()
