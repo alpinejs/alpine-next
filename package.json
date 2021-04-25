@@ -12,5 +12,8 @@
         "build": "node ./scripts/build.js",
         "watch": "node ./scripts/build.js --watch",
         "test": "cypress open"
+    },
+    "dependencies": {
+        "dot-json": "^1.2.2"
     }
 }

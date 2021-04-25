@@ -4,7 +4,6 @@
     "description": "The rugged, minimal framework for building a simpler web.",
     "author": "Caleb Porzio",
     "license": "MIT",
-    "main": "dist/node.js",
     "module": "builds/module.js",
     "dependencies": {
         "@vue/reactivity": "^3.0.2"

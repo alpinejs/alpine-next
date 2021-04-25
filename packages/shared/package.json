@@ -5,6 +5,7 @@
     "author": "Caleb Porzio",
     "license": "MIT",
     "main": "src/index.js",
+    "module": "src/index.js",
     "dependencies": {
         "@vue/reactivity": "^3.0.2"
     }
