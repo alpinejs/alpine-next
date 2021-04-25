@@ -1,9 +1,11 @@
-import { alpineGlobal } from '@alpinejs/shared'
+let Alpine
 
 let pauseReactions = false
 
-export function intersect (el, { value, modifiers, expression }) {
-    let evaluate = alpineGlobal().evaluateLater(el, expression)
+export default function (el, { value, modifiers, expression }, global) {
+    let Alpine = global
+
+    let evaluate = Alpine.evaluateLater(el, expression)
 
     if (['out', 'leave'].includes(value)) {
         el._x_intersectLeave(evaluate, modifiers)

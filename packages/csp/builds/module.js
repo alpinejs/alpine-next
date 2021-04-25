@@ -1,3 +1,3 @@
-import history from '../src/index.js'
+import Alpine from './../src/index'
 
-export default history
+export default Alpine

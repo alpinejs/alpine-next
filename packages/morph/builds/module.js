@@ -1,3 +1,5 @@
-import morph from '../src/index.js'
+import registerMorphDirective, { morph } from '../src/index.js'
 
-export default morph
+export default registerMorphDirective
+
+export { morph }

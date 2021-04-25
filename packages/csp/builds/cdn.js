@@ -1,5 +1,7 @@
-import history from '../src/index.js'
+import Alpine from './../src/index'
 
-document.addEventListener('alpine:initializing', () => {
-    window.Alpine.directive('history', history)
+window.Alpine = Alpine
+
+queueMicrotask(() => {
+    Alpine.start()
 })

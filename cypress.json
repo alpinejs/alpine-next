@@ -1,3 +1,5 @@
 {
-    "ignoreTestFiles": "*.html"
+    "ignoreTestFiles": "*.html",
+    "screenshotOnRunFailure": false,
+    "video": false
 }

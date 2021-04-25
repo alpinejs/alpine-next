@@ -2,19 +2,24 @@ let fs = require('fs');
 let DotJson = require('dot-json');
 
 ([
+    // Packages:
     'alpinejs',
+    'csp',
     'history',
     'intersect',
     'morph',
-    'shared',
 ]).forEach(package => {
+    // Go through each file in the package's "build" directory
+    // and use the appropriate bundling strategy based on its name.
     fs.readdirSync(`./packages/${package}/builds`).forEach(file => {
         bundleFile(package, file)
     });
 })
 
 function bundleFile(package, file) {
+    // Based on the filename, give esbuild a specific configuration to build.
     ({
+        // This output file is meant to be loaded in a browser's <script> tag.
         'cdn.js': () => {
             build({
                 entryPoints: [`packages/${package}/builds/${file}`],
@@ -26,6 +31,9 @@ function bundleFile(package, file) {
 
             writeToPackageDotJson(package, 'browser', `dist/${file}`)
         },
+        // This file outputs two files: an esm module and a cjs module.
+        // The ESM one is meant for "import" statements (bundlers and new browsers)
+        // and the cjs one is meant for "require" statements (node).
         'module.js': () => {
             build({
                 entryPoints: [`packages/${package}/builds/${file}`],
@@ -52,7 +60,7 @@ function bundleFile(package, file) {
 function build(options) {
     return require('esbuild').build({
         watch: process.argv.includes('--watch'),
-        external: ['alpinejs'],
+        // external: ['alpinejs'],
         ...options,
     }).catch(() => process.exit(1))
 }

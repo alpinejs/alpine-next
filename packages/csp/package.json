@@ -4,8 +4,9 @@
     "description": "A convenience plugin for reacting to page intersections in AlpineJS.",
     "author": "Caleb Porzio",
     "license": "MIT",
-    "main": "dist/intersect.js",
-    "module": "builds/module.js",
+    "main": "dist/module.cjs.js",
+    "module": "dist/module.esm.js",
+    "browser": "dist/cdn.js",
     "dependencies": {
         "@vue/reactivity": "^3.0.2"
     }

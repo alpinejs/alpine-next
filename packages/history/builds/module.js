@@ -1,3 +1,5 @@
-import history from '../src/index.js'
+import registerHistoryDirective, { history } from '../src/index.js'
 
-export default history
+export default registerHistoryDirective
+
+export { history }

@@ -1,3 +1,4 @@
+import Alpine from './alpine'
 
 let prefixAsString = 'x-'
 
@@ -24,9 +25,9 @@ export function getDirectiveHandler(el, directive) {
 
     let handler = directiveHandlers[directive.type] || noop
 
-    handler.inline && handler.inline(el, directive)
+    handler.inline && handler.inline(el, directive, Alpine)
 
-    return handler.bind(handler, el, directive)
+    return handler.bind(handler, el, directive, Alpine)
 }
 
 export function deferHandlingDirectives(loopingCallback) {

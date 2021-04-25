@@ -1,21 +1,22 @@
-import { alpineGlobal } from '@alpinejs/shared'
+let Alpine
 
-export default function (el, { expression }) {
-    let getValue = alpineGlobal().evaluateLater(el, expression)
+export default function (el, { expression }, global) {
+    Alpine = global
 
-    track(
+    let getValue = Alpine.evaluateLater(el, expression)
+
+    history(
         expression,
         (setMeta) => {
-            setMeta('foo', 'bar')
             let result; getValue(value => result = value); return result;
         },
         (value, getMeta) => {
-            alpineGlobal().evaluate(el, `${expression} = value`, { scope: { 'value': value } })
+            Alpine.evaluate(el, `${expression} = value`, { scope: { 'value': value } })
         },
     )
 }
 
-function track(key, getter, setter) {
+export function history(key, getter, setter) {
     let url = new URL(window.location.href)
 
     if (url.searchParams.has(key)) {
@@ -69,17 +70,17 @@ function track(key, getter, setter) {
 }
 
 function replace(url, key, object) {
-    let state = history.state || {}
+    let state = window.history.state || {}
 
     if (! state.alpine) state.alpine = {}
 
     state.alpine[key] = object
 
-    history.replaceState(state, '', url)
+    window.history.replaceState(state, '', url)
 }
 
 function push(url, key, object) {
-    let state = { alpine: {...history.state.alpine, ...{[key]: object}} }
+    let state = { alpine: {...window.history.state.alpine, ...{[key]: object}} }
 
-    history.pushState(state, '', url)
+    window.history.pushState(state, '', url)
 }
