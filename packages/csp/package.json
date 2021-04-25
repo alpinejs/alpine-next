@@ -6,7 +6,7 @@
     "license": "MIT",
     "main": "dist/module.cjs.js",
     "module": "dist/module.esm.js",
-    "browser": "dist/cdn.js",
+    "browser": "dist/cdn.min.js",
     "dependencies": {
         "@vue/reactivity": "^3.0.2"
     }

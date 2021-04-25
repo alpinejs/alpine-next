@@ -4,10 +4,11 @@
         "packages/*"
     ],
     "devDependencies": {
+        "brotli-size": "^4.0.0",
         "cypress": "^5.5.0",
+        "dot-json": "^1.2.2",
         "esbuild": "^0.8.39",
-        "jest": "^26.6.3",
-        "dot-json": "^1.2.2"
+        "jest": "^26.6.3"
     },
     "scripts": {
         "build": "node ./scripts/build.js",

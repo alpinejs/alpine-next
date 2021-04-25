@@ -1,5 +1,6 @@
 let fs = require('fs');
 let DotJson = require('dot-json');
+let brotliSize = require('brotli-size');
 
 ([
     // Packages:
@@ -29,7 +30,18 @@ function bundleFile(package, file) {
                 define: { CDN: true },
             })
 
-            writeToPackageDotJson(package, 'browser', `dist/${file}`)
+            // Build a minified version.
+            build({
+                entryPoints: [`packages/${package}/builds/${file}`],
+                outfile: `packages/${package}/dist/${file.replace('.js', '.min.js')}`,
+                bundle: true,
+                minify: true,
+                platform: 'browser',
+                define: { CDN: true },
+            })
+
+            writeToPackageDotJson(package, 'browser', `dist/${file.replace('.js', '.min.js')}`)
+            outputSize(package, `packages/${package}/dist/${file.replace('.js', '.min.js')}`)
         },
         // This file outputs two files: an esm module and a cjs module.
         // The ESM one is meant for "import" statements (bundlers and new browsers)
@@ -70,3 +82,17 @@ function writeToPackageDotJson(package, key, value) {
 
     dotJson.set(key, value).save()
 }
+
+function outputSize(package, file) {
+    let size = bytesToSize(brotliSize.sync(fs.readFileSync(file)))
+
+    console.log("\x1b[32m", `${package}: ${size}`)
+}
+
+function bytesToSize(bytes) {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+    if (bytes === 0) return 'n/a'
+    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10)
+    if (i === 0) return `${bytes} ${sizes[i]}`
+    return `${(bytes / (1024 ** i)).toFixed(1)} ${sizes[i]}`
+  }
