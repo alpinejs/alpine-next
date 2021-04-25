@@ -63,6 +63,8 @@ function build(options) {
     }).catch(() => process.exit(1))
 }
 
-function writeToPackageDotJson(package, file) {
-    var myfile = new DotJson('myfile.json');
+function writeToPackageDotJson(package, key, value) {
+    let dotJson = new DotJson(`./packages/${package}/package.json`)
+
+    dotJson.set(key, value).save()
 }

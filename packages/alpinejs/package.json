@@ -4,7 +4,9 @@
     "description": "The rugged, minimal framework for building a simpler web.",
     "author": "Caleb Porzio",
     "license": "MIT",
-    "module": "builds/module.js",
+    "main": "dist/module.cjs.js",
+    "module": "dist/module.esm.js",
+    "browser": "dist/cdn.js",
     "dependencies": {
         "@vue/reactivity": "^3.0.2"
     }
