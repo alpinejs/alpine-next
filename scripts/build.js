@@ -8,12 +8,6 @@ let DotJson = require('dot-json');
     'morph',
     'shared',
 ]).forEach(package => {
-    // Delete all dist files for the package.
-    fs.readdirSync(`./packages/${package}/dist`).forEach(file => {
-        fs.unlinkSync(`./packages/${package}/dist/${file}`)
-    });
-
-    // Re-build all dist files for the package
     fs.readdirSync(`./packages/${package}/builds`).forEach(file => {
         bundleFile(package, file)
     });
