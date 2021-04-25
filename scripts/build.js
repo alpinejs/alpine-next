@@ -1,10 +1,7 @@
-
 /**
  * Alpine Core
  */
 bundleForCdn('alpinejs', 'cdn.js')
-bundleForCdn('alpinejs', 'csp-cdn.js')
-bundleForCdn('alpinejs', 'csp-module.js')
 bundleForNpm('alpinejs', 'module.js')
 
 /**
@@ -24,8 +21,17 @@ bundleForNpm('intersect', 'module.js')
  */
 bundleForCdn('morph', 'cdn.js')
 bundleForNpm('morph', 'module.js')
+bundleForNode('morph', 'node.js')
 
 // ---
+
+function bundleForNode(package, buildFile, esbuildConfig = {}) {
+    bundle(package, buildFile, {
+        target: ['node10.4'],
+        platform: 'node',
+        ...esbuildConfig
+    })
+}
 
 function bundleForCdn(package, buildFile, esbuildConfig = {}) {
     bundle(package, buildFile, {

@@ -1,4 +1,4 @@
-require('./../../dist/alpine.js')
+let { morph } = require('@alpinejs/morph')
 let createElement = require('./createElement.js')
 
 test('can use custom key name', () => {
@@ -6,7 +6,7 @@ test('can use custom key name', () => {
 
     dom.querySelector('li').is_me = true
 
-    Alpine.morph(dom, '<ul><li wire:key="1">foo</li><li wire:key="2">bar</li></ul>', {
+    morph(dom, '<ul><li wire:key="1">foo</li><li wire:key="2">bar</li></ul>', {
         key(el) { return el.getAttribute('wire:key') }
     })
 
@@ -16,7 +16,7 @@ test('can use custom key name', () => {
 test('can prevent update', () => {
     let dom = createElement('<div><span>foo</span></div>')
 
-    Alpine.morph(dom, '<div><span>bar</span></div>', {
+    morph(dom, '<div><span>bar</span></div>', {
         updating(from, to, childrenOnly, prevent) {
             if (from.textContent === 'foo') {
                 prevent()
@@ -30,7 +30,7 @@ test('can prevent update', () => {
 test('can prevent update, but still update children', () => {
     let dom = createElement('<div><span foo="bar">foo</span></div>')
 
-    Alpine.morph(dom, '<div><span foo="baz">bar</span></div>', {
+    morph(dom, '<div><span foo="baz">bar</span></div>', {
         updating(from, to, childrenOnly, prevent) {
             if (from.textContent === 'foo') {
                 childrenOnly()
@@ -47,7 +47,7 @@ test('changing tag doesnt trigger an update (add and remove instead)', () => {
 
     let updateHookCalledTimes = 0
 
-    Alpine.morph(dom, '<div><h1>foo</h1></div>', {
+    morph(dom, '<div><h1>foo</h1></div>', {
         updating(from, to, prevent) {
             updateHookCalledTimes++
         }
@@ -59,7 +59,7 @@ test('changing tag doesnt trigger an update (add and remove instead)', () => {
 test('can impact update', () => {
     let dom = createElement('<div><span>foo</span></div>')
 
-    Alpine.morph(dom, '<div><span>bar</span></div>', {
+    morph(dom, '<div><span>bar</span></div>', {
         updated(from, to) {
             if (from.textContent === 'bar') {
                 from.textContent = 'baz'
@@ -76,7 +76,7 @@ test('updating and updated are sequential when element has child updates ', () =
     let updatings = []
     let updateds = []
 
-    Alpine.morph(dom, '<div><span>bar</span></div>', {
+    morph(dom, '<div><span>bar</span></div>', {
         updating(from, to) {
             updatings.push(from.nodeName.toLowerCase())
         },
@@ -93,7 +93,7 @@ test('updating and updated are sequential when element has child updates ', () =
 test('can prevent removal', () => {
     let dom = createElement('<div><span>foo</span></div>')
 
-    Alpine.morph(dom, '<div></div>', {
+    morph(dom, '<div></div>', {
         removing(from, prevent) {
             prevent()
         }
@@ -107,7 +107,7 @@ test('can impact removal', () => {
 
     let textContent
 
-    Alpine.morph(dom, '<div></div>', {
+    morph(dom, '<div></div>', {
         removed(from) {
             textContent = from.textContent
         }
@@ -119,7 +119,7 @@ test('can impact removal', () => {
 test('can prevent removal for tag replacement', () => {
     let dom = createElement('<div><span>foo</span></div>')
 
-    Alpine.morph(dom, '<div><h1>foo</h1></div>', {
+    morph(dom, '<div><h1>foo</h1></div>', {
         removing(from, prevent) {
             prevent()
         }
@@ -133,7 +133,7 @@ test('can impact removal for tag replacement', () => {
 
     let textContent
 
-    Alpine.morph(dom, '<div><h1>foo</h1></div>', {
+    morph(dom, '<div><h1>foo</h1></div>', {
         removed(from) {
             textContent = from.textContent
         }
@@ -145,7 +145,7 @@ test('can impact removal for tag replacement', () => {
 test('can prevent addition', () => {
     let dom = createElement('<div></div>')
 
-    Alpine.morph(dom, '<div><span>foo</span></div>', {
+    morph(dom, '<div><span>foo</span></div>', {
         adding(to, prevent) {
             prevent()
         }
@@ -157,7 +157,7 @@ test('can prevent addition', () => {
 test('can impact addition', () => {
     let dom = createElement('<div></div>')
 
-    Alpine.morph(dom, '<div><span>foo</span></div>', {
+    morph(dom, '<div><span>foo</span></div>', {
         added(to) {
             to.textContent = 'bar'
         }
@@ -169,7 +169,7 @@ test('can impact addition', () => {
 test('can prevent addition for tag replacement', () => {
     let dom = createElement('<div><h1>foo</h1></div>')
 
-    Alpine.morph(dom, '<div><span>foo</span></div>', {
+    morph(dom, '<div><span>foo</span></div>', {
         adding(to, prevent) {
             prevent()
         }
@@ -181,7 +181,7 @@ test('can prevent addition for tag replacement', () => {
 test('can impact addition for tag replacement', () => {
     let dom = createElement('<div><h1>foo</h1></div>')
 
-    Alpine.morph(dom, '<div><span>foo</span></div>', {
+    morph(dom, '<div><span>foo</span></div>', {
         added(to) {
             to.textContent = 'bar'
         }

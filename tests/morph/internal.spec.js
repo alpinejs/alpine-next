@@ -1,4 +1,4 @@
-require('./../../dist/alpine.js')
+let { morph } = require('@alpinejs/morph')
 let createElement = require('./createElement.js')
 
 test('changed element is the same element', () => {
@@ -6,7 +6,7 @@ test('changed element is the same element', () => {
 
     dom.querySelector('span').is_me = true
 
-    Alpine.morph(dom, '<div><span>bar</span></div>')
+    morph(dom, '<div><span>bar</span></div>')
 
     expect(dom.querySelector('span').is_me).toBeTruthy()
 })
@@ -16,7 +16,7 @@ test('non-keyed elements are replaced instead of moved', () => {
 
     dom.querySelector('li').is_me = true
 
-    Alpine.morph(dom, '<ul><li>foo</li><li>bar</li></ul>')
+    morph(dom, '<ul><li>foo</li><li>bar</li></ul>')
 
     expect(dom.querySelector('li:nth-of-type(1)').is_me).toBeTruthy()
 })
@@ -26,7 +26,7 @@ test('keyed elements are moved instead of replaced', () => {
 
     dom.querySelector('li').is_me = true
 
-    Alpine.morph(dom, '<ul><li key="1">foo</li><li key="2">bar</li></ul>')
+    morph(dom, '<ul><li key="1">foo</li><li key="2">bar</li></ul>')
 
     expect(dom.querySelector('li:nth-of-type(2)').is_me).toBeTruthy()
 })
@@ -36,7 +36,7 @@ test('elements inserted into a list are properly tracked using lookahead inside 
 
     dom.querySelector('li').is_me = true
 
-    Alpine.morph(dom, '<ul><li>foo</li><li>bar</li></ul>', {
+    morph(dom, '<ul><li>foo</li><li>bar</li></ul>', {
         lookahead: true,
     })
 
@@ -53,7 +53,7 @@ test('lookahead still works if comparison elements have keys', () => {
     dom.querySelector('li:nth-of-type(1)').is_me = true
     dom.querySelector('li:nth-of-type(2)').is_me = true
 
-    Alpine.morph(dom, `<ul>
+    morph(dom, `<ul>
 <li key="foo">foo</li>
 <li key="bar">bar</li>
 <li>hey</li>
@@ -77,7 +77,7 @@ test('baz', () => {
     dom.querySelector('li:nth-of-type(1)').is_me = true
     dom.querySelector('li:nth-of-type(2)').is_me = true
 
-    Alpine.morph(dom, `<ul>
+    morph(dom, `<ul>
 <li>foo</li>
 
 <li key="bar">bar</li>
@@ -101,7 +101,7 @@ test('blah blah blah no lookahead', () => {
 
     dom.querySelector('li:nth-of-type(1)').is_me = true
 
-    Alpine.morph(dom, `<ul>
+    morph(dom, `<ul>
 <li key="foo">foo</li>
 <li key="bar">bar</li>
 <li>hey</li>

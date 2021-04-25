@@ -303,59 +303,59 @@ function isShowing(from, to) {
 // This is from Livewire:
 
 
-function alpinifyElementsForMorphdom(from, to) {
-    // If the element we are updating is an Alpine component...
-    if (from.__x) {
-        // Then temporarily clone it (with it's data) to the "to" element.
-        // This should simulate backend Livewire being aware of Alpine changes.
-        window.Alpine.clone(from.__x, to)
-    }
+// function alpinifyElementsForMorphdom(from, to) {
+//     // If the element we are updating is an Alpine component...
+//     if (from.__x) {
+//         // Then temporarily clone it (with it's data) to the "to" element.
+//         // This should simulate backend Livewire being aware of Alpine changes.
+//         window.Alpine.clone(from.__x, to)
+//     }
 
-    // x-show elements require care because of transitions.
-    if (
-        Array.from(from.attributes)
-            .map(attr => attr.name)
-            .some(name => /x-show/.test(name))
-    ) {
-        if (from.__x_transition) {
-            // This covers @entangle('something')
-            from.skipElUpdatingButStillUpdateChildren = true
-        } else {
-            // This covers x-show="$wire.something"
-            //
-            // If the element has x-show, we need to "reverse" the damage done by "clone",
-            // so that if/when the element has a transition on it, it will occur naturally.
-            if (isHiding(from, to)) {
-                let style = to.getAttribute('style')
+//     // x-show elements require care because of transitions.
+//     if (
+//         Array.from(from.attributes)
+//             .map(attr => attr.name)
+//             .some(name => /x-show/.test(name))
+//     ) {
+//         if (from.__x_transition) {
+//             // This covers @entangle('something')
+//             from.skipElUpdatingButStillUpdateChildren = true
+//         } else {
+//             // This covers x-show="$wire.something"
+//             //
+//             // If the element has x-show, we need to "reverse" the damage done by "clone",
+//             // so that if/when the element has a transition on it, it will occur naturally.
+//             if (isHiding(from, to)) {
+//                 let style = to.getAttribute('style')
 
-                if (style) {
-                    to.setAttribute('style', style.replace('display: none;', ''))
-                }
-            } else if (isShowing(from, to)) {
-                to.style.display = from.style.display
-            }
-        }
-    }
-}
+//                 if (style) {
+//                     to.setAttribute('style', style.replace('display: none;', ''))
+//                 }
+//             } else if (isShowing(from, to)) {
+//                 to.style.display = from.style.display
+//             }
+//         }
+//     }
+// }
 
-function isHiding(from, to) {
-    if (beforeAlpineTwoPointSevenPointThree()) {
-        return from.style.display === '' && to.style.display === 'none'
-    }
+// function isHiding(from, to) {
+//     if (beforeAlpineTwoPointSevenPointThree()) {
+//         return from.style.display === '' && to.style.display === 'none'
+//     }
 
-    return from.__x_is_shown && ! to.__x_is_shown
-}
+//     return from.__x_is_shown && ! to.__x_is_shown
+// }
 
-function isShowing(from, to) {
-    if (beforeAlpineTwoPointSevenPointThree()) {
-        return from.style.display === 'none' && to.style.display === ''
-    }
+// function isShowing(from, to) {
+//     if (beforeAlpineTwoPointSevenPointThree()) {
+//         return from.style.display === 'none' && to.style.display === ''
+//     }
 
-    return ! from.__x_is_shown && to.__x_is_shown
-}
+//     return ! from.__x_is_shown && to.__x_is_shown
+// }
 
-function beforeAlpineTwoPointSevenPointThree() {
-    let [major, minor, patch] = window.Alpine.version.split('.').map(i => Number(i))
+// function beforeAlpineTwoPointSevenPointThree() {
+//     let [major, minor, patch] = window.Alpine.version.split('.').map(i => Number(i))
 
-    return major <= 2 && minor <= 7 && patch <= 2
-}
+//     return major <= 2 && minor <= 7 && patch <= 2
+// }

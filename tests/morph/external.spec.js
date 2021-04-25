@@ -1,4 +1,4 @@
-require('./../../dist/alpine.js')
+let { morph } = require('@alpinejs/morph')
 let createElement = require('./createElement.js')
 
 test('text content', () => assertPatch(
@@ -37,5 +37,5 @@ test('change attribute', () => assertPatch(
 ))
 
 function assertPatch(before, after) {
-    expect(window.Alpine.morph(createElement(before), after).outerHTML).toEqual(after)
+    expect(morph(createElement(before), after).outerHTML).toEqual(after)
 }
