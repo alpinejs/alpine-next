@@ -1,6 +1,6 @@
-import { setReactivity, reactive, effect } from './reactivity'
+import { setReactivityEngine, reactive, effect, stop, raw } from './reactivity'
 import { mapAttributes, directive, setPrefix as prefix } from './directives'
-import { start, addRootSelector } from './lifecycle'
+import { start, addRootSelector, closestRoot } from './lifecycle'
 import { setEvaluator, evaluate, evaluateLater } from './evaluator'
 import { component } from './components'
 import { nextTick } from './nextTick'
@@ -9,17 +9,21 @@ import { store } from './store'
 import { clone } from './clone'
 
 let Alpine = {
+    get reactive() { return reactive },
+    get effect() { return effect },
+    get stop() { return stop },
+    get raw() { return raw },
+    version: ALPINE_VERSION,
     addRootSelector,
-    setReactivity,
+    setReactivityEngine,
     mapAttributes,
     setEvaluator,
-    evaluate,
     evaluateLater,
+    closestRoot,
+    evaluate,
     component,
     directive,
     nextTick,
-    reactive,
-    effect,
     prefix,
     magic,
     store,

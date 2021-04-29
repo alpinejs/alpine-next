@@ -1,12 +1,11 @@
-import { directive, directives, handleDirective, into, mapAttributes, prefix, startingWith } from '../directives'
+import { directive, directives, into, mapAttributes, prefix, startingWith } from '../directives'
 import { evaluate, evaluateLater } from '../evaluator'
-import { effect } from '../reactivity'
 import bind from '../utils/bind'
 
 mapAttributes(startingWith(':', into(prefix('bind:'))))
 
-directive('bind', (el, { value, modifiers, expression }) => {
-    if (! value) return applyBindingsObject(el, expression)
+directive('bind', (el, { value, modifiers, expression, original }, { effect }) => {
+    if (! value) return applyBindingsObject(el, expression, original)
 
     if (value === 'key') return storeKeyForXFor(el, expression)
 
@@ -17,14 +16,12 @@ directive('bind', (el, { value, modifiers, expression }) => {
     }))
 })
 
-function applyBindingsObject(el, expression) {
+function applyBindingsObject(el, expression, original) {
     let bindings = evaluate(el, expression)
 
     let attributes = Object.entries(bindings).map(([name, value]) => ({ name, value }))
 
-    directives(el, attributes).forEach(directive => {
-        handleDirective(el, directive)
-    })
+    directives(el, attributes, original).forEach(handle => handle())
 }
 
 function storeKeyForXFor(el, expression) {

@@ -70,6 +70,10 @@ function bundleFile(package, file) {
 }
 
 function build(options) {
+    options.define || (options.define = {})
+
+    options.define['ALPINE_VERSION'] = `'${getFromPackageDotJson('alpinejs', 'version')}'`
+
     return require('esbuild').build({
         watch: process.argv.includes('--watch'),
         // external: ['alpinejs'],
@@ -81,6 +85,12 @@ function writeToPackageDotJson(package, key, value) {
     let dotJson = new DotJson(`./packages/${package}/package.json`)
 
     dotJson.set(key, value).save()
+}
+
+function getFromPackageDotJson(package, key) {
+    let dotJson = new DotJson(`./packages/${package}/package.json`)
+
+    return dotJson.get(key)
 }
 
 function outputSize(package, file) {

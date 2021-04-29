@@ -1,10 +1,9 @@
 import { setStyles } from '../utils/styles'
 import { directive } from '../directives'
 import { evaluateLater } from '../evaluator'
-import { effect } from '../reactivity'
 import { once } from '../utils/once'
 
-directive('if', (el, { value, modifiers, expression }) => {
+directive('if', (el, { modifiers, expression }, { effect, cleanup }) => {
     let evaluate = evaluateLater(el, expression)
 
     let show = () => {
@@ -64,4 +63,6 @@ directive('if', (el, { value, modifiers, expression }) => {
 
         toggle(value)
     }))
+
+    cleanup(() => el._x_undoIf && el._x_undoIf())
 })

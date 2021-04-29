@@ -1,15 +1,23 @@
 import { deferHandlingDirectives, directives } from "./directives"
 import { dispatch } from './utils/dispatch'
-import { nextTick } from './nextTick'
 import { walk } from "./utils/walk"
 import { warn } from './utils/warn'
+import { attachMutationObserver, onAttributesAdded, onElAdded, onElRemoved } from "./mutation"
+import { nextTick } from "./nextTick"
 
 export function start() {
     if (! document.body) warn('Unable to initialize. Trying to load Alpine before `<body>` is available. Did you forget to add `defer` in Alpine\'s `<script>` tag?')
 
     dispatch(document, 'alpine:initializing')
 
-    listenForAndReactToDomManipulations(document.body)
+    attachMutationObserver(document.body)
+
+    onElAdded(el => initTree(el))
+    onElRemoved(el => nextTick(() => destroyTree(el)))
+
+    onAttributesAdded((el, attrs) => {
+        directives(el, attrs).forEach(handle => handle())
+    })
 
     let outNestedComponents = el => ! closestRoot(el.parentNode || closestRoot(el))
 
@@ -36,14 +44,14 @@ export function closestRoot(el) {
     return closestRoot(el.parentElement)
 }
 
-export function initTree(el) {
-    deferHandlingDirectives(handleDirective => {
-        walk(el, (el, skip) => {
-            directives(el).forEach(directive => {
-                if (el._x_ignore || el._x_ignore_self) return
+export function isRoot(el) {
+    return rootSelectors().some(selector => el.matches(selector))
+}
 
-                handleDirective(el, directive)
-            })
+export function initTree(el, walker = walk) {
+    deferHandlingDirectives(() => {
+        walker(el, (el, skip) => {
+            directives(el, el.attributes).forEach(handle => handle())
 
             if (el._x_ignore) skip()
         })
@@ -64,38 +72,4 @@ function destroyTree(root) {
 
         callbacks && callbacks.forEach(callback => callback())
     })
-}
-
-function listenForAndReactToDomManipulations(el) {
-    let observer = new MutationObserver(mutations => {
-        let addeds = mutations.flatMap(i => Array.from(i.addedNodes))
-        let removeds = mutations.flatMap(i => Array.from(i.removedNodes))
-
-        for (let node of addeds) {
-            if (node.nodeType !== 1) continue
-
-            // If an element gets moved on a page, it's registered
-            // as both an "add" and "remove", so we wan't to skip those.
-            if (removeds.includes(node)) continue
-
-            if (node._x_ignoreMutationObserver) continue
-
-            initTree(node)
-        }
-
-        for (let node of removeds) {
-            if (node.nodeType !== 1) continue
-
-            // If an element gets moved on a page, it's registered
-            // as both an "add" and "remove", so we wan't to skip those.
-            if (addeds.includes(node)) continue
-
-            if (node._x_ignoreMutationObserver) continue
-
-            // Don't block execution for destroy callbacks.
-            nextTick(() => destroyTree(node))
-        }
-    })
-
-    observer.observe(el, { subtree: true, childList: true, deep: false })
 }

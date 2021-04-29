@@ -1,10 +1,6 @@
-let Alpine
-
 let pauseReactions = false
 
-export default function (el, { value, modifiers, expression }, global) {
-    let Alpine = global
-
+export default function (el, { value, modifiers, expression }, { Alpine }) {
     let evaluate = Alpine.evaluateLater(el, expression)
 
     if (['out', 'leave'].includes(value)) {

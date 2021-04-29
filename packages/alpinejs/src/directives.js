@@ -1,4 +1,6 @@
 import Alpine from './alpine'
+import { onAttributeRemoved, onElRemoved } from './mutation'
+import { effect, stop } from './reactivity'
 
 let prefixAsString = 'x-'
 
@@ -20,32 +22,64 @@ export function handleDirective(el, directive) {
     getDirectiveHandler(el, directive)()
 }
 
+export function directives(el, attributes, originalAttributeOverride) {
+    let transformedAttributeMap = {}
+
+    let directives = Array.from(attributes)
+        .map(toTransformedAttributes((newName, oldName) => transformedAttributeMap[newName] = oldName))
+        .filter(outNonAlpineAttributes)
+        .map(toParsedDirectives(transformedAttributeMap, originalAttributeOverride))
+        .sort(byPriority)
+
+    return directives.map(directive => {
+        return getDirectiveHandler(el, directive)
+    })
+}
+
+let isDeferringHandlers = false
+let directiveHandlerStack = []
+
+export function deferHandlingDirectives(callback) {
+    isDeferringHandlers = true
+
+    callback()
+
+    isDeferringHandlers = false
+
+    while (directiveHandlerStack.length) directiveHandlerStack.shift()()
+}
+
 export function getDirectiveHandler(el, directive) {
     let noop = () => {}
 
     let handler = directiveHandlers[directive.type] || noop
 
-    handler.inline && handler.inline(el, directive, Alpine)
+    let cleanups = []
 
-    return handler.bind(handler, el, directive, Alpine)
-}
+    let cleanup = callback => cleanups.push(callback)
 
-export function deferHandlingDirectives(loopingCallback) {
-    let directiveHandlerStack = []
+    let wrappedEffect = (callback) => {
+        let effectReference = effect(callback)
 
-    loopingCallback((el, directive) => {
-        directiveHandlerStack.push(getDirectiveHandler(el, directive))
-    })
+        cleanups.push(() => stop(effectReference))
+    }
 
-    while (directiveHandlerStack.length) directiveHandlerStack.shift()()
-}
+    let utilities = { Alpine, effect: wrappedEffect, cleanup }
 
-export function directives(el, alternativeAttributes) {
-    return Array.from(alternativeAttributes || el.attributes)
-        .map(toTransformedAttributes)
-        .filter(outNonAlpineAttributes)
-        .map(toParsedDirectives)
-        .sort(byPriority)
+    let doCleanup = () => cleanups.forEach(i => i())
+
+    onAttributeRemoved(el, directive.original, doCleanup)
+    onElRemoved(el, doCleanup)
+
+    return () => {
+        if (el._x_ignore || el._x_ignore_self) return
+
+        handler.inline && handler.inline(el, directive, utilities)
+
+        handler = handler.bind(handler, el, directive, utilities)
+
+        isDeferringHandlers ? directiveHandlerStack.push(handler) : handler()
+    }
 }
 
 export let startingWith = (subject, replacement) => ({ name, value }) => {
@@ -56,10 +90,16 @@ export let startingWith = (subject, replacement) => ({ name, value }) => {
 
 export let into = i => i
 
-function toTransformedAttributes({ name, value }) {
-    return attributeTransformers.reduce((carry, transform) => {
-        return transform(carry)
-    }, { name, value })
+function toTransformedAttributes(callback) {
+    return ({ name, value }) => {
+        let { name: newName, value: newValue } = attributeTransformers.reduce((carry, transform) => {
+            return transform(carry)
+        }, { name, value })
+
+        if (newName !== name) callback(newName, name)
+
+        return { name: newName, value: newValue }
+    }
 }
 
 let attributeTransformers = []
@@ -74,16 +114,20 @@ function outNonAlpineAttributes({ name }) {
 
 let alpineAttributeRegex = () => (new RegExp(`^${prefixAsString}([^:^.]+)\\b`))
 
-function toParsedDirectives({ name, value }) {
-    let typeMatch = name.match(alpineAttributeRegex())
-    let valueMatch = name.match(/:([a-zA-Z0-9\-:]+)/)
-    let modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || []
+function toParsedDirectives(transformedAttributeMap, originalAttributeOverride) {
+    return ({ name, value }) => {
+        let typeMatch = name.match(alpineAttributeRegex())
+        let valueMatch = name.match(/:([a-zA-Z0-9\-:]+)/)
+        let modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || []
+        let original = originalAttributeOverride || transformedAttributeMap[name] || name
 
-    return {
-        type: typeMatch ? typeMatch[1] : null,
-        value: valueMatch ? valueMatch[1] : null,
-        modifiers: modifiers.map(i => i.replace('.', '')),
-        expression: value,
+        return {
+            type: typeMatch ? typeMatch[1] : null,
+            value: valueMatch ? valueMatch[1] : null,
+            modifiers: modifiers.map(i => i.replace('.', '')),
+            expression: value,
+            original,
+        }
     }
 }
 

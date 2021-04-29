@@ -4,12 +4,14 @@ import { setStyles } from '../utils/styles'
 import { directive } from '../directives'
 import { once } from '../utils/once'
 
-directive('transition', (el, { value, modifiers, expression }) => {
+directive('transition', (el, { value, modifiers, expression }, { cleanup }) => {
     if (! expression) {
         registerTransitionsFromHelper(el, modifiers, value)
     } else {
         registerTransitionsFromClassString(el, expression, value)
     }
+
+    cleanup(() => delete el._x_transition)
 })
 
 function registerTransitionsFromClassString(el, classString, stage) {

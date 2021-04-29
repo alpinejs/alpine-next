@@ -1,8 +1,22 @@
-import { initTree } from "./lifecycle"
+import { initTree, isRoot } from "./lifecycle"
+import { effect, stop, overrideEffect } from "./reactivity"
+import { walk } from "./utils/walk"
 
 let isCloning = false
 
 export function skipDuringClone(callback) {
+    return (...args) => isCloning || callback(...args)
+}
+
+export function onlyDuringClone(callback) {
+    return (...args) => isCloning && callback(...args)
+}
+
+export function skipWalkingSubClone(callback) {
+    return (...args) => isCloning || callback(...args)
+}
+
+export function interuptCrawl(callback) {
     return (...args) => isCloning || callback(...args)
 }
 
@@ -11,7 +25,39 @@ export function clone(oldEl, newEl) {
 
     isCloning = true
 
-    initTree(newEl)
+    dontRegisterReactiveSideEffects(() => {
+        cloneTree(newEl)
+    })
 
     isCloning = false
+}
+
+export function cloneTree(el) {
+    let hasRunThroughFirstEl = false
+
+    let shallowWalker = (el, callback) => {
+        walk(el, (el, skip) => {
+            if (hasRunThroughFirstEl && isRoot(el)) return skip()
+
+            hasRunThroughFirstEl = true
+
+            callback(el, skip)
+        })
+    }
+
+    initTree(el, shallowWalker)
+}
+
+function dontRegisterReactiveSideEffects(callback) {
+    let cache = effect
+
+    overrideEffect((callback, el) => {
+        let storedEffect = cache(callback)
+
+        stop(storedEffect)
+    })
+
+    callback()
+
+    overrideEffect(cache)
 }

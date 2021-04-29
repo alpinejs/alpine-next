@@ -1,15 +1,16 @@
 import { getComponent } from '../components'
 import { evaluate } from '../evaluator'
-import { addScopeToNode, hasScope } from '../scope'
+import { addScopeToNode } from '../scope'
 import { directive, prefix } from '.'
 import { reactive } from '../reactivity'
 import { injectMagics } from '../magics'
-import { onDestroy, addRootSelector } from '../lifecycle'
+import { addRootSelector } from '../lifecycle'
 import { skipDuringClone } from '../clone'
+import { dispatch } from '../utils/dispatch'
 
 addRootSelector(() => `[${prefix('data')}]`)
 
-directive('data', skipDuringClone((el, { expression }) => {
+directive('data', skipDuringClone((el, { expression }, { cleanup }) => {
     expression = expression === '' ? '{}' : expression
 
     let component = getComponent(expression)
@@ -20,13 +21,15 @@ directive('data', skipDuringClone((el, { expression }) => {
 
     let reactiveData = reactive(data)
 
-    addScopeToNode(el, reactiveData)
+    let undo = addScopeToNode(el, reactiveData)
+
+    dispatch(el, 'alpine:rename-me', { rawData: data, reactiveData })
 
     if (reactiveData['init']) reactiveData['init']()
 
-    if (reactiveData['destroy']) {
-        onDestroy(el, () => {
-            reactiveData['destroy']()
-        })
-    }
+    cleanup(() => {
+        undo()
+
+        reactiveData['destroy'] && reactiveData['destory']()
+    })
 }))

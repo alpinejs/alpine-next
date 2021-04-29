@@ -1,13 +1,9 @@
 import { morph } from './morph'
 
-let Alpine
-
-export default function (el, { expression }, global) {
-    let Alpine = global
-
+export default function (el, { expression }, { effect }) {
     let evaluate = Alpine.evaluateLater(el, expression)
 
-    Alpine.effect(() => {
+    effect(() => {
         evaluate(value => {
             if (! el.firstElementChild) {
                 if (el.firstChild) el.firstChild.remove()

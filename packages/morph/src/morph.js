@@ -2,7 +2,19 @@
 export function morph(dom, toHtml, options) {
     assignOptions(options)
 
-    patch(dom, createElement(toHtml))
+    let to = createElement(toHtml)
+
+    if (window.Alpine) {
+        let root = window.Alpine.closestRoot(dom)
+
+        if (root) {
+            dom._x_dataStack = root._x_dataStack
+
+            window.Alpine.clone(dom, to)
+        }
+    }
+
+    patch(dom, to)
 
     return dom
 }
@@ -46,7 +58,7 @@ function patch(dom, to) {
 
     if (shouldSkip(updating, dom, to, () => updateChildrenOnly = true)) return
 
-    initializeAlpineOnTo(dom, to, () => updateChildrenOnly = true)
+    window.Alpine && initializeAlpineOnTo(dom, to, () => updateChildrenOnly = true)
 
     if (textOrComment(to)) {
         patchNodeValue(dom, to)
@@ -94,6 +106,13 @@ function patchNodeValue(dom, to) {
 }
 
 function patchAttributes(dom, to) {
+    if (dom._x_is_shown && ! to._x_is_shown) {
+        dom._x_hide()
+    }
+    if (! dom._x_is_shown && to._x_is_shown) {
+        dom._x_show()
+    }
+
     let domAttributes = Array.from(dom.attributes)
     let toAttributes = Array.from(to.attributes)
 
@@ -264,7 +283,7 @@ function initializeAlpineOnTo(from, to, childrenOnly) {
     if (from._x_dataStack) {
         // Then temporarily clone it (with it's data) to the "to" element.
         // This should simulate backend Livewire being aware of Alpine changes.
-        window.Alpine.copyTree(from, to)
+        window.Alpine.clone(from, to)
     }
 
     // x-show elements require care because of transitions.
@@ -273,20 +292,21 @@ function initializeAlpineOnTo(from, to, childrenOnly) {
             .map(attr => attr.name)
             .some(name => /x-show/.test(name))
     ) {
-        if (from._x_transitioning) {
+        if (from._x_transition) {
+            console.log('hey');
             // This covers @entangle('something')
-            childrenOnly()
+            // childrenOnly()
         } else {
             // This covers x-show="$wire.something"
             //
             // If the element has x-show, we need to "reverse" the damage done by "clone",
             // so that if/when the element has a transition on it, it will occur naturally.
-            if (isHiding(from, to)) {
-                let style = to.getAttribute('style')
-                to.setAttribute('style', style.replace('display: none;', ''))
-            } else if (isShowing(from, to)) {
-                to.style.display = from.style.display
-            }
+            // if (isHiding(from, to)) {
+            //     let style = to.getAttribute('style')
+            //     to.setAttribute('style', style.replace('display: none;', ''))
+            // } else if (isShowing(from, to)) {
+            //     to.style.display = from.style.display
+            // }
         }
     }
 }

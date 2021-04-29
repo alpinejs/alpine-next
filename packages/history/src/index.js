@@ -1,6 +1,6 @@
 let Alpine
 
-export default function (el, { expression }, global) {
+export default function (el, { expression }, { Alpine: global }) {
     Alpine = global
 
     let getValue = Alpine.evaluateLater(el, expression)
@@ -27,7 +27,7 @@ export function history(key, getter, setter) {
 
     let firstTime = true
 
-    window.effect(() => {
+    Alpine.effect(() => {
         let meta = {}
 
         let setMeta = (key, value) => meta[key] = value

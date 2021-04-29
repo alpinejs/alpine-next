@@ -36,9 +36,9 @@ Alpine.setEvaluator(normalEvaluator)
  * Alpine that triggers an element with x-text="message"
  * to update its inner text when "message" is changed.
  */
-import { reactive, effect } from '@vue/reactivity/dist/reactivity.esm-browser.prod.js'
+import { reactive, effect, stop, toRaw } from '@vue/reactivity/dist/reactivity.esm-browser.prod.js'
 
-Alpine.setReactivity(reactive, effect)
+Alpine.setReactivityEngine({ reactive, effect, stop, raw: toRaw })
 
 /**
  * _______________________________________________________

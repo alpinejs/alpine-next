@@ -1,10 +1,9 @@
 import { directive } from '.'
 import { evaluateLater } from '../evaluator'
-import { effect } from '../reactivity'
 import bind from '../utils/bind'
 import on from '../utils/on'
 
-directive('model', (el, { value, modifiers, expression }) => {
+directive('model', (el, { modifiers, expression }, { effect, cleanup }) => {
     let evaluate = evaluateLater(el, expression)
     let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`
     let evaluateAssignment = evaluateLater(el, assignmentExpression)
@@ -24,6 +23,8 @@ directive('model', (el, { value, modifiers, expression }) => {
             rightSideOfExpression: assigmentFunction
         }})
     })
+
+    cleanup(() => removeListener())
 
     el._x_forceModelUpdate = () => {
         evaluate(value => {

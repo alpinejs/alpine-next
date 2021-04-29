@@ -2,9 +2,8 @@ import { evaluateLater } from '../evaluator'
 import { directive } from '.'
 import { addScopeToNode } from '../scope'
 import { reactive } from '../reactivity'
-import { effect } from '../reactivity'
 
-directive('for', (el, { value, modifiers, expression }) => {
+directive('for', (el, { expression }, { effect, cleanup }) => {
     let iteratorNames = parseForExpression(expression)
 
     let evaluateItems = evaluateLater(el, iteratorNames.items)
@@ -14,6 +13,8 @@ directive('for', (el, { value, modifiers, expression }) => {
     )
 
     effect(() => loop(el, iteratorNames, evaluateItems, evaluateKey))
+
+    cleanup(() => el._x_old_iterations && el._x_old_iterations.forEach(i => i.remove()))
 })
 
 function loop(el, iteratorNames, evaluateItems, evaluateKey) {

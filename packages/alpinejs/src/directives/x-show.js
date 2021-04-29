@@ -1,10 +1,9 @@
 import { setStyles } from '../utils/styles'
 import { directive } from '../directives'
 import { evaluateLater } from '../evaluator'
-import { effect } from '../reactivity'
 import { once } from '../utils/once'
 
-directive('show', (el, { value, modifiers, expression }) => {
+directive('show', (el, { modifiers, expression }, { effect }) => {
     let evaluate = evaluateLater(el, expression)
 
     if (el.style.display) el.style.display = ''
