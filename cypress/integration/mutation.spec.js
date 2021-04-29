@@ -24,3 +24,33 @@ test('element side effects are cleaned up after the elements are removed',
         get('h2').should(haveText('3'))
     }
 )
+
+test('can mutate directive value',
+    `
+        <div x-data="{ foo: 'bar', bar: 'baz' }">
+            <button @click="$refs.target.setAttribute('x-text', 'bar')">change text</button>
+
+            <span x-text="foo" x-ref="target"></span>
+        </div>
+    `,
+    ({ get }) => {
+        get('span').should(haveText('bar'))
+        get('button').click()
+        get('span').should(haveText('baz'))
+    }
+)
+
+test('can add new directive',
+    `
+        <div x-data="{ foo: 'bar' }">
+            <button @click="$refs.target.setAttribute('x-text', 'foo')">change text</button>
+
+            <span x-ref="target"></span>
+        </div>
+    `,
+    ({ get }) => {
+        get('span').should(haveText(''))
+        get('button').click()
+        get('span').should(haveText('bar'))
+    }
+)
