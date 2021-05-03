@@ -1,4 +1,3 @@
-import { setStyles } from '../utils/styles'
 import { directive } from '../directives'
 import { evaluateLater } from '../evaluator'
 import { once } from '../utils/once'
@@ -6,19 +5,18 @@ import { once } from '../utils/once'
 directive('show', (el, { modifiers, expression }, { effect }) => {
     let evaluate = evaluateLater(el, expression)
 
-    if (el.style.display) el.style.display = ''
-
     let hide = () => {
-        el._x_undoHide = setStyles(el, { display: 'none' })
+        el.style.display = 'none'
 
         el._x_is_shown = false
     }
 
     let show = () => {
-        // Don't actually "show" an element until JavaScript has completely
-        // finished its execution. This way things like @click.away work
-        // properly instead of causing race-conditions when toggling.
-        el._x_undoHide?.() || delete el._x_undoHide
+        if (el.style.length === 1 && el.style.display === 'none') {
+            el.removeAttribute('style')
+        } else {
+            el.style.removeProperty('display')
+        }
 
         el._x_is_shown = true
     }

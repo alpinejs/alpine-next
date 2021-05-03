@@ -5,15 +5,13 @@ export default function (el, { expression }, { effect }) {
 
     effect(() => {
         evaluate(value => {
-            if (! el.firstElementChild) {
-                if (el.firstChild) el.firstChild.remove()
+            let child = el.firstElementChild || el.firstChild || el.appendChild(document.createTextNode(''))
 
-                el.appendChild(document.createElement('div'))
-            }
-
-            morph(el.firstElementChild, value)
+            morph(child, value)
         })
     })
 }
+
+window.morphit = morph
 
 export { morph }

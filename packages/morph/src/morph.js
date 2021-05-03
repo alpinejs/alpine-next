@@ -2,19 +2,7 @@
 export function morph(dom, toHtml, options) {
     assignOptions(options)
 
-    let to = createElement(toHtml)
-
-    if (window.Alpine) {
-        let root = window.Alpine.closestRoot(dom)
-
-        if (root) {
-            dom._x_dataStack = root._x_dataStack
-
-            window.Alpine.clone(dom, to)
-        }
-    }
-
-    patch(dom, to)
+    patch(dom, createElement(toHtml))
 
     return dom
 }
@@ -107,10 +95,12 @@ function patchNodeValue(dom, to) {
 
 function patchAttributes(dom, to) {
     if (dom._x_is_shown && ! to._x_is_shown) {
-        dom._x_hide()
+        return
+        // dom._x_hide()
     }
     if (! dom._x_is_shown && to._x_is_shown) {
-        dom._x_show()
+        return
+        // dom._x_show()
     }
 
     let domAttributes = Array.from(dom.attributes)
@@ -253,6 +243,7 @@ function shouldSkip(hook, ...args) {
 }
 
 function addNodeTo(node, parent) {
+    console.log(node);
     if(! shouldSkip(adding, node)) {
         let clone = node.cloneNode(true)
 
@@ -285,6 +276,8 @@ function initializeAlpineOnTo(from, to, childrenOnly) {
         // This should simulate backend Livewire being aware of Alpine changes.
         window.Alpine.clone(from, to)
     }
+
+console.log(from.outerHTML, to.outerHTML);
 
     // x-show elements require care because of transitions.
     if (

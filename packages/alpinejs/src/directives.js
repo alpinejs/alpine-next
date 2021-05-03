@@ -61,6 +61,13 @@ export function getDirectiveHandler(el, directive) {
     let wrappedEffect = (callback) => {
         let effectReference = effect(callback)
 
+        if (! el._x_effects) {
+            el._x_effects = []
+            el._x_refreshEffects = () => { el._x_effects.forEach(i => i()) }
+        }
+
+        el._x_effects.push(effectReference)
+
         cleanups.push(() => stop(effectReference))
     }
 

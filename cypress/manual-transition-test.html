@@ -16,6 +16,21 @@
         </tr>
 
         <tr>
+            <td><code>x-transition</code></td>
+            <td>
+                <div x-data="{ open: false }">
+                    <button @click="open = ! open">Toggle</button>
+
+                    <div x-show="open">
+                        <div x-show="open" x-transition.duration.250ms>
+                            <h1>Hello 👋</h1>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
             <td><code>x-transition.opacity</code></td>
             <td>
                 <div x-data="{ open: false }">

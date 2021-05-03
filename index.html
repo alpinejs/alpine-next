@@ -9,31 +9,40 @@
 
     <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
 
-    <div x-data="{ open: true }">
-        <button @click="open = ! open">toggle</button>
-
-        <div x-show="open" x-transition>
-            <span x-text="'new'">old</span>
-        </div>
-    </div>
-
-    <!-- <div x-data="{ frame: 0 }">
+    <script>window.count = 0</script>
+    <div x-data="{ frame: 0 }">
         <template x-ref="0">
-            <h1><div></div>foo</h1>
+            <div x-data>
+                <div x-show="window.count % 2 == 0">foo</div>
+            </div>
         </template>
 
         <template x-ref="1">
-            <h1><div x-data="{ text: 'yo' }" x-text="text"></div> foo</h1>
+            <div x-data>
+                <div x-show="window.count % 2 == 0">bar</div>
+            </div>
         </template>
 
-        <template x-ref="2">
-            <h1><div x-data="{ text: 'yo' }" x-text="text + 'yo'"></div> foo</h1>
-        </template>
+        <button @click="frame++; window.count++">morph</button>
 
-        <button @click="frame++">morph</button>
+        <article x-morph="$refs[frame % 2].innerHTML"></article>
+    </div>
 
-        <article x-morph="$refs[frame % 3].innerHTML"></article>
-    </div> -->
+    <!-- <div x-data="{ foo: 'bar' }">
+        <button @click="foo = 'baz'">Change Foo</button>
+        <span x-text="foo"></span>
+    </div>
+
+    <button onclick="morph()">morph</button>
+
+    <script>
+        let div = document.querySelector('div')
+        let html = div.outerHTML
+
+        function morph() {
+            morphit(div, html)
+        }
+    </script> -->
 
     <!-- Use Cases: -->
     <!-- Animating in -->

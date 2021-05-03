@@ -108,6 +108,7 @@ function registerTransitionObject(el, setFunction, defaultValue = {}) {
                 during: this.enter.during,
                 start: this.enter.start,
                 end: this.enter.end,
+                entering: true,
             }, before, after)
         },
 
@@ -116,13 +117,14 @@ function registerTransitionObject(el, setFunction, defaultValue = {}) {
                 during: this.leave.during,
                 start: this.leave.start,
                 end: this.leave.end,
+                entering: false,
             }, before, after)
         },
     }
 }
 
 window.Element.prototype._x_toggleAndCascadeWithTransitions = function (el, value, show, hide) {
-    let clickAwayCompatibleShow = () => setTimeout(show)
+    let clickAwayCompatibleShow = () => requestAnimationFrame(show)
 
     if (value) {
         el._x_transition
@@ -155,6 +157,7 @@ window.Element.prototype._x_toggleAndCascadeWithTransitions = function (el, valu
                         ...(el._x_hide_children || []).map(hideAfterChildren)
                     ]).then(([i]) => i())
 
+                    delete el._x_hide_promise
                     delete el._x_hide_children
 
                     return carry
@@ -176,7 +179,7 @@ function closestHide(el) {
     return parent._x_hide_promise ? parent : closestHide(parent)
 }
 
-export function transition(el, setFunction, { during, start, end } = {}, before = () => {}, after = () => {}) {
+export function transition(el, setFunction, { during, start, end, entering } = {}, before = () => {}, after = () => {}) {
     if (el._x_transitioning) el._x_transitioning.cancel()
 
     let undoStart, undoDuring, undoEnd
@@ -199,10 +202,10 @@ export function transition(el, setFunction, { during, start, end } = {}, before 
             undoDuring()
             undoEnd()
         },
-    })
+    }, entering)
 }
 
-export function performTransition(el, stages) {
+export function performTransition(el, stages, entering) {
     // All transitions need to be truly "cancellable". Meaning we need to
     // account for interuptions at ALL stages of the transitions and
     // immediately run the rest of the transition.
@@ -231,7 +234,8 @@ export function performTransition(el, stages) {
         beforeCancels: [],
         beforeCancel(callback) { this.beforeCancels.push(callback) },
         cancel: once(function () { while (this.beforeCancels.length) { this.beforeCancels.shift()() }; finish(); }),
-        finish
+        finish,
+        entering
     }
 
     stages.start()
