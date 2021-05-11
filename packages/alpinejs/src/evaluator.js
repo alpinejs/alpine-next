@@ -34,7 +34,7 @@ export function normalEvaluator(el, expression) {
 
     return evaluator
 
-    // ...
+    // @todo...
     return tryCatch.bind(null, el, expression, evaluator)
 }
 
@@ -114,7 +114,6 @@ function tryCatch(el, expression, callback, ...args) {
     try {
         return callback(...args)
     } catch (e) {
-        console.log(callback.toString())
         console.warn(`Alpine Expression Error: ${e.message}\n\nExpression: "${expression}"\n\n`, el)
 
         throw e

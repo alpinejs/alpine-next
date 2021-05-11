@@ -243,7 +243,6 @@ function shouldSkip(hook, ...args) {
 }
 
 function addNodeTo(node, parent) {
-    console.log(node);
     if(! shouldSkip(adding, node)) {
         let clone = node.cloneNode(true)
 
@@ -277,8 +276,6 @@ function initializeAlpineOnTo(from, to, childrenOnly) {
         window.Alpine.clone(from, to)
     }
 
-console.log(from.outerHTML, to.outerHTML);
-
     // x-show elements require care because of transitions.
     if (
         Array.from(from.attributes)
@@ -286,7 +283,6 @@ console.log(from.outerHTML, to.outerHTML);
             .some(name => /x-show/.test(name))
     ) {
         if (from._x_transition) {
-            console.log('hey');
             // This covers @entangle('something')
             // childrenOnly()
         } else {
