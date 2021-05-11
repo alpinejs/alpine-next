@@ -1,5 +1,5 @@
 import { initTree, isRoot } from "./lifecycle"
-import { effect, stop, overrideEffect } from "./reactivity"
+import { effect, release, overrideEffect } from "./reactivity"
 import { walk } from "./utils/walk"
 
 let isCloning = false
@@ -54,7 +54,7 @@ function dontRegisterReactiveSideEffects(callback) {
     overrideEffect((callback, el) => {
         let storedEffect = cache(callback)
 
-        stop(storedEffect)
+        release(storedEffect)
     })
 
     callback()

@@ -1,6 +1,6 @@
-import Alpine from './alpine'
 import { onAttributeRemoved, onElRemoved } from './mutation'
-import { effect, stop } from './reactivity'
+import { effect, release } from './reactivity'
+import Alpine from './alpine'
 
 let prefixAsString = 'x-'
 
@@ -16,10 +16,6 @@ let directiveHandlers = {}
 
 export function directive(name, callback) {
     directiveHandlers[name] = callback
-}
-
-export function handleDirective(el, directive) {
-    getDirectiveHandler(el, directive)()
 }
 
 export function directives(el, attributes, originalAttributeOverride) {
@@ -63,12 +59,13 @@ export function getDirectiveHandler(el, directive) {
 
         if (! el._x_effects) {
             el._x_effects = []
-            el._x_refreshEffects = () => { el._x_effects.forEach(i => i()) }
+
+            el._x_runEffects = () => { el._x_effects.forEach(i => i()) }
         }
 
         el._x_effects.push(effectReference)
 
-        cleanups.push(() => stop(effectReference))
+        cleanups.push(() => release(effectReference))
     }
 
     let utilities = { Alpine, effect: wrappedEffect, cleanup }
@@ -78,7 +75,7 @@ export function getDirectiveHandler(el, directive) {
     onAttributeRemoved(el, directive.original, doCleanup)
     onElRemoved(el, doCleanup)
 
-    return () => {
+    let fullHandler = () => {
         if (el._x_ignore || el._x_ignore_self) return
 
         handler.inline && handler.inline(el, directive, utilities)
@@ -87,6 +84,10 @@ export function getDirectiveHandler(el, directive) {
 
         isDeferringHandlers ? directiveHandlerStack.push(handler) : handler()
     }
+
+    fullHandler.runCleanups = doCleanup
+
+    return fullHandler
 }
 
 export let startingWith = (subject, replacement) => ({ name, value }) => {

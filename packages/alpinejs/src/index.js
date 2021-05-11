@@ -38,7 +38,7 @@ Alpine.setEvaluator(normalEvaluator)
  */
 import { reactive, effect, stop, toRaw } from '@vue/reactivity/dist/reactivity.esm-browser.prod.js'
 
-Alpine.setReactivityEngine({ reactive, effect, stop, raw: toRaw })
+Alpine.setReactivityEngine({ reactive, effect, release: stop, raw: toRaw })
 
 /**
  * _______________________________________________________

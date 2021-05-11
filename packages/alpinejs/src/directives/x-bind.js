@@ -1,11 +1,11 @@
 import { directive, directives, into, mapAttributes, prefix, startingWith } from '../directives'
-import { evaluate, evaluateLater } from '../evaluator'
+import { evaluateLater } from '../evaluator'
 import bind from '../utils/bind'
 
 mapAttributes(startingWith(':', into(prefix('bind:'))))
 
 directive('bind', (el, { value, modifiers, expression, original }, { effect }) => {
-    if (! value) return applyBindingsObject(el, expression, original)
+    if (! value) return applyBindingsObject(el, expression, original, effect)
 
     if (value === 'key') return storeKeyForXFor(el, expression)
 
@@ -16,12 +16,25 @@ directive('bind', (el, { value, modifiers, expression, original }, { effect }) =
     }))
 })
 
-function applyBindingsObject(el, expression, original) {
-    let bindings = evaluate(el, expression)
+function applyBindingsObject(el, expression, original, effect) {
+    let getBindings = evaluateLater(el, expression)
 
-    let attributes = Object.entries(bindings).map(([name, value]) => ({ name, value }))
+    let cleanupRunners = []
 
-    directives(el, attributes, original).forEach(handle => handle())
+    effect(() => {
+        while (cleanupRunners.length) cleanupRunners.pop()()
+
+        getBindings(bindings => {
+            let attributes = Object.entries(bindings).map(([name, value]) => ({ name, value }))
+
+            directives(el, attributes, original).map(handle => {
+                cleanupRunners.push(handle.runCleanups)
+
+                handle()
+            })
+        })
+
+    })
 }
 
 function storeKeyForXFor(el, expression) {

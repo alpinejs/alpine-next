@@ -1,5 +1,5 @@
-import { injectMagics } from './magics'
 import { closestDataStack, mergeProxies } from './scope'
+import { injectMagics } from './magics'
 
 export function evaluate(el, expression, extras = {}) {
     let result

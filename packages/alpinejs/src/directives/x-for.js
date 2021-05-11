@@ -28,7 +28,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
 
         let oldIterations = templateEl._x_old_iterations || []
 
-        let iterations = Array.from(items).map((item, index) => {
+        let getIteration = (item, index) => {
             let scope = getIterationScopeVariables(iteratorNames, item, index, items)
 
             let key
@@ -53,7 +53,13 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             }
 
             return { key, scope, element, remove() { element.remove() } }
-        })
+        }
+
+        let isObject = i => typeof i === 'object' && ! Array.isArray(i)
+
+        let iterations = isObject(items)
+            ? Object.entries(items).map(([key, value]) => getIteration(value, key))
+            : Array.from(items).map(getIteration)
 
         let unusedIterations = oldIterations.filter(i => ! iterations.map(i => i.key).includes(i.key))
 
@@ -99,7 +105,16 @@ function getIterationScopeVariables(iteratorNames, item, index, items) {
     // We must create a new object, so each iteration has a new scope
     let scopeVariables = {}
 
-    scopeVariables[iteratorNames.item] = item
+    // Support array destructuring ([foo, bar]).
+    if (/^\[.*\]$/.test(iteratorNames.item) && Array.isArray(item)) {
+        let names = iteratorNames.item.replace('[', '').replace(']', '').split(',').map(i => i.trim())
+
+        names.forEach((name, i) => {
+            scopeVariables[name] = item[i]
+        })
+    } else {
+        scopeVariables[iteratorNames.item] = item
+    }
 
     if (iteratorNames.index) scopeVariables[iteratorNames.index] = index
 
