@@ -26,7 +26,7 @@ test.retry = (count) => (name, template, callback) => {
 
 test.csp = (name, template, callback) => {
     it(name, () => {
-        injectHtmlAndBootAlpine(cy, template, callback, 'http://alpine-next.test/cypress/spec-csp.html')
+        injectHtmlAndBootAlpine(cy, template, callback, 'http://alpine-next.test/tests/cypress/spec-csp.html')
     })
 }
 
@@ -35,7 +35,7 @@ function injectHtmlAndBootAlpine(cy, templateAndPotentiallyScripts, callback, pa
         ? templateAndPotentiallyScripts
         : [templateAndPotentiallyScripts]
 
-    cy.visit(page || 'http://alpine-next.test/cypress/spec.html')
+    cy.visit(page || 'http://alpine-next.test/tests/cypress/spec.html')
 
     cy.get('#root').then(([el]) => {
         el.innerHTML = template
