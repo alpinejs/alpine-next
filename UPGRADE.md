@@ -204,8 +204,6 @@ Alpine will no longer officially support Internet Explorer 11.
 * [`x-init` on any element](#x-init-on-any-element)
 * [Support short-circuit evaluation (&& and ||) in class bindings](#support-short-circuit-evaluation--and--in-class-bindings)
 * [Support `if ()` as start of x-init and event listeners](#support-if--as-start-of-x-init-and-event-listeners)
-* [`x-intersect`](#x-intersect)
-* [`x-morph`](#x-morph)
 * [Passing HTML validation](#passing-html-validation)
 
 ## Alpine.component
@@ -410,29 +408,6 @@ All Alpine expressions are now evaluated in an `async` context allowing the full
 <div x-data x-init="if (true) console.log('log me')">
 ```
 
-## `x-intersect`
-
-```html
-<div x-intersect="console.log('this div has been scrolled into or out of the viewport')">
-
-<div x-intersect:leave="console.log('this div has been scrolled out of the viewport')">
-
-<div x-intersect:enter="console.log('this div has been scrolled into of the viewport')">
-
-<div x-intersect.once="console.log('this div has been scrolled into of the viewport')">
-
-<div x-ref="foo"></div>
-<div x-intersect.ref.foo="console.log('the $refs.foo div has been scrolled into of the viewport')">
-```
-
-## `x-morph`
-
-```html
-<div x-morph="someHtml">
-    ...
-</div>
-```
-
 ## Passing HTML validation
 
 ```html
@@ -452,10 +427,3 @@ All Alpine expressions are now evaluated in an `async` context allowing the full
     })
 </script>
 ```
-
-# Uncertainties
-* Must include `()` in method event handlers
-    * Reason for uncertainty: Breaking VueJS convention, and having to manually pass the `$event` variable.
-* Binding classes with array syntax `[]` is no longer supported
-    * Reason for uncertainty: scared of removing things people use, expect, and like (I might expect, but don't use or like personally)
-* `x-spread` is now `x-bind`
