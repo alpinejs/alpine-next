@@ -6,7 +6,7 @@ import on from '../utils/on'
 mapAttributes(startingWith('@', into(prefix('on:'))))
 
 directive('on', skipDuringClone((el, { value, modifiers, expression }, { cleanup }) => {
-    let evaluate = expression ?evaluateLater(el, expression) : () => {}
+    let evaluate = expression ? evaluateLater(el, expression) : () => {}
 
     let removeListener = on(el, value, modifiers, e => {
         evaluate(() => {}, { scope: { '$event': e }, params: [e] })

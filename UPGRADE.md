@@ -201,10 +201,16 @@ Alpine will no longer officially support Internet Explorer 11.
 * [Support magics in component objects](#support-magics-in-component-objects)
 * [alpine:initialized/ing events](#alpineinitializeding-events)
 * [`x-destroy`](#x-destroy)
+* [`x-effect`](#x-effect)
+* [`x-ignore`](#x-ignore)
+* [`x-store`](#x-store)
 * [`x-init` on any element](#x-init-on-any-element)
 * [Support short-circuit evaluation (&& and ||) in class bindings](#support-short-circuit-evaluation--and--in-class-bindings)
 * [Support `if ()` as start of x-init and event listeners](#support-if--as-start-of-x-init-and-event-listeners)
 * [Passing HTML validation](#passing-html-validation)
+* [x-for supports objects]()
+* [x-for supports destructuring arrays]()
+* [add "old" value to $watch]()
 
 ## Alpine.component
 

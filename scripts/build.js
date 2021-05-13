@@ -9,7 +9,12 @@ let brotliSize = require('brotli-size');
     'history',
     'intersect',
     'morph',
+    'trap',
 ]).forEach(package => {
+    if (! fs.existsSync(`./packages/${package}/dist`)) {
+        fs.mkdirSync(`./packages/${package}/dist`, 0744);
+    }
+
     // Go through each file in the package's "build" directory
     // and use the appropriate bundling strategy based on its name.
     fs.readdirSync(`./packages/${package}/builds`).forEach(file => {
@@ -38,10 +43,11 @@ function bundleFile(package, file) {
                 minify: true,
                 platform: 'browser',
                 define: { CDN: true },
+            }).then(() => {
+                writeToPackageDotJson(package, 'browser', `dist/${file.replace('.js', '.min.js')}`)
+                outputSize(package, `packages/${package}/dist/${file.replace('.js', '.min.js')}`)
             })
 
-            writeToPackageDotJson(package, 'browser', `dist/${file.replace('.js', '.min.js')}`)
-            outputSize(package, `packages/${package}/dist/${file.replace('.js', '.min.js')}`)
         },
         // This file outputs two files: an esm module and a cjs module.
         // The ESM one is meant for "import" statements (bundlers and new browsers)
@@ -61,10 +67,10 @@ function bundleFile(package, file) {
                 bundle: true,
                 target: ['node10.4'],
                 platform: 'node',
+            }).then(() => {
+                writeToPackageDotJson(package, 'main', `dist/${file.replace('.js', '.cjs.js')}`)
+                writeToPackageDotJson(package, 'module', `dist/${file.replace('.js', '.esm.js')}`)
             })
-
-            writeToPackageDotJson(package, 'main', `dist/${file.replace('.js', '.cjs.js')}`)
-            writeToPackageDotJson(package, 'module', `dist/${file.replace('.js', '.esm.js')}`)
         },
     })[file]()
 }
