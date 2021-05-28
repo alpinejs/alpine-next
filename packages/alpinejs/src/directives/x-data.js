@@ -1,27 +1,27 @@
-import { getComponent } from '../components'
-import { evaluate } from '../evaluator'
-import { addScopeToNode } from '../scope'
-import { directive, prefix } from '.'
-import { reactive } from '../reactivity'
-import { injectMagics } from '../magics'
-import { addRootSelector } from '../lifecycle'
-import { skipDuringClone } from '../clone'
-import { dispatch } from '../utils/dispatch'
+import { directive, prefix } from '../directives'
 import { initInterceptors } from '../interceptor'
+import { getNamedDataProvider } from '../datas'
+import { addRootSelector } from '../lifecycle'
+import { dispatch } from '../utils/dispatch'
+import { skipDuringClone } from '../clone'
+import { addScopeToNode } from '../scope'
+import { injectMagics } from '../magics'
+import { reactive } from '../reactivity'
+import { evaluate } from '../evaluator'
 
 addRootSelector(() => `[${prefix('data')}]`)
 
 directive('data', skipDuringClone((el, { expression }, { cleanup }) => {
     expression = expression === '' ? '{}' : expression
 
-    let component = getComponent(expression)
+    let dataProvider = getNamedDataProvider(expression)
 
     let data = {}
 
-    if (component) {
+    if (dataProvider) {
         let magics = injectMagics({}, el)
 
-        data = component.bind(magics)()
+        data = dataProvider.bind(magics)()
     } else {
         data = evaluate(el, expression)
     }

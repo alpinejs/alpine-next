@@ -2,8 +2,8 @@ import { releaseNextTicks, holdNextTicks } from '../nextTick'
 import { setClasses } from '../utils/classes'
 import { setStyles } from '../utils/styles'
 import { directive } from '../directives'
-import { once } from '../utils/once'
 import { mutateDom } from '../mutation'
+import { once } from '../utils/once'
 
 directive('transition', (el, { value, modifiers, expression }) => {
     if (! expression) {

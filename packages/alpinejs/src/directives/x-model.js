@@ -1,5 +1,5 @@
-import { directive } from '.'
 import { evaluateLater } from '../evaluator'
+import { directive } from '../directives'
 import { mutateDom } from '../mutation'
 import bind from '../utils/bind'
 import on from '../utils/on'

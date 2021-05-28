@@ -1,9 +1,9 @@
-import { evaluateLater } from '../evaluator'
-import { directive } from '.'
 import { addScopeToNode, refreshScope } from '../scope'
-import { flushJobs, reactive } from '../reactivity'
+import { evaluateLater } from '../evaluator'
+import { directive } from '../directives'
+import { reactive } from '../reactivity'
 import { initTree } from '../lifecycle'
-import { dontObserveMutations } from '../mutation'
+import { mutateDom } from '../mutation'
 
 directive('for', (el, { expression }, { effect, cleanup }) => {
     let iteratorNames = parseForExpression(expression)
@@ -31,63 +31,90 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
     let templateEl = el
 
     evaluateItems(items => {
-        // This adds support for the `i in n` syntax.
+        // Prepare yourself. There's a lot going on here. Take heart,
+        // every bit of complexity in this function was added for
+        // the purpose of making Alpine fast with large datas.
+
+        // Support number literals. Ex: x-for="i in 100"
         if (isNumeric(items) && items >= 0) {
             items = Array.from(Array(items).keys(), i => i + 1)
         }
 
         let lookup = el._x_lookup
-        let scopes = []
         let prevKeys = el._x_prev_keys
+        let scopes = []
         let keys = []
 
+        // In order to preserve DOM elements (move instead of replace)
+        // we need to generate all the keys for every iteration up
+        // front. These will be our source of truth for diffing.
         for (let i = 0; i < items.length; i++) {
             let scope = getIterationScopeVariables(iteratorNames, items[i], i, items)
-            scopes.push(scope)
 
             evaluateKey(value => keys.push(value), { scope: { index: i, ...scope} })
+
+            scopes.push(scope)
         }
 
+        // Rather than making DOM manipulations inside one large loop, we'll
+        // instead track which mutations need to be made in the following
+        // arrays. After we're finished, we can batch them at the end.
         let adds = []
         let moves = []
         let removes = []
         let sames = []
 
+        // First, we track elements that will need to be removed.
         for (let i = 0; i < prevKeys.length; i++) {
             let key = prevKeys[i]
 
             if (keys.indexOf(key) === -1) removes.push(key)
         }
 
+        // Notice we're mutating prevKeys as we go. This makes it
+        // so that we can efficiently make incremental comparisons.
         prevKeys = prevKeys.filter(key => ! removes.includes(key))
 
         let lastKey = 'template'
+
+        // This is the important part of the diffing algo. Identifying
+        // which keys (future DOM elements) are new, which ones have
+        // or haven't moved (noting where they moved to / from).
         for (let i = 0; i < keys.length; i++) {
             let key = keys[i]
 
             let prevIndex = prevKeys.indexOf(key)
 
-            // New one.
             if (prevIndex === -1) {
+                // New key found.
                 prevKeys.splice(i, 0, key)
 
                 adds.push([lastKey, i])
             } else if (prevIndex !== i) {
-                // Moved one.
-                let valInSpot = prevKeys.splice(i, 1)[0]
-                let valForSpot = prevKeys.splice(prevIndex - 1, 1)[0]
+                // A key has moved.
+                let keyInSpot = prevKeys.splice(i, 1)[0]
+                let keyForSpot = prevKeys.splice(prevIndex - 1, 1)[0]
 
-                prevKeys.splice(i, 0, valForSpot)
-                prevKeys.splice(prevIndex, 0, valInSpot)
+                prevKeys.splice(i, 0, keyForSpot)
+                prevKeys.splice(prevIndex, 0, keyInSpot)
 
-                moves.push([valInSpot, valForSpot])
+                moves.push([keyInSpot, keyForSpot])
             } else {
+                // This key hasn't moved, but we'll still keep track
+                // so that we can refresh it later on.
                 sames.push(key)
             }
 
             lastKey = key
         }
 
+        // Now that we've done the diffing work, we can apply the mutations
+        // in batches for both seperating types work and optimizing
+        // for browser performance.
+
+        // We'll remove all the nodes that need to be removed,
+        // letting the mutation observer pick them up and
+        // clean up any side effects they had.
         for (let i = 0; i < removes.length; i++) {
             let key = removes[i]
 
@@ -96,25 +123,28 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             delete lookup[key]
         }
 
-
+        // Here we'll move elements around, skiping
+        // mutation observer triggers by using "mutateDom".
         for (let i = 0; i < moves.length; i++) {
-            let [valInSpot, valForSpot] = moves[i]
+            let [keyInSpot, keyForSpot] = moves[i]
 
-            let elInSpot = lookup[valInSpot]
-            let elForSpot = lookup[valForSpot]
+            let elInSpot = lookup[keyInSpot]
+            let elForSpot = lookup[keyForSpot]
 
             let marker = document.createElement('div')
 
-            dontObserveMutations(() => {
+            mutateDom(() => {
                 elForSpot.after(marker)
                 elInSpot.after(elForSpot)
                 marker.before(elInSpot)
                 marker.remove()
             })
 
-            refreshScope(elForSpot, scopes[keys.indexOf(valForSpot)])
+            refreshScope(elForSpot, scopes[keys.indexOf(keyForSpot)])
         }
 
+        // We can now create and add new elements. They will get picked up
+        // by the mutation observer and get initialized by Alpine.
         for (let i = 0; i < adds.length; i++) {
             let [lastKey, index] = adds[i]
 
@@ -133,10 +163,15 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
         }
 
 
+        // If an element hasn't changed, we still want to "refresh" the
+        // data it depends on in case the data has changed in an
+        // "unobservable" way.
         for (let i = 0; i < sames.length; i++) {
             refreshScope(lookup[sames[i]], scopes[keys.indexOf(sames[i])])
         }
 
+        // Now we'll log the keys (and the order they're in) for comparing
+        // against next time.
         el._x_prev_keys = keys
     })
 }
@@ -147,7 +182,9 @@ function parseForExpression(expression) {
     let stripParensRE = /^\(|\)$/g
     let forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/
     let inMatch = expression.match(forAliasRE)
+
     if (! inMatch) return
+
     let res = {}
     res.items = inMatch[2].trim()
     let item = inMatch[1].trim().replace(stripParensRE, '')
@@ -163,6 +200,7 @@ function parseForExpression(expression) {
     } else {
         res.item = item
     }
+
     return res
 }
 

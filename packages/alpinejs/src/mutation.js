@@ -1,8 +1,8 @@
-let onElAddeds = []
-let onElRemoveds = []
-let onElRemovedByEl = new WeakMap
-let onAttributeAddeds = []
 let onAttributeRemoveds = new WeakMap
+let onAttributeAddeds = []
+let onElRemovedByEl = new WeakMap
+let onElRemoveds = []
+let onElAddeds = []
 
 export function onElAdded(callback) {
     onElAddeds.push(callback)
@@ -51,7 +51,7 @@ export function flushObserver() {
     records.length && onMutate(records)
 }
 
-export function dontObserveMutations(callback) {
+export function mutateDom(callback) {
     if (! currentlyObserving) return callback()
 
     flushObserver()
@@ -63,10 +63,6 @@ export function dontObserveMutations(callback) {
     startObservingMutations()
 
     return result
-}
-
-export function mutateDom(callback) {
-    return dontObserveMutations(() => callback())
 }
 
 function onMutate(mutations) {

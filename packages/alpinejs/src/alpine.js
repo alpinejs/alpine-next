@@ -3,12 +3,13 @@ import { mapAttributes, directive, setPrefix as prefix } from './directives'
 import { setEvaluator, evaluate, evaluateLater } from './evaluator'
 import { start, addRootSelector, closestRoot } from './lifecycle'
 import { interceptor } from './interceptor'
-import { data } from './components'
+import { mutateDom } from './mutation'
 import { nextTick } from './nextTick'
-import { magic } from './magics'
 import { plugin } from './plugin'
+import { magic } from './magics'
 import { store } from './store'
 import { clone } from './clone'
+import { data } from './datas'
 
 let Alpine = {
     get reactive() { return reactive },
@@ -23,7 +24,7 @@ let Alpine = {
     setEvaluator,
     closestRoot,
     interceptor,
-    data,
+    mutateDom,
     directive,
     evaluate,
     nextTick,
@@ -33,6 +34,7 @@ let Alpine = {
     store,
     start,
     clone,
+    data,
 }
 
 export default Alpine

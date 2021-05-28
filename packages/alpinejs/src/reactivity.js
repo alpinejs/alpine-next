@@ -1,51 +1,18 @@
 
+import { scheduler } from './scheduler'
+
 let reactive, effect, release, raw
 
-let queue = []
-
-let flushing = false
-let flushPending = false
-
-function queueJob(job) {
-    if (! queue.includes(job)) queue.push(job)
-
-    queueFlush()
-}
-
-function queueFlush() {
-    if (! flushing && ! flushPending) {
-        flushPending = true
-        currentFlushPromise = Promise.resolve().then(flushJobs)
-    }
-}
-
-export function flushJobs() {
-    flushPending = false
-    flushing = true
-
-    for (let i = 0; i < queue.length; i++) {
-        queue[i]()
-    }
-
-    queue.length = 0
-
-    flushing = false
-}
-
 export function setReactivityEngine(engine) {
-    window.reactive = engine.reactive
-    window.effect = engine.effect
     reactive = engine.reactive
     release = engine.release
-    effect = (callback) => {
-        return engine.effect(callback, { scheduler: queueJob })
-    }
+    effect = (callback) => engine.effect(callback, { scheduler })
     raw = engine.raw
 }
 
 export function overrideEffect(override) { effect = override }
 
-export function elementalEffect(el) {
+export function elementBoundEffect(el) {
     let cleanup = () => {}
 
     let wrappedEffect = (callback) => {

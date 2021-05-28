@@ -1,5 +1,5 @@
-import { initTree, isRoot } from "./lifecycle"
 import { effect, release, overrideEffect } from "./reactivity"
+import { initTree, isRoot } from "./lifecycle"
 import { walk } from "./utils/walk"
 
 let isCloning = false

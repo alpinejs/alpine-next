@@ -1,5 +1,5 @@
 import { onAttributeRemoved, onElRemoved } from './mutation'
-import { elementalEffect } from './reactivity'
+import { elementBoundEffect } from './reactivity'
 import Alpine from './alpine'
 
 let prefixAsString = 'x-'
@@ -19,19 +19,6 @@ export function directive(name, callback) {
 }
 
 export function directives(el, attributes, originalAttributeOverride) {
-    // if (window.benchmarkName === 'new') {
-        let attrs = el.attributes
-
-        let some = false
-        for (let index = 0; index < attrs.length; index++) {
-            if (some) continue
-
-            // console.log(attrs[index].name);
-            if (/^(x-|:|@)/.test(attrs[index].name)) some = true
-        }
-
-        if (! some) { return [] }
-    // }
     let transformedAttributeMap = {}
 
     let directives = Array.from(attributes)
@@ -71,7 +58,7 @@ export function getDirectiveHandler(el, directive) {
 
     let cleanup = callback => cleanups.push(callback)
 
-    let [effect, cleanupEffect] = elementalEffect(el)
+    let [effect, cleanupEffect] = elementBoundEffect(el)
 
     cleanups.push(cleanupEffect)
 

@@ -1,9 +1,9 @@
+import { startObservingMutations, onAttributesAdded, onElAdded, onElRemoved } from "./mutation"
 import { deferHandlingDirectives, directives } from "./directives"
 import { dispatch } from './utils/dispatch'
-import { walk, asyncWalk } from "./utils/walk"
-import { warn } from './utils/warn'
-import { startObservingMutations, onAttributesAdded, onElAdded, onElRemoved } from "./mutation"
 import { nextTick } from "./nextTick"
+import { walk } from "./utils/walk"
+import { warn } from './utils/warn'
 
 export function start() {
     if (! document.body) warn('Unable to initialize. Trying to load Alpine before `<body>` is available. Did you forget to add `defer` in Alpine\'s `<script>` tag?')
@@ -21,7 +21,7 @@ export function start() {
 
     let outNestedComponents = el => ! closestRoot(el.parentNode || closestRoot(el))
 
-    Array.from(document.querySelectorAll(rootSelectors().join(', ')))
+    Array.from(document.querySelectorAll(rootSelectors()))
         .filter(outNestedComponents)
         .forEach(el => {
             initTree(el)

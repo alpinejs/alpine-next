@@ -1,4 +1,4 @@
-import { directive, prefix } from '.'
+import { directive, prefix } from '../directives'
 import { mutateDom } from '../mutation'
 import { nextTick } from '../nextTick'
 
