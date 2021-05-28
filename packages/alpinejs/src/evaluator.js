@@ -42,10 +42,6 @@ function generateEvaluatorFromFunction(dataStack, func) {
     return (receiver = () => {}, { scope = {}, params = [] } = {}) => {
         let result = func.apply(mergeProxies([scope, ...dataStack]), params)
 
-        if (result instanceof Promise) {
-            result.then(i => runIfTypeOfFunction(receiver, i))
-        }
-
         runIfTypeOfFunction(receiver, result)
     }
 }
@@ -72,10 +68,35 @@ export function cspCompliantEvaluator(el, expression, extras = {}) {
     return tryCatch.bind(null, el, expression, evaluator)
 }
 
-function generateEvaluatorFromString(dataStack, expression) {
+let evaluatorMemo = {}
+
+function generateFunctionFromString(expression) {
+    if (evaluatorMemo[expression]) {
+        return evaluatorMemo[expression]
+    }
+
     let AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
 
-    let func = new AsyncFunction(['__self', 'scope'], `with (scope) { __self.result = ${expression} }; __self.finished = true; return __self.result;`)
+    // Some expressions that are useful in Alpine are not valid as the right side of an expression.
+    // Here we'll detect if the expression isn't valid for an assignement and wrap it in a self-
+    // calling function so that we don't throw an error AND a "return" statement can b e used.
+    let rightSideSafeExpression = 0
+        // Support expressions starting with "if" statements like: "if (...) doSomething()"
+        || /^[\n\s]*if.*\(.*\)/.test(expression)
+        // Support expressions starting with "let/const" like: "let foo = 'bar'"
+        || /^(let|const)/.test(expression)
+            ? `(() => { ${expression} })()`
+            : expression
+
+    let func = new AsyncFunction(['__self', 'scope'], `with (scope) { __self.result = ${rightSideSafeExpression} }; __self.finished = true; return __self.result;`)
+
+    evaluatorMemo[expression] = func
+
+    return func
+}
+
+function generateEvaluatorFromString(dataStack, expression) {
+    let func = generateFunctionFromString(expression)
 
     return (receiver = () => {}, { scope = {}, params = [] } = {}) => {
         func.result = undefined
@@ -84,6 +105,10 @@ function generateEvaluatorFromString(dataStack, expression) {
         // Run the function.
 
         let completeScope = mergeProxies([ scope, ...dataStack ])
+
+        if (expression === `ctx = 'yoyo'`) {
+            console.log(completeScope);
+        }
 
         let promise = func(func, completeScope)
 
@@ -102,9 +127,13 @@ function generateEvaluatorFromString(dataStack, expression) {
 
 function runIfTypeOfFunction(receiver, value, scope, params) {
     if (typeof value === 'function') {
-        receiver(
-            value.apply(scope, params)
-        )
+        let result = value.apply(scope, params)
+
+        if (result instanceof Promise) {
+            result.then(i => runIfTypeOfFunction(receiver, i, scope, params))
+        } else {
+            receiver(result)
+        }
     } else {
         receiver(value)
     }

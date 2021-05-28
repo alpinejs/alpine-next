@@ -1,5 +1,6 @@
 import { directive } from '.'
 import { evaluateLater } from '../evaluator'
+import { mutateDom } from '../mutation'
 import bind from '../utils/bind'
 import on from '../utils/on'
 
@@ -33,7 +34,7 @@ directive('model', (el, { modifiers, expression }, { effect, cleanup }) => {
 
             // @todo: This is nasty
             window.fromModel = true
-            bind(el, 'value', value)
+            mutateDom(() => bind(el, 'value', value))
             delete window.fromModel
         })
     }
@@ -51,37 +52,41 @@ function generateAssignmentFunction(el, modifiers, expression) {
         // Radio buttons only work properly when they share a name attribute.
         // People might assume we take care of that for them, because
         // they already set a shared "x-model" attribute.
-        if (! el.hasAttribute('name')) el.setAttribute('name', expression)
+        mutateDom(() => {
+            if (! el.hasAttribute('name')) el.setAttribute('name', expression)
+        })
     }
 
     return (event, currentValue) => {
-        // Check for event.detail due to an issue where IE11 handles other events as a CustomEvent.
-        if (event instanceof CustomEvent && event.detail !== undefined) {
-            return event.detail
-        } else if (el.type === 'checkbox') {
-            // If the data we are binding to is an array, toggle its value inside the array.
-            if (Array.isArray(currentValue)) {
-                let newValue = modifiers.includes('number') ? safeParseNumber(event.target.value) : event.target.value
+        return mutateDom(() => {
+            // Check for event.detail due to an issue where IE11 handles other events as a CustomEvent.
+            if (event instanceof CustomEvent && event.detail !== undefined) {
+                return event.detail
+            } else if (el.type === 'checkbox') {
+                // If the data we are binding to is an array, toggle its value inside the array.
+                if (Array.isArray(currentValue)) {
+                    let newValue = modifiers.includes('number') ? safeParseNumber(event.target.value) : event.target.value
 
-                return event.target.checked ? currentValue.concat([newValue]) : currentValue.filter(el => ! checkedAttrLooseCompare(el, newValue))
+                    return event.target.checked ? currentValue.concat([newValue]) : currentValue.filter(el => ! checkedAttrLooseCompare(el, newValue))
+                } else {
+                    return event.target.checked
+                }
+            } else if (el.tagName.toLowerCase() === 'select' && el.multiple) {
+                return modifiers.includes('number')
+                    ? Array.from(event.target.selectedOptions).map(option => {
+                        let rawValue = option.value || option.text
+                        return safeParseNumber(rawValue)
+                    })
+                    : Array.from(event.target.selectedOptions).map(option => {
+                        return option.value || option.text
+                    })
             } else {
-                return event.target.checked
+                let rawValue = event.target.value
+                return modifiers.includes('number')
+                    ? safeParseNumber(rawValue)
+                    : (modifiers.includes('trim') ? rawValue.trim() : rawValue)
             }
-        } else if (el.tagName.toLowerCase() === 'select' && el.multiple) {
-            return modifiers.includes('number')
-                ? Array.from(event.target.selectedOptions).map(option => {
-                    let rawValue = option.value || option.text
-                    return safeParseNumber(rawValue)
-                })
-                : Array.from(event.target.selectedOptions).map(option => {
-                    return option.value || option.text
-                })
-        } else {
-            let rawValue = event.target.value
-            return modifiers.includes('number')
-                ? safeParseNumber(rawValue)
-                : (modifiers.includes('trim') ? rawValue.trim() : rawValue)
-        }
+        })
     }
 }
 

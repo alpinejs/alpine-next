@@ -1,0 +1,10 @@
+{
+    "name": "@alpinejs/persist",
+    "version": "0.1.0",
+    "description": "A convenience plugin for reacting to page intersections in AlpineJS.",
+    "author": "Caleb Porzio",
+    "license": "MIT",
+    "main": "dist/module.cjs.js",
+    "module": "dist/module.esm.js",
+    "browser": "dist/cdn.min.js"
+}

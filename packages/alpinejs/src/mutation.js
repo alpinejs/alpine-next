@@ -29,83 +29,119 @@ export function onAttributeRemoved(el, name, callback) {
     onAttributeRemoveds.get(el)[name].push(callback)
 }
 
-export function attachMutationObserver(el) {
-    let observer = new MutationObserver(mutations => {
-        let addedNodes = []
-        let removedNodes = []
-        let addedAttributes = new Map
-        let removedAttributes = new Map
+let observer = new MutationObserver(onMutate)
 
-        for (let i = 0; i < mutations.length; i++) {
-            if (mutations[i].target._x_ignoreMutationObserver) continue
+window.currentlyObserving = false
 
-            if (mutations[i].type === 'childList') {
-                mutations[i].addedNodes.forEach(node => node.nodeType === 1 && addedNodes.push(node))
-                mutations[i].removedNodes.forEach(node => node.nodeType === 1 && removedNodes.push(node))
-            }
+export function startObservingMutations() {
+    observer.observe(document, { subtree: true, childList: true, attributes: true, attributeOldValue: true })
 
-            if (mutations[i].type === 'attributes') {
-                let el = mutations[i].target
-                let name = mutations[i].attributeName
-                let oldValue = mutations[i].oldValue
+    currentlyObserving = true
+}
 
-                let add = () => {
-                    if (! addedAttributes.has(el)) addedAttributes.set(el, [])
+export function stopObservingMutations() {
+    observer.disconnect()
 
-                    addedAttributes.get(el).push({ name,  value: el.getAttribute(name) })
-                }
+    currentlyObserving = false
+}
 
-                let remove = () => {
-                    if (! removedAttributes.has(el)) removedAttributes.set(el, [])
+export function flushObserver() {
+    let records = observer.takeRecords()
 
-                    removedAttributes.get(el).push(name)
-                }
+    records.length && onMutate(records)
+}
 
-                // New attribute.
-                if (el.hasAttribute(name) && oldValue === null) {
-                    add()
-                // Changed atttribute.
-                } else if (el.hasAttribute(name)) {
-                    remove()
-                    add()
-                // Removed atttribute.
-                } else {
-                    remove()
-                }
-            }
+export function dontObserveMutations(callback) {
+    if (! currentlyObserving) return callback()
+
+    flushObserver()
+
+    stopObservingMutations()
+
+    let result = callback()
+
+    startObservingMutations()
+
+    return result
+}
+
+export function mutateDom(callback) {
+    return dontObserveMutations(() => callback())
+}
+
+function onMutate(mutations) {
+    let addedNodes = []
+    let removedNodes = []
+    let addedAttributes = new Map
+    let removedAttributes = new Map
+
+    for (let i = 0; i < mutations.length; i++) {
+        if (mutations[i].target._x_ignoreMutationObserver) continue
+
+        if (mutations[i].type === 'childList') {
+            mutations[i].addedNodes.forEach(node => node.nodeType === 1 && addedNodes.push(node))
+            mutations[i].removedNodes.forEach(node => node.nodeType === 1 && removedNodes.push(node))
         }
 
-        removedAttributes.forEach((attrs, el) => {
-            if (onAttributeRemoveds.get(el)) {
-                attrs.forEach(name => {
-                    if (onAttributeRemoveds.get(el)[name]) {
-                        onAttributeRemoveds.get(el)[name].forEach(i => i())
-                    }
-                })
+        if (mutations[i].type === 'attributes') {
+            let el = mutations[i].target
+            let name = mutations[i].attributeName
+            let oldValue = mutations[i].oldValue
+
+            let add = () => {
+                if (! addedAttributes.has(el)) addedAttributes.set(el, [])
+
+                addedAttributes.get(el).push({ name,  value: el.getAttribute(name) })
             }
-        })
 
-        addedAttributes.forEach((attrs, el) => {
-            onAttributeAddeds.forEach(i => i(el, attrs))
-        })
+            let remove = () => {
+                if (! removedAttributes.has(el)) removedAttributes.set(el, [])
 
-        for (let node of addedNodes) {
-            // If an element gets moved on a page, it's registered
-            // as both an "add" and "remove", so we wan't to skip those.
-            if (removedNodes.includes(node)) continue
+                removedAttributes.get(el).push(name)
+            }
 
-            onElAddeds.forEach(i => i(node))
+            // New attribute.
+            if (el.hasAttribute(name) && oldValue === null) {
+                add()
+            // Changed atttribute.
+            } else if (el.hasAttribute(name)) {
+                remove()
+                add()
+            // Removed atttribute.
+            } else {
+                remove()
+            }
         }
+    }
 
-        for (let node of removedNodes) {
-            // If an element gets moved on a page, it's registered
-            // as both an "add" and "remove", so we wan't to skip those.
-            if (addedNodes.includes(node)) continue
-
-            // Don't block execution for destroy callbacks.
-            [...onElRemoveds, ...(onElRemovedByEl.get(node) || [])].forEach(i => i(node))
+    removedAttributes.forEach((attrs, el) => {
+        if (onAttributeRemoveds.get(el)) {
+            attrs.forEach(name => {
+                if (onAttributeRemoveds.get(el)[name]) {
+                    onAttributeRemoveds.get(el)[name].forEach(i => i())
+                }
+            })
         }
     })
 
-    observer.observe(el, { subtree: true, childList: true, attributes: true, attributeOldValue: true })
+    addedAttributes.forEach((attrs, el) => {
+        onAttributeAddeds.forEach(i => i(el, attrs))
+    })
+
+    for (let node of addedNodes) {
+       // If an element gets moved on a page, it's registered
+        // as both an "add" and "remove", so we wan't to skip those.
+        if (removedNodes.includes(node)) continue
+
+        onElAddeds.forEach(i => i(node))
+    }
+
+    for (let node of removedNodes) {
+        // If an element gets moved on a page, it's registered
+        // as both an "add" and "remove", so we wan't to skip those.
+        if (addedNodes.includes(node)) continue
+
+        // Don't block execution for destroy callbacks.
+        [...onElRemoveds, ...(onElRemovedByEl.get(node) || [])].forEach(i => i(node))
+    }
 }

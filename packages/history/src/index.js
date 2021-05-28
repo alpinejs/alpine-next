@@ -1,71 +1,52 @@
-let Alpine
+export function magic(el, { Alpine }) {
+    return Alpine.interceptor((key, path) => {
+        let pause = false
 
-export default function (el, { expression }, { Alpine: global }) {
-    Alpine = global
+        return {
+            init(initialValue, set, reactiveSet) {
+                let value = initialValue
+                let url = new URL(window.location.href)
 
-    let getValue = Alpine.evaluateLater(el, expression)
+                if (url.searchParams.has(path)) {
+                    set(url.searchParams.get(path))
+                    value = url.searchParams.get(path)
+                }
 
-    history(
-        expression,
-        (setMeta) => {
-            let result; getValue(value => result = value); return result;
-        },
-        (value, getMeta) => {
-            Alpine.evaluate(el, `${expression} = value`, { scope: { 'value': value } })
-        },
-    )
-}
+                let object = { value }
 
-export function history(key, getter, setter) {
-    let url = new URL(window.location.href)
+                url.searchParams.set(path, value)
 
-    if (url.searchParams.has(key)) {
-        setter(url.searchParams.get(key), () => {})
-    }
+                replace(url.toString(), path, object)
 
-    let pause = false
+                window.addEventListener('popstate', (e) => {
+                    if (! e.state) return
+                    if (! e.state.alpine) return
 
-    let firstTime = true
+                    Object.entries(e.state.alpine).forEach(([newKey, { value }]) => {
+                        if (newKey !== key) return
 
-    Alpine.effect(() => {
-        let meta = {}
+                        pause = true
 
-        let setMeta = (key, value) => meta[key] = value
+                        reactiveSet(value)
 
-        let value = getter(setMeta)
+                        pause = false
+                    })
+                })
+            },
+            set(value, set) {
+                set(value)
 
-        if (pause) return
+                if (pause) return
 
-        let object = { value, meta }
+                let object = { value }
 
-        let url = new URL(window.location.href)
+                let url = new URL(window.location.href)
 
-        url.searchParams.set(key, value)
+                url.searchParams.set(path, value)
 
-        if (firstTime) {
-            replace(url.toString(), key, object)
-        } else {
-            push(url.toString(), key, object)
+                push(url.toString(), path, object)
+            },
         }
-
-        firstTime = false
-    })
-
-    window.addEventListener('popstate', (e) => {
-        if (! e.state) return
-        if (! e.state.alpine) return
-
-        Object.entries(e.state.alpine).forEach(([newKey, { value, meta }]) => {
-            if (newKey !== key) return
-
-            pause = true
-
-            let getMeta = key => meta[key]
-
-            setter(value, getMeta)
-
-            pause = false
-        })
     })
 }
 

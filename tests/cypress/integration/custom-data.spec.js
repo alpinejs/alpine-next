@@ -1,27 +1,27 @@
 import { haveText, test } from '../utils'
 
-test('can register custom components properties',
+test('can register custom data providers',
     `
         <script>
             document.addEventListener('alpine:initializing', () => {
-                Alpine.component('component', () => ({
+                Alpine.data('test', () => ({
                     foo: 'bar'
                 }))
             })
         </script>
 
-        <div x-data="component">
+        <div x-data="test">
             <span x-text="foo"></span>
         </div>
     `,
     ({ get }) => get('span').should(haveText('bar'))
 )
 
-test('init functions inside custom components are called automatically',
+test('init functions inside custom datas are called automatically',
     `
         <script>
             document.addEventListener('alpine:initializing', () => {
-                Alpine.component('component', () => ({
+                Alpine.data('test', () => ({
                     init() {
                         this.foo = 'baz'
                     },
@@ -31,7 +31,7 @@ test('init functions inside custom components are called automatically',
             })
         </script>
 
-        <div x-data="component">
+        <div x-data="test">
             <span x-text="foo"></span>
         </div>
     `,
@@ -44,7 +44,7 @@ test('init functions "this" context is reactive',
     `
         <script>
             document.addEventListener('alpine:initializing', () => {
-                Alpine.component('component', () => ({
+                Alpine.data('test', () => ({
                     init() {
                         window.addEventListener('click', () => {
                             this.foo = 'baz'
@@ -56,7 +56,7 @@ test('init functions "this" context is reactive',
             })
         </script>
 
-        <div x-data="component">
+        <div x-data="test">
             <span x-text="foo"></span>
 
             <button>click me</button>

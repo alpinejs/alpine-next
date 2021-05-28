@@ -1,5 +1,5 @@
 import { onAttributeRemoved, onElRemoved } from './mutation'
-import { effect, release } from './reactivity'
+import { elementalEffect } from './reactivity'
 import Alpine from './alpine'
 
 let prefixAsString = 'x-'
@@ -19,6 +19,19 @@ export function directive(name, callback) {
 }
 
 export function directives(el, attributes, originalAttributeOverride) {
+    // if (window.benchmarkName === 'new') {
+        let attrs = el.attributes
+
+        let some = false
+        for (let index = 0; index < attrs.length; index++) {
+            if (some) continue
+
+            // console.log(attrs[index].name);
+            if (/^(x-|:|@)/.test(attrs[index].name)) some = true
+        }
+
+        if (! some) { return [] }
+    // }
     let transformedAttributeMap = {}
 
     let directives = Array.from(attributes)
@@ -38,11 +51,15 @@ let directiveHandlerStack = []
 export function deferHandlingDirectives(callback) {
     isDeferringHandlers = true
 
-    callback()
+    let flushHandlers = () => {
+        while (directiveHandlerStack.length) directiveHandlerStack.shift()()
+    }
 
-    isDeferringHandlers = false
+    let stopDeferring = () => { isDeferringHandlers = false; flushHandlers() }
 
-    while (directiveHandlerStack.length) directiveHandlerStack.shift()()
+    callback(flushHandlers)
+
+    stopDeferring()
 }
 
 export function getDirectiveHandler(el, directive) {
@@ -54,21 +71,11 @@ export function getDirectiveHandler(el, directive) {
 
     let cleanup = callback => cleanups.push(callback)
 
-    let wrappedEffect = (callback) => {
-        let effectReference = effect(callback)
+    let [effect, cleanupEffect] = elementalEffect(el)
 
-        if (! el._x_effects) {
-            el._x_effects = []
+    cleanups.push(cleanupEffect)
 
-            el._x_runEffects = () => { el._x_effects.forEach(i => i()) }
-        }
-
-        el._x_effects.push(effectReference)
-
-        cleanups.push(() => release(effectReference))
-    }
-
-    let utilities = { Alpine, effect: wrappedEffect, cleanup }
+    let utilities = { Alpine, effect, cleanup }
 
     let doCleanup = () => cleanups.forEach(i => i())
 
@@ -143,9 +150,9 @@ const DEFAULT = 'DEFAULT'
 
 let directiveOrder = [
     'ignore',
+    'ref',
     'data',
     'bind',
-    'ref',
     'init',
     'for',
     'model',

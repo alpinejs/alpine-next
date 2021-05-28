@@ -1,7 +1,9 @@
 import { evaluateLater } from '../evaluator'
 import { directive } from '.'
-import { addScopeToNode } from '../scope'
-import { reactive } from '../reactivity'
+import { addScopeToNode, refreshScope } from '../scope'
+import { flushJobs, reactive } from '../reactivity'
+import { initTree } from '../lifecycle'
+import { dontObserveMutations } from '../mutation'
 
 directive('for', (el, { expression }, { effect, cleanup }) => {
     let iteratorNames = parseForExpression(expression)
@@ -12,9 +14,17 @@ directive('for', (el, { expression }, { effect, cleanup }) => {
         el._x_key_expression || 'index'
     )
 
+    el._x_prev_keys = []
+    el._x_lookup = {}
+
     effect(() => loop(el, iteratorNames, evaluateItems, evaluateKey))
 
-    cleanup(() => el._x_old_iterations && el._x_old_iterations.forEach(i => i.remove()))
+    cleanup(() => {
+        Object.values(el._x_lookup).forEach(el => el.remove())
+
+        delete el._x_prev_keys
+        delete el._x_lookup
+    })
 })
 
 function loop(el, iteratorNames, evaluateItems, evaluateKey) {
@@ -26,53 +36,108 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             items = Array.from(Array(items).keys(), i => i + 1)
         }
 
-        let oldIterations = templateEl._x_old_iterations || []
+        let lookup = el._x_lookup
+        let scopes = []
+        let prevKeys = el._x_prev_keys
+        let keys = []
 
-        let getIteration = (item, index) => {
-            let scope = getIterationScopeVariables(iteratorNames, item, index, items)
+        for (let i = 0; i < items.length; i++) {
+            let scope = getIterationScopeVariables(iteratorNames, items[i], i, items)
+            scopes.push(scope)
 
-            let key
-
-            evaluateKey(value => key = value, { scope: { index, ...scope }})
-
-            let element = oldIterations.find(i => i.key === key)?.element
-
-            if (element) {
-                // Refresh the scope in case it was overwritten rather than mutated.
-                let existingScope = element._x_dataStack[0]
-
-                Object.entries(scope).forEach(([key, value]) => {
-                    existingScope[key] = value
-                })
-            } else {
-                let clone = document.importNode(templateEl.content, true).firstElementChild
-
-                addScopeToNode(clone, reactive(scope), templateEl)
-
-                element = clone
-            }
-
-            return { key, scope, element, remove() { element.remove() } }
+            evaluateKey(value => keys.push(value), { scope: { index: i, ...scope} })
         }
 
-        let isObject = i => typeof i === 'object' && ! Array.isArray(i)
+        let adds = []
+        let moves = []
+        let removes = []
+        let sames = []
 
-        let iterations = isObject(items)
-            ? Object.entries(items).map(([key, value]) => getIteration(value, key))
-            : Array.from(items).map(getIteration)
+        for (let i = 0; i < prevKeys.length; i++) {
+            let key = prevKeys[i]
 
-        let unusedIterations = oldIterations.filter(i => ! iterations.map(i => i.key).includes(i.key))
+            if (keys.indexOf(key) === -1) removes.push(key)
+        }
 
-        unusedIterations.forEach(iteration => iteration.remove())
+        prevKeys = prevKeys.filter(key => ! removes.includes(key))
 
-        templateEl._x_old_iterations = iterations
+        let lastKey = 'template'
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i]
 
-        // We have to defer the adding of these nodes, otherwise, they will get
-        // picked up by the DOM-walker on initial loading of Alpine and get
-        // inited twice.
-        queueMicrotask(() => {
-            templateEl.after(...iterations.map(i => i.element))
-        })
+            let prevIndex = prevKeys.indexOf(key)
+
+            // New one.
+            if (prevIndex === -1) {
+                prevKeys.splice(i, 0, key)
+
+                adds.push([lastKey, i])
+            } else if (prevIndex !== i) {
+                // Moved one.
+                let valInSpot = prevKeys.splice(i, 1)[0]
+                let valForSpot = prevKeys.splice(prevIndex - 1, 1)[0]
+
+                prevKeys.splice(i, 0, valForSpot)
+                prevKeys.splice(prevIndex, 0, valInSpot)
+
+                moves.push([valInSpot, valForSpot])
+            } else {
+                sames.push(key)
+            }
+
+            lastKey = key
+        }
+
+        for (let i = 0; i < removes.length; i++) {
+            let key = removes[i]
+
+            lookup[key].remove()
+
+            delete lookup[key]
+        }
+
+
+        for (let i = 0; i < moves.length; i++) {
+            let [valInSpot, valForSpot] = moves[i]
+
+            let elInSpot = lookup[valInSpot]
+            let elForSpot = lookup[valForSpot]
+
+            let marker = document.createElement('div')
+
+            dontObserveMutations(() => {
+                elForSpot.after(marker)
+                elInSpot.after(elForSpot)
+                marker.before(elInSpot)
+                marker.remove()
+            })
+
+            refreshScope(elForSpot, scopes[keys.indexOf(valForSpot)])
+        }
+
+        for (let i = 0; i < adds.length; i++) {
+            let [lastKey, index] = adds[i]
+
+            let lastEl = (lastKey === 'template') ? templateEl : lookup[lastKey]
+
+            let scope = scopes[index]
+            let key = keys[index]
+
+            let clone = document.importNode(templateEl.content, true).firstElementChild
+
+            addScopeToNode(clone, reactive(scope), templateEl)
+
+            lastEl.after(clone)
+
+            lookup[key] = clone
+        }
+
+
+        for (let i = 0; i < sames.length; i++) {
+            refreshScope(lookup[sames[i]], scopes[keys.indexOf(sames[i])])
+        }
+
+        el._x_prev_keys = keys
     })
 }
 

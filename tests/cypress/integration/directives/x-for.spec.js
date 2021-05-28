@@ -119,11 +119,10 @@ test('components inside a plain element of loop are reactive',
     }
 )
 
-// @flaky
 test('adding key attribute moves dom nodes properly',
     `
         <div x-data="{ items: ['foo', 'bar'] }">
-            <button x-on:click="items = ['bar', 'foo', 'baz']" id="reorder">click me</button>
+            <button x-on:click="items = ['bob', 'bar', 'foo', 'baz']" id="reorder">click me</button>
             <button x-on:click="$el.parentElement.querySelectorAll('span').forEach((el, index) => el.og_loop_index = index)" id="assign">click me</button>
 
             <template x-for="item in items" :key="item">
@@ -138,9 +137,10 @@ test('adding key attribute moves dom nodes properly',
         get('span:nth-of-type(1)').should(haveOgIndex(0))
         get('span:nth-of-type(2)').should(haveOgIndex(1))
         get('#reorder').click()
-        get('span:nth-of-type(1)').should(haveOgIndex(1))
-        get('span:nth-of-type(2)').should(haveOgIndex(0))
-        get('span:nth-of-type(3)').should(haveOgIndex(undefined))
+        get('span:nth-of-type(1)').should(haveOgIndex(undefined))
+        get('span:nth-of-type(2)').should(haveOgIndex(1))
+        get('span:nth-of-type(3)').should(haveOgIndex(0))
+        get('span:nth-of-type(4)').should(haveOgIndex(undefined))
     }
 )
 

@@ -3,6 +3,7 @@ import { setClasses } from '../utils/classes'
 import { setStyles } from '../utils/styles'
 import { directive } from '../directives'
 import { once } from '../utils/once'
+import { mutateDom } from '../mutation'
 
 directive('transition', (el, { value, modifiers, expression }) => {
     if (! expression) {
@@ -210,22 +211,24 @@ export function performTransition(el, stages, entering) {
     let interrupted, reachedBefore, reachedEnd
 
     let finish = once(() => {
-        interrupted = true
+        mutateDom(() => {
+            interrupted = true
 
-        if (! reachedBefore) stages.before()
+            if (! reachedBefore) stages.before()
 
-        if (! reachedEnd) {
-            stages.end()
+            if (! reachedEnd) {
+                stages.end()
 
-            releaseNextTicks()
-        }
+                releaseNextTicks()
+            }
 
-        stages.after()
+            stages.after()
 
-        // Adding an "isConnected" check, in case the callback removed the element from the DOM.
-        if (el.isConnected) stages.cleanup()
+            // Adding an "isConnected" check, in case the callback removed the element from the DOM.
+            if (el.isConnected) stages.cleanup()
 
-        delete el._x_transitioning
+            delete el._x_transitioning
+        })
     })
 
     el._x_transitioning = {
@@ -236,8 +239,10 @@ export function performTransition(el, stages, entering) {
         entering
     }
 
-    stages.start()
-    stages.during()
+    mutateDom(() => {
+        stages.start()
+        stages.during()
+    })
 
     holdNextTicks()
 
@@ -251,14 +256,18 @@ export function performTransition(el, stages, entering) {
 
         if (duration === 0) duration = Number(getComputedStyle(el).animationDuration.replace('s', '')) * 1000
 
-        stages.before()
+        mutateDom(() => {
+            stages.before()
+        })
 
         reachedBefore = true
 
         requestAnimationFrame(() => {
             if (interrupted) return
 
-            stages.end()
+            mutateDom(() => {
+                stages.end()
+            })
 
             releaseNextTicks()
 

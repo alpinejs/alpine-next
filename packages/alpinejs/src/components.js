@@ -1,7 +1,7 @@
 
 let components = {}
 
-export function component(name, callback) {
+export function data(name, callback) {
     components[name] = callback
 }
 

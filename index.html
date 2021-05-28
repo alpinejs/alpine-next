@@ -4,29 +4,300 @@
     <script src="http://alpine-next.test/packages/intersect/dist/cdn.js" defer></script>
     <script src="http://alpine-next.test/packages/morph/dist/cdn.js" defer></script>
     <script src="http://alpine-next.test/packages/history/dist/cdn.js"></script>
+    <script src="http://alpine-next.test/packages/persist/dist/cdn.js"></script>
     <script src="http://alpine-next.test/packages/alpinejs/dist/cdn.js" defer></script>
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
+    <script src="https://unpkg.com/jsdon@0.1.14/min.js"></script>
+
+
+    <div x-data="{ foo: 1, bar: 1 }">
+        <button @click="bar++">bar</button>
+        <a href="#" @click.prevent="$refs.span.remove()">remove</a>
+
+        <span x-text="(() => { foo = foo + 1; return bar })" x-ref="span"></span>
+
+        <h1 x-text="foo"></h1>
+        <h2 x-text="bar"></h2>
+    </div>
+
+
     <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
 
-    <script>window.count = 0</script>
-    <div x-data="{ frame: 0 }">
-        <template x-ref="0">
-            <div x-data>
-                <div x-show="window.count % 2 == 0">foo</div>
-            </div>
-        </template>
 
-        <template x-ref="1">
-            <div x-data>
-                <div x-show="window.count % 2 == 0">bar</div>
-            </div>
-        </template>
 
-        <button @click="frame++; window.count++">morph</button>
+    <!-- A -->
+    <!-- <div x-data="{ step: 1 }" x-history="step">
+        <button x-text="step" @click="step++"></button>
+    </div> -->
 
-        <article x-morph="$refs[frame % 2].innerHTML"></article>
+    <!-- <div x-data="{ foo: { step: $history(1).foo } }">
+        <button x-text="foo.step" @click="foo.step++"></button>
+    </div> -->
+
+    <!-- <div x-data="test">
+        <button x-text="foo.step" @click="foo.step++"></button>
     </div>
+
+    <div x-data="{ foo: 'bar' }"></div> -->
+
+    <!-- Now let's say you want the URL bar to say ?foo=bar -->
+    <!-- (and change when "foo" changes, etc...): -->
+
+
+
+
+    <script>
+        let old = Element.prototype.setAttribute
+
+        Element.prototype.setAttribute = function (name, value) {
+            if (! name.includes('@')) {
+                old.bind(this)(name, value)
+            } else {
+                let el = document.createRange().createContextualFragment(
+                    `<div ${name}="${value}"></div>`
+                ).firstElementChild
+
+                let attr = el.getAttributeNode(name)
+
+                el.removeAttributeNode(attr)
+
+                this.setAttributeNode(attr)
+
+                delete el
+            }
+        }
+
+        // benchmark(5000, {
+        //     first: () => {
+        //         let div = document.createElement('div')
+
+        //         div.setAttribute('foo', 'bar')
+        //     },
+        //     second: () => {
+        //         let div = document.createElement('div')
+
+        //         div.setAttribute('@foo', 'bar')
+        //     },
+        // })
+
+
+        function benchmark(times, callbacks) {
+            if (typeof callbacks === 'function') {
+                callbacks = { function: callbacks }
+            }
+
+            let result = {}
+
+            Object.entries(callbacks).forEach(([key, value]) => {
+                let thing = {}
+
+                let start = performance.now()
+                for (let index = 0; index < times; index++) {
+                    value()
+                }
+                let end = performance.now() - start
+
+                result[key] = {
+                    time: end,
+                }
+            })
+
+            console.table(result)
+        }
+    </script>
+
+
+<article>
+    <nav>
+        <h1></h1>
+        <h2></h2>
+    </nav>
+    <main>
+        <h3></h3>
+        <h4></h4>
+    </main>
+</article>
+
+<!-- Initialization Strategies: -->
+<!-- Crawl Everything -->
+    <!-- Is there a way to render partials of page -->
+<!-- Find Roots And Crawl Them -->
+
+<script>
+//     let cally = (el, skip ) => { if (el.tagName === 'NAV') { skip() }; let attrs = el.attributes }
+//     // benchmark(250, {
+//     //     recursive() {
+//     //         walk(document.querySelector('article'), cally)
+//     //     },
+//     //     tree() {
+//     //         treeWalk(document.querySelector('article'), cally)
+//     //     },
+//     // })
+// // walk3(document.querySelector('article'), el => console.log(el))
+//     walk3(document.querySelector('article'), (el, next) => {
+//         console.log(el);
+//         requestAnimationFrame(() => {
+//             console.log("nextFrame");
+//             next()
+//         })
+//     }).then(() => {
+//         console.log('finished');
+//     })
+
+//  function walk3(el, callback) {
+//     callback(el, () => {
+//         let node = el.firstElementChild
+
+//         node && walk3(node, (el, next) => {
+//             callback(el, next)
+//         })
+
+//         // while (node) {
+//         //     walk3(node, callback)
+
+//         //     node = node.nextElementSibling
+//         // }
+//     })
+// }
+
+//     function walker2(el, callback) {
+//         callback(el, () => {
+//             let node = el.firstElementChild
+
+//             while (node) {
+//                 walker2(node, callback)
+
+//                 let children = node.children
+
+//                 for (let index = 0; index < children.length; index++) {
+//                     const element = children[index];
+
+
+//                     walker2(element, callback)
+//                 }
+
+//                 node = node.firstElementChild
+//             }
+//         })
+//     }
+
+//     function walker(el, callback, after) {
+//         return new Promise(resolve => {
+//             callback(el, () => {
+//                 let promises = []
+
+//                 let node = el.firstElementChild
+
+//                 while (node) {
+//                     promises.push(walker(node, callback, () => {}))
+
+//                     node = node.nextElementSibling
+//                 }
+
+//                 Promise.all(promises).then(() => {
+//                     resolve()
+//                 })
+//             })
+
+//         })
+//     }
+
+//     function walk(el, callback) {
+//             // if (el instanceof ShadowRoot) {
+//             //     Array.from(el.children).forEach(el => walk(el, callback))
+
+//             //     return
+//             // }
+
+//             let skip = false
+
+//             callback(el, () => skip = true)
+
+//             if (skip) return
+
+//             let node = el.firstElementChild
+
+//             while (node) {
+//                 walk(node, callback, false)
+
+//                 node = node.nextElementSibling
+//             }
+//         }
+
+//     function treeWalk(el, callback) {
+//         var treeWalker = document.createTreeWalker(
+//             el,
+//             NodeFilter.SHOW_ELEMENT,
+//             {acceptNode(node) {
+//                 let skip
+
+//                 callback(node, () => skip = true)
+
+//                 if (skip) return NodeFilter.FILTER_REJECT
+
+//                 return NodeFilter.FILTER_ACCEPT
+//             }}
+//         );
+
+//         while(treeWalker.nextNode() !== null) {}
+//     }
+</script>
+    <!-- <div x-data="{ word: $uppercase('hey') }">
+        <button x-text="word"></button>
+
+        <input type="text" x-model="word">
+    </div> -->
+
+    <!-- <div x-data="{ items: $fetch(url, []).loading() }">
+        <button @click="count++" x-text="count"></button>
+    </div> -->
+
+
+    <script>
+        document.addEventListener('alpine:initializing', () => {
+            Alpine.magic('uppercase', () => Alpine.interceptor((key, path) => {
+                console.log(key, path);
+
+                return {
+                    init(value, setter) {
+                        setter(value.toUpperCase())
+                    },
+                    set(value, setter) {
+                        setter(value.toUpperCase())
+                    }
+                }
+            }))
+        })
+    </script>
+
+
+
+
+
+
+
+
+
+    <!-- <div x-data="{ foo: 'bar' }" x-query-string="foo"></div> -->
+
+    <!-- Or maybe you want to persist the value of "foo" to -->
+    <!-- localStorage so it persists between page refreshes:-->
+
+    <!-- <div x-data="{ foo: $queryString('bar') }"></div> -->
+
+    <script>
+        document.addEventListener('alpine:initializing', () => {
+            Alpine.data('test', function () {
+                return {
+                    foo: { step: this.$persist(1) }
+                }
+            })
+        })
+    </script>
+
+    <!-- B -->
+    <!-- <div x-data="{ step: $history(1) }">...</div> -->
 
     <!-- <div x-data="{ foo: 'bar' }">
         <button @click="foo = 'baz'">Change Foo</button>

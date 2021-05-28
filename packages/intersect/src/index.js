@@ -1,13 +1,15 @@
 let pauseReactions = false
 
-export default function (el, { value, modifiers, expression }, { Alpine }) {
-    let evaluate = Alpine.evaluateLater(el, expression)
+export default function (Alpine) {
+    Alpine.directive('intersect', (el, { value, modifiers, expression }, { Alpine }) => {
+        let evaluate = Alpine.evaluateLater(el, expression)
 
-    if (['out', 'leave'].includes(value)) {
-        el._x_intersectLeave(evaluate, modifiers)
-    } else {
-        el._x_intersectEnter(evaluate, modifiers)
-    }
+        if (['out', 'leave'].includes(value)) {
+            el._x_intersectLeave(evaluate, modifiers)
+        } else {
+            el._x_intersectEnter(evaluate, modifiers)
+        }
+    })
 }
 
 window.Element.prototype._x_intersectEnter = function (callback, modifiers) {

@@ -1,5 +1,5 @@
 import intersect from '../src/index.js'
 
 document.addEventListener('alpine:initializing', () => {
-    window.Alpine.directive('intersect', intersect)
+    window.Alpine.plugin(intersect)
 })

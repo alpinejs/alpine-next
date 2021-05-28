@@ -1,5 +1,6 @@
 import { directive, directives, into, mapAttributes, prefix, startingWith } from '../directives'
 import { evaluateLater } from '../evaluator'
+import { mutateDom } from '../mutation'
 import bind from '../utils/bind'
 
 mapAttributes(startingWith(':', into(prefix('bind:'))))
@@ -12,7 +13,7 @@ directive('bind', (el, { value, modifiers, expression, original }, { effect }) =
     let evaluate = evaluateLater(el, expression)
 
     effect(() => evaluate(result => {
-        bind(el, value, result, modifiers)
+        mutateDom(() => bind(el, value, result, modifiers))
     }))
 })
 

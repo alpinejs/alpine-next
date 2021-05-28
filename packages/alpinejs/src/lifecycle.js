@@ -1,8 +1,8 @@
 import { deferHandlingDirectives, directives } from "./directives"
 import { dispatch } from './utils/dispatch'
-import { walk } from "./utils/walk"
+import { walk, asyncWalk } from "./utils/walk"
 import { warn } from './utils/warn'
-import { attachMutationObserver, onAttributesAdded, onElAdded, onElRemoved } from "./mutation"
+import { startObservingMutations, onAttributesAdded, onElAdded, onElRemoved } from "./mutation"
 import { nextTick } from "./nextTick"
 
 export function start() {
@@ -10,9 +10,9 @@ export function start() {
 
     dispatch(document, 'alpine:initializing')
 
-    attachMutationObserver(document.body)
+    startObservingMutations()
 
-    onElAdded(el => initTree(el))
+    onElAdded(el => initTree(el, walk))
     onElRemoved(el => nextTick(() => destroyTree(el)))
 
     onAttributesAdded((el, attrs) => {
@@ -23,7 +23,9 @@ export function start() {
 
     Array.from(document.querySelectorAll(rootSelectors().join(', ')))
         .filter(outNestedComponents)
-        .forEach(el => initTree(el))
+        .forEach(el => {
+            initTree(el)
+        })
 
     dispatch(document, 'alpine:initialized')
 }
@@ -50,10 +52,10 @@ export function isRoot(el) {
 
 export function initTree(el, walker = walk) {
     deferHandlingDirectives(() => {
-        walker(el, (el, skip) => {
+        walker(el, (el, next) => {
             directives(el, el.attributes).forEach(handle => handle())
 
-            if (el._x_ignore) skip()
+            el._x_ignore || next()
         })
     })
 }

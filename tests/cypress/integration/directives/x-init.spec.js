@@ -9,6 +9,15 @@ test('sets text on init',
     ({ get }) => get('span').should(haveText('baz'))
 )
 
+
+test('x-init can be used outside of x-data',
+    `
+        <div x-init="$el.textContent = 'foo'"></div>
+    `,
+    ({ get }) => get('div').should(haveText('foo'))
+)
+
+
 test('changes made in x-init happen before the rest of the component',
     `
         <div x-data="{ foo: 'bar' }" x-init="$refs.foo.innerText = 'yo'">

@@ -2,7 +2,7 @@ import { haveText, test } from '../utils'
 
 test('can go back and forth',
     [`
-        <div x-data="{ count: 1 }" x-history="count">
+        <div x-data="{ count: $history(1) }">
             <button @click="count++">Inc</button>
             <span x-text="count"></span>
         </div>

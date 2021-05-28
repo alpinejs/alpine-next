@@ -7,6 +7,7 @@ import { injectMagics } from '../magics'
 import { addRootSelector } from '../lifecycle'
 import { skipDuringClone } from '../clone'
 import { dispatch } from '../utils/dispatch'
+import { initInterceptors } from '../interceptor'
 
 addRootSelector(() => `[${prefix('data')}]`)
 
@@ -15,7 +16,17 @@ directive('data', skipDuringClone((el, { expression }, { cleanup }) => {
 
     let component = getComponent(expression)
 
-    let data = component ? component() : evaluate(el, expression)
+    let data = {}
+
+    if (component) {
+        let magics = injectMagics({}, el)
+
+        data = component.bind(magics)()
+    } else {
+        data = evaluate(el, expression)
+    }
+
+    initInterceptors(data)
 
     injectMagics(data, el)
 
@@ -23,13 +34,11 @@ directive('data', skipDuringClone((el, { expression }, { cleanup }) => {
 
     let undo = addScopeToNode(el, reactiveData)
 
-    dispatch(el, 'alpine:rename-me', { rawData: data, reactiveData })
-
     if (reactiveData['init']) reactiveData['init']()
 
     cleanup(() => {
         undo()
 
-        reactiveData['destroy'] && reactiveData['destory']()
+        reactiveData['destroy'] && reactiveData['destroy']()
     })
 }))

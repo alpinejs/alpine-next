@@ -15,6 +15,14 @@ export function hasScope(node) {
     return !! node._x_dataStack
 }
 
+export function refreshScope(element, scope) {
+    let existingScope = element._x_dataStack[0]
+
+    Object.entries(scope).forEach(([key, value]) => {
+        existingScope[key] = value
+    })
+}
+
 export function closestDataStack(node) {
     if (node._x_dataStack) return node._x_dataStack
 
@@ -40,15 +48,15 @@ export function mergeProxies(objects) {
         },
 
         has: (target, name) => {
-            return (objects.find(object => Object.keys(object).includes(name)) || {})[name] !== undefined
+            return objects.some(obj => obj.hasOwnProperty(name))
         },
 
         get: (target, name) => {
-            return (objects.find(object => Object.keys(object).includes(name)) || {})[name]
+            return (objects.find(obj => obj.hasOwnProperty(name)) || {})[name]
         },
 
         set: (target, name, value) => {
-            let closestObjectWithKey = objects.find(object => Object.keys(object).includes(name))
+            let closestObjectWithKey = objects.find(obj => obj.hasOwnProperty(name))
 
             if (closestObjectWithKey) {
                 closestObjectWithKey[name] = value

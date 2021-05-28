@@ -81,3 +81,17 @@ test('functions in x-data are reactive',
         get('span').should(haveText('baz'))
     }
 )
+
+test('functions in x-data have access to proper this context',
+    `
+        <div x-data="{ ctx: undefined, foo() { console.log(this.ctx) }}" x-init="ctx = 'yoyo'">
+            <button @click="foo()">foo</button>
+            <span x-text="ctx"></span>
+        </div>
+    `,
+    ({ get }) => {
+        get('span').should(haveText('bar'))
+        get('button').click()
+        get('span').should(haveText('baz'))
+    }
+)

@@ -1,4 +1,4 @@
-import { getStore } from '../store'
+import { getStores } from '../store'
 import { magic } from '../magics'
 
-magic('store', () => name => getStore(name))
+magic('store', getStores)

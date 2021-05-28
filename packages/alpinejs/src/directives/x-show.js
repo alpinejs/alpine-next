@@ -1,22 +1,27 @@
 import { directive } from '../directives'
 import { evaluateLater } from '../evaluator'
+import { mutateDom } from '../mutation'
 import { once } from '../utils/once'
 
 directive('show', (el, { modifiers, expression }, { effect }) => {
     let evaluate = evaluateLater(el, expression)
 
     let hide = () => {
-        el.style.display = 'none'
+        mutateDom(() => {
+            el.style.display = 'none'
 
-        el._x_is_shown = false
+            el._x_is_shown = false
+        })
     }
 
     let show = () => {
-        if (el.style.length === 1 && el.style.display === 'none') {
-            el.removeAttribute('style')
-        } else {
-            el.style.removeProperty('display')
-        }
+        mutateDom(() => {
+            if (el.style.length === 1 && el.style.display === 'none') {
+                el.removeAttribute('style')
+            } else {
+                el.style.removeProperty('display')
+            }
+        })
 
         el._x_is_shown = true
     }
