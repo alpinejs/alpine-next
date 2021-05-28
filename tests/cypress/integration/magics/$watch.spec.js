@@ -21,6 +21,25 @@ test('$watch',
     }
 )
 
+test('$watch receives old value',
+    `
+        <div
+            x-data="{ foo: 'bar', fresh: '', old: '' }"
+            x-init="$watch('foo', (value, oldValue) => { fresh = value; old = oldValue; })"
+        >
+            <h1 x-text="fresh"></h1>
+            <h2 x-text="old"></h2>
+
+            <button x-on:click="foo = 'baz'"></button>
+        </div>
+    `,
+    ({ get }) => {
+        get('button').click()
+        get('h1').should(haveText('baz'))
+        get('h2').should(haveText('bar'))
+    }
+)
+
 test('$watch nested properties',
     `
         <div x-data="{ foo: { bar: 'baz', bob: 'lob' } }" x-init="

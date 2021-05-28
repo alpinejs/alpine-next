@@ -14,7 +14,18 @@
         // We aren't loading Alpine directly because we are expecting
         // Cypress to inject HTML into "#root", THEN we'll call
         // this function from Cypress to boot everything up.
-        root.evalScripts = () => {
+        root.evalScripts = (extraJavaScript) => {
+            // Load bespoke JavaScript.
+            if (extraJavaScript) {
+                let script = document.createElement('script')
+                script.src = `data:text/javascript;base64,${btoa(`
+                    document.addEventListener('alpine:initializing', () => {
+                        ${extraJavaScript}
+                    })
+                `)}`
+                root.after(script)
+            }
+
             // Load all injected script tags.
             root.querySelectorAll('script').forEach(el => {
                 eval(el.innerHTML)

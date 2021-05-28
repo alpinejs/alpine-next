@@ -215,6 +215,13 @@ function getIterationScopeVariables(iteratorNames, item, index, items) {
         names.forEach((name, i) => {
             scopeVariables[name] = item[i]
         })
+    }
+    if (/^\[.*\]$/.test(iteratorNames.item) && Array.isArray(item)) {
+        let names = iteratorNames.item.replace('[', '').replace(']', '').split(',').map(i => i.trim())
+
+        names.forEach((name, i) => {
+            scopeVariables[name] = item[i]
+        })
     } else {
         scopeVariables[iteratorNames.item] = item
     }

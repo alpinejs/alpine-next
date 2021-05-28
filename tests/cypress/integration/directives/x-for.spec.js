@@ -19,6 +19,25 @@ test('renders loops with x-for',
     }
 )
 
+test('can destructure arrays',
+    `
+        <div x-data="{ items: [[1, 'foo'], [2, 'bar']] }">
+            <template x-for="[id, label] in items">
+                <div x-bind:id="id">
+                    <span x-text="id"></span>
+                    <h1 x-text="label"></h1>
+                </div>
+            </template>
+        </div>
+    `,
+    ({ get }) => {
+        get('#1 span').should(haveText('1'))
+        get('#1 h1').should(haveText('foo'))
+        get('#2 span').should(haveText('2'))
+        get('#2 h1').should(haveText('bar'))
+    }
+)
+
 test('removes all elements when array is empty and previously had one item',
     `
         <div x-data="{ items: ['foo'] }">

@@ -11,17 +11,15 @@
     <script src="https://unpkg.com/jsdon@0.1.14/min.js"></script>
 
 
-    <div x-data="{ foo: 1, bar: 1 }">
-        <button @click="bar++">bar</button>
-        <a href="#" @click.prevent="$refs.span.remove()">remove</a>
 
-        <span x-text="(() => { foo = foo + 1; return bar })" x-ref="span"></span>
-
-        <h1 x-text="foo"></h1>
-        <h2 x-text="bar"></h2>
+    <div x-data="{ items: [[1, 'foo'], [2, 'bar']] }">
+        <template x-for="[id, label] in items">
+            <div>
+                <span x-text="id"></span>
+                <h1 x-text="label"></h1>
+            </div>
+        </template>
     </div>
-
-
     <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
 
 

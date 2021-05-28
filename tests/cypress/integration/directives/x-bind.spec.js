@@ -18,6 +18,15 @@ test('style attribute bindings are added by string syntax',
     ({ get }) => get('span').should(haveClasses(['foo']))
 )
 
+test('aria-pressed/checked attribute boolean values are cast to a true/false string',
+    `
+        <div x-data="{ open: true }">
+            <span x-bind:aria-pressed="open"></span>
+        </div>
+    `,
+    ({ get }) => get('span').should(haveAttribute('aria-pressed', 'true'))
+)
+
 test('non-boolean attributes set to null/undefined/false are removed from the element',
     `
         <div x-data="{}">

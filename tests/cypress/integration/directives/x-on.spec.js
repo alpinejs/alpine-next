@@ -129,6 +129,20 @@ test('.window modifier',
     }
 )
 
+test('expressions can start with if',
+    `
+        <div x-data="{ foo: 'bar' }">
+            <button @click="if (foo === 'bar') foo = 'baz'">click</button>
+            <span x-text="foo"></span>
+        </div>
+    `,
+    ({ get }) => {
+        get('span').should(haveText('bar'))
+        get('button').click()
+        get('span').should(haveText('baz'))
+    }
+)
+
 test('unbind global event handler when element is removed',
     `
         <div x-data="{ count: 0 }">
