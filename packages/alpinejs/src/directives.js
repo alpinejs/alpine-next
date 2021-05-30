@@ -67,7 +67,6 @@ export function getDirectiveHandler(el, directive) {
     let doCleanup = () => cleanups.forEach(i => i())
 
     onAttributeRemoved(el, directive.original, doCleanup)
-    onElRemoved(el, doCleanup)
 
     let fullHandler = () => {
         if (el._x_ignore || el._x_ignore_self) return

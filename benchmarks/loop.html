@@ -5,9 +5,10 @@
     <title>Alpine-3-keyed</title>
     <link href="/css/currentStyle.css" rel="stylesheet" />
     <script src="http://alpine-next.test/packages/alpinejs/dist/cdn.js" defer></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
   </head>
   <body>
-    <div class="container" id="main" x-data="app">
+    <div class="container" id="main" x-data="{ data: []}">
       <div class="jumbotron">
         <div class="row">
           <div class="col-md-6">
@@ -103,7 +104,6 @@
     </div>
 
     <script>
-        document.addEventListener('alpine:initializing', () => {
             let idCounter = 1;
             const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"],
             colours = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"],
@@ -122,12 +122,18 @@
             return data;
             }
 
-            Alpine.data('app', function() {
+            function app() {
                 return {
                     data: [],
                     selected: undefined,
 
-                    add() { this.data = this.data.concat(buildData(1000)) },
+                    add() {
+                        let start = performance.now()
+                        this.data = this.data.concat(buildData(1000))
+                        setTimeout(() => {
+                            console.log(performance.now() - start);
+                        }, 0)
+                    },
                     clear() {
                         let start = performance.now()
                         this.data = [];
@@ -155,7 +161,7 @@
                     },
                     run() {
                         let start = performance.now()
-                        this.data = buildData(1000);
+                        this.data = buildData(100);
                         this.selected = undefined;
                         setTimeout(() => {
                             console.log(performance.now() - start);
@@ -169,18 +175,27 @@
                             console.log(performance.now() - start);
                         }, 0)
                     },
-                    select(id) { this.selected = id },
+                    select(id) {
+                        let start = performance.now()
+                        this.selected = id
+                        setTimeout(() => {
+                            console.log(performance.now() - start);
+                        }, 0)
+                    },
                     swapRows() {
+                        let start = performance.now()
                         const d = this.data;
                         if (d.length > 998) {
                             const tmp = d[998];
                             d[998] = d[1];
                             d[1] = tmp;
                         }
+                        setTimeout(() => {
+                            console.log(performance.now() - start);
+                        }, 0)
                     }
                 }
-            })
-        })
+            }
     </script>
   </body>
 </html>

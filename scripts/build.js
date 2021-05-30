@@ -80,6 +80,7 @@ function build(options) {
     options.define || (options.define = {})
 
     options.define['ALPINE_VERSION'] = `'${getFromPackageDotJson('alpinejs', 'version')}'`
+    options.define['process.env.NODE_ENV'] = process.argv.includes('--watch') ? `'production'` : `'development'`
 
     return require('esbuild').build({
         watch: process.argv.includes('--watch'),

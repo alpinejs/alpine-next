@@ -4,6 +4,7 @@ import { directive } from '../directives'
 import { reactive } from '../reactivity'
 import { initTree } from '../lifecycle'
 import { mutateDom } from '../mutation'
+import { flushJobs } from '../scheduler'
 
 directive('for', (el, { expression }, { effect, cleanup }) => {
     let iteratorNames = parseForExpression(expression)
@@ -54,6 +55,18 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             evaluateKey(value => keys.push(value), { scope: { index: i, ...scope} })
 
             scopes.push(scope)
+        }
+
+        // To speed up initializing large data sets, we can skip the diff
+        // process and just do the add right away. To speed it up even
+        // further, we can also render a non-live version of the HTML
+        // and defer the actual initialization until the next tick.
+        if (items.length > 0 && prevKeys.length === 0) {
+            renderAndDeferInitialization(templateEl, items, scopes, keys, lookup)
+
+            templateEl._x_prev_keys = keys
+
+            return
         }
 
         // Rather than making DOM manipulations inside one large loop, we'll
@@ -120,6 +133,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
 
             lookup[key].remove()
 
+            lookup[key] = null
             delete lookup[key]
         }
 
@@ -162,7 +176,6 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
             lookup[key] = clone
         }
 
-
         // If an element hasn't changed, we still want to "refresh" the
         // data it depends on in case the data has changed in an
         // "unobservable" way.
@@ -172,7 +185,7 @@ function loop(el, iteratorNames, evaluateItems, evaluateKey) {
 
         // Now we'll log the keys (and the order they're in) for comparing
         // against next time.
-        el._x_prev_keys = keys
+        templateEl._x_prev_keys = keys
     })
 }
 
@@ -235,4 +248,59 @@ function getIterationScopeVariables(iteratorNames, item, index, items) {
 
 function isNumeric(subject){
     return ! Array.isArray(subject) && ! isNaN(subject)
+}
+
+function renderAndDeferInitialization(templateEl, items, scopes, keys, lookup) {
+    let els = []
+    let container = document.createDocumentFragment()
+
+    for (let i = 0; i < items.length; i++) {
+        let scope = scopes[i]
+        let key = keys[i]
+
+        let clone = fastCreate(templateEl, items, key, scope)
+
+        els.push(clone)
+
+        lookup[key] = clone
+    }
+
+    // Wrap this in a mutateDom so that we don't trigger
+    // the mutation observer and accidentally init these.
+    mutateDom(() => {
+        templateEl.after(...els)
+    })
+
+    // Defer initialization of the new nodes.
+    setTimeout(() => {
+        els.forEach(el => initTree(el))
+    })
+}
+
+let cache
+function fastCreate(templateEl, items, key, scope) {
+    // Here, we'll import the template into a node and initialize it with Alpine.
+    // This way, we can modify the "item" variable in a loop and take snapshots
+    // of the HTML as we go through the iteration.
+    if (! cache) {
+        cache = document.importNode(templateEl.content, true).firstElementChild
+        addScopeToNode(cache, reactive({ item: scope.item }), templateEl)
+        initTree(cache)
+
+        let clone =  cache.cloneNode(true)
+
+        addScopeToNode(clone, reactive(scope), templateEl)
+
+        return clone
+    }
+
+    cache._x_dataStack[0].item = scope.item
+
+    flushJobs()
+
+    let clone = cache.cloneNode(true)
+
+    addScopeToNode(clone, reactive(scope), templateEl)
+
+    return clone
 }

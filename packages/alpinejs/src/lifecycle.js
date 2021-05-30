@@ -52,10 +52,10 @@ export function isRoot(el) {
 
 export function initTree(el, walker = walk) {
     deferHandlingDirectives(() => {
-        walker(el, (el, next) => {
+        walker(el, (el, skip) => {
             directives(el, el.attributes).forEach(handle => handle())
 
-            el._x_ignore || next()
+            el._x_ignore && skip()
         })
     })
 }
@@ -73,5 +73,7 @@ function destroyTree(root) {
         let callbacks = onDestroys.get(el)
 
         callbacks && callbacks.forEach(callback => callback())
+
+        onDestroys.delete(el)
     })
 }

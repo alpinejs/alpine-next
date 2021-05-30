@@ -134,10 +134,27 @@ function onMutate(mutations) {
 
     for (let node of removedNodes) {
         // If an element gets moved on a page, it's registered
-        // as both an "add" and "remove", so we wan't to skip those.
+        // as both an "add" and "remove", so we want to skip those.
         if (addedNodes.includes(node)) continue
 
-        // Don't block execution for destroy callbacks.
-        [...onElRemoveds, ...(onElRemovedByEl.get(node) || [])].forEach(i => i(node))
+
+        if (onAttributeRemoveds.has(node)) {
+            Object.entries(onAttributeRemoveds.get(node)).forEach(([key, value]) => {
+                value.forEach(i => i())
+            })
+            onAttributeRemoveds.delete(node)
+        }
+
+        if (onElRemovedByEl.has(node)) {
+            onElRemovedByEl.get(node).forEach(i => i())
+            onElRemovedByEl.delete(node)
+        }
+
+        onElRemoveds.forEach(i => i(node))
     }
+
+    addedNodes = null
+    removedNodes = null
+    addedAttributes = null
+    removedAttributes = null
 }

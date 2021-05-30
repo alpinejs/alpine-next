@@ -7,7 +7,7 @@ export function addScopeToNode(node, data, referenceNode) {
     node._x_dataStack = [data, ...closestDataStack(referenceNode || node)]
 
     return () => {
-        node._x_dataStack  = node._x_dataStack.filter(i => i !== data)
+        node._x_dataStack = node._x_dataStack.filter(i => i !== data)
     }
 }
 

@@ -1,17 +1,38 @@
 export function walk(el, callback) {
-    if (el instanceof ShadowRoot || el instanceof DocumentFragment) {
+    if (el instanceof ShadowRoot) {
         Array.from(el.children).forEach(el => walk(el, callback))
 
         return
     }
 
-    callback(el, () => {
-        let node = el.firstElementChild
+    let skip = false
 
-        while (node) {
-            walk(node, callback)
+    callback(el, () => skip = true)
 
-            node = node.nextElementSibling
-        }
-    })
+    if (skip) return
+
+    let node = el.firstElementChild
+
+    while (node) {
+        walk(node, callback, false)
+
+        node = node.nextElementSibling
+    }
 }
+// export function walk(el, callback) {
+//     if (el instanceof ShadowRoot || el instanceof DocumentFragment) {
+//         Array.from(el.children).forEach(el => walk(el, callback))
+
+//         return
+//     }
+
+//     callback(el, () => {
+//         let node = el.firstElementChild
+
+//         while (node) {
+//             walk(node, callback)
+
+//             node = node.nextElementSibling
+//         }
+//     })
+// }
