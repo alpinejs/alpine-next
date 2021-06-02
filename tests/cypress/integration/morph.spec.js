@@ -50,7 +50,7 @@ test('components within morph retain state between',
 
             <button @click="frame++" id="morph">morph</button>
 
-            <article x-morph="$refs[frame % 3].innerHTML"></article>
+            <article x-morph="$refs[frame % 2].innerHTML"></article>
         </div>
     `],
     ({ get }) => {

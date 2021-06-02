@@ -9,7 +9,7 @@ test.csp('Can use components and basic expressions with CSP-compatible build',
         </div>
     `,
     `
-        Alpine.component('test', () => ({
+        Alpine.data('test', () => ({
             foo: 'bar',
             change() { this.foo = 'baz' },
         }))

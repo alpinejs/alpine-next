@@ -45,7 +45,7 @@ export function cloneTree(el) {
         })
     }
 
-    initTree(el, () => {}, shallowWalker)
+    initTree(el, shallowWalker)
 }
 
 function dontRegisterReactiveSideEffects(callback) {

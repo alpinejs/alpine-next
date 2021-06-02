@@ -35,34 +35,12 @@ export function normalEvaluator(el, expression) {
     return tryCatch.bind(null, el, expression, evaluator)
 }
 
-function generateEvaluatorFromFunction(dataStack, func) {
+export function generateEvaluatorFromFunction(dataStack, func) {
     return (receiver = () => {}, { scope = {}, params = [] } = {}) => {
         let result = func.apply(mergeProxies([scope, ...dataStack]), params)
 
         runIfTypeOfFunction(receiver, result)
     }
-}
-
-export function cspCompliantEvaluator(el, expression, extras = {}) {
-    let overriddenMagics = {}
-
-    injectMagics(overriddenMagics, el)
-
-    let dataStack = [overriddenMagics, ...closestDataStack(el)]
-
-    if (typeof expression === 'function') {
-        return generateEvaluatorFromFunction(dataStack, expression)
-    }
-
-    let evaluator = (receiver = () => {}, { scope = {}, params = [] } = {}) => {
-        let completeScope = mergeProxies([scope, ...dataStack])
-
-        if (completeScope[expression] !== undefined) {
-            runIfTypeOfFunction(receiver, completeScope[expression], completeScope, params)
-        }
-   }
-
-    return tryCatch.bind(null, el, expression, evaluator)
 }
 
 let evaluatorMemo = {}
@@ -103,10 +81,6 @@ function generateEvaluatorFromString(dataStack, expression) {
 
         let completeScope = mergeProxies([ scope, ...dataStack ])
 
-        if (expression === `ctx = 'yoyo'`) {
-            console.log(completeScope);
-        }
-
         let promise = func(func, completeScope)
 
         // Check if the function ran synchronously,
@@ -122,7 +96,7 @@ function generateEvaluatorFromString(dataStack, expression) {
     }
 }
 
-function runIfTypeOfFunction(receiver, value, scope, params) {
+export function runIfTypeOfFunction(receiver, value, scope, params) {
     if (typeof value === 'function') {
         let result = value.apply(scope, params)
 
@@ -136,7 +110,7 @@ function runIfTypeOfFunction(receiver, value, scope, params) {
     }
 }
 
-function tryCatch(el, expression, callback, ...args) {
+export function tryCatch(el, expression, callback, ...args) {
     try {
         return callback(...args)
     } catch (e) {

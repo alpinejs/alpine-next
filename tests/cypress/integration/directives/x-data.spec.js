@@ -84,9 +84,9 @@ test('functions in x-data are reactive',
 
 test('functions in x-data have access to proper this context',
     `
-        <div x-data="{ ctx: undefined, foo() { console.log(this.ctx) }}" x-init="ctx = 'yoyo'">
-            <button @click="foo()">foo</button>
-            <span x-text="ctx"></span>
+        <div x-data="{ foo: undefined, change() { this.foo = 'baz' }}" x-init="foo = 'bar'">
+            <button @click="change()">change</button>
+            <span x-text="foo"></span>
         </div>
     `,
     ({ get }) => {

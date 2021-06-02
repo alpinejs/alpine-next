@@ -24,7 +24,7 @@ test('can go back and forth',
 
 test('property is set from the query string on load',
     [`
-        <div x-data="{ count: 1 }" x-history="count">
+        <div x-data="{ count: $history(1) }">
             <button @click="count++">Inc</button>
             <span x-text="count"></span>
         </div>
@@ -42,12 +42,12 @@ test('property is set from the query string on load',
 
 test('can go back and forth with multiple components',
     [`
-        <div x-data="{ foo: 1 }" x-history="foo" id="foo">
+        <div x-data="{ foo: $history(1) }" id="foo">
             <button @click="foo++">Inc</button>
             <span x-text="foo"></span>
         </div>
 
-        <div x-data="{ bar: 1 }" x-history="bar" id="bar">
+        <div x-data="{ bar: $history(1) }" id="bar">
             <button @click="bar++">Inc</button>
             <span x-text="bar"></span>
         </div>

@@ -31,7 +31,7 @@ export function onAttributeRemoved(el, name, callback) {
 
 let observer = new MutationObserver(onMutate)
 
-window.currentlyObserving = false
+let currentlyObserving = false
 
 export function startObservingMutations() {
     observer.observe(document, { subtree: true, childList: true, attributes: true, attributeOldValue: true })
@@ -45,10 +45,27 @@ export function stopObservingMutations() {
     currentlyObserving = false
 }
 
-export function flushObserver() {
-    let records = observer.takeRecords()
+let recordQueue = []
+let willProcessRecordQueue = false
 
-    records.length && onMutate(records)
+export function flushObserver() {
+    recordQueue = recordQueue.concat(observer.takeRecords())
+
+    if (recordQueue.length && ! willProcessRecordQueue) {
+        willProcessRecordQueue = true
+
+        queueMicrotask(() => {
+            processRecordQueue()
+
+            willProcessRecordQueue = false
+        })
+    }
+}
+
+function processRecordQueue() {
+     onMutate(recordQueue)
+
+     recordQueue.length = 0
 }
 
 export function mutateDom(callback) {

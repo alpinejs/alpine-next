@@ -46,7 +46,7 @@ function patch(dom, to) {
 
     if (shouldSkip(updating, dom, to, () => updateChildrenOnly = true)) return
 
-    window.Alpine && initializeAlpineOnTo(dom, to, () => updateChildrenOnly = true)
+    // window.Alpine && initializeAlpineOnTo(dom, to, () => updateChildrenOnly = true)
 
     if (textOrComment(to)) {
         patchNodeValue(dom, to)

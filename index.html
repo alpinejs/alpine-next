@@ -5,21 +5,36 @@
     <script src="http://alpine-next.test/packages/morph/dist/cdn.js" defer></script>
     <script src="http://alpine-next.test/packages/history/dist/cdn.js"></script>
     <script src="http://alpine-next.test/packages/persist/dist/cdn.js"></script>
+    <script src="http://alpine-next.test/packages/trap/dist/cdn.js"></script>
     <script src="http://alpine-next.test/packages/alpinejs/dist/cdn.js" defer></script>
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
     <script src="https://unpkg.com/jsdon@0.1.14/min.js"></script>
 
+    <div x-data="{ frame: 0 }">
+        <template x-ref="0">
+            <div x-data="{ count: 1 }">
+                <button @click="count++">inc</button>
 
-
-    <div x-data="{ items: [[1, 'foo'], [2, 'bar']] }">
-        <template x-for="[id, label] in items">
-            <div>
-                <span x-text="id"></span>
-                <h1 x-text="label"></h1>
+                <span x-text="String(frame) + count"></span>
             </div>
         </template>
+
+        <template x-ref="1">
+            <div x-data="{ count: 1 }">
+                <button @click="count++">inc</button>
+
+                <span x-text="String(frame) + 'foo' + count"></span>
+            </div>
+        </template>
+
+        <button @click="frame++" id="morph">morph</button>
+
+        <article x-morph="$refs[frame % 3].innerHTML"></article>
     </div>
+
+
+
     <!-- <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script> -->
 
 
