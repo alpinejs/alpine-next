@@ -1,0 +1,9 @@
+{
+    "name": "@alpinejs/docs",
+    "version": "0.1.0",
+    "description": "The documentation for AlpineJS",
+    "author": "Caleb Porzio",
+    "license": "MIT",
+    "main": "dist/module.cjs.js",
+    "module": "dist/module.esm.js"
+}
