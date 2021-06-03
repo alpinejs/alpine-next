@@ -1,7 +1,7 @@
 {
     "name": "@alpinejs/intersect",
-    "version": "0.1.0",
-    "description": "A convenience plugin for binding data to history state AlpineJS.",
+    "version": "3.0.0-alpha.0",
+    "description": "Trigger JavaScript when an element enters or leaves the viewport",
     "author": "Caleb Porzio",
     "license": "MIT",
     "main": "dist/module.cjs.js",

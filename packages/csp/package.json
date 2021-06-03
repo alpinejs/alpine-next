@@ -1,7 +1,7 @@
 {
     "name": "@alpinejs/csp",
-    "version": "0.1.0",
-    "description": "A convenience plugin for reacting to page intersections in AlpineJS.",
+    "version": "3.0.0-alpha.0",
+    "description": "A CSP compatible build of Alpine",
     "author": "Caleb Porzio",
     "license": "MIT",
     "main": "dist/module.cjs.js",

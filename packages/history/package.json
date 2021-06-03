@@ -1,7 +1,7 @@
 {
     "name": "@alpinejs/history",
-    "version": "0.1.0",
-    "description": "A convenience plugin for reacting to page intersections in AlpineJS.",
+    "version": "3.0.0-alpha.0",
+    "description": "Sync Alpine data with the browser's query string",
     "author": "Caleb Porzio",
     "license": "MIT",
     "main": "dist/module.cjs.js",

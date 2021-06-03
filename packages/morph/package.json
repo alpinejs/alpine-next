@@ -1,7 +1,7 @@
 {
     "name": "@alpinejs/morph",
-    "version": "0.1.0",
-    "description": "A convenience plugin for reacting to page intersections in AlpineJS.",
+    "version": "3.0.0-alpha.0",
+    "description": "Diff and patch a block of HTML on a page with an HTML template",
     "author": "Caleb Porzio",
     "license": "MIT",
     "main": "dist/module.cjs.js",

@@ -1,7 +1,7 @@
 {
     "name": "alpinejs",
-    "version": "3.0.0",
-    "description": "The rugged, minimal framework for building a simpler web.",
+    "version": "3.0.0-alpha.0",
+    "description": "The rugged, minimal JavaScript framework",
     "author": "Caleb Porzio",
     "license": "MIT",
     "main": "dist/module.cjs.js",

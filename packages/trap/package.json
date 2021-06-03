@@ -1,7 +1,7 @@
 {
     "name": "@alpinejs/trap",
-    "version": "0.1.0",
-    "description": "A convenience plugin for trapping focus.",
+    "version": "3.0.0-alpha.0",
+    "description": "Declaratively trap focus",
     "author": "Caleb Porzio",
     "license": "MIT",
     "main": "dist/module.cjs.js",
