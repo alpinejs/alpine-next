@@ -1,4 +1,10 @@
 
+// This is an invisible template tag for enabling syntax highlighting
+// of any string in most editors.
+export function html(strings) {
+    return strings.raw[0]
+}
+
 export let test = function (name, template, callback) {
     it(name, () => {
         injectHtmlAndBootAlpine(cy, template, callback)
@@ -26,7 +32,7 @@ test.retry = (count) => (name, template, callback) => {
 
 test.csp = (name, template, callback) => {
     it(name, () => {
-        injectHtmlAndBootAlpine(cy, template, callback, 'http://alpine-next.test/tests/cypress/spec-csp.html')
+        injectHtmlAndBootAlpine(cy, template, callback, __dirname+'/spec-csp.html')
     })
 }
 
@@ -35,7 +41,7 @@ function injectHtmlAndBootAlpine(cy, templateAndPotentiallyScripts, callback, pa
         ? templateAndPotentiallyScripts
         : [templateAndPotentiallyScripts]
 
-    cy.visit(page || 'http://alpine-next.test/tests/cypress/spec.html')
+    cy.visit(page || __dirname+'/spec.html')
 
     cy.get('#root').then(([el]) => {
         el.innerHTML = template
@@ -64,6 +70,10 @@ function injectHtmlAndBootAlpine(cy, templateAndPotentiallyScripts, callback, pa
 }
 
 export let haveData = (key, value) => ([ el ]) => expect(root(el)._x_dataStack[0][key]).to.equal(value)
+
+export let haveFocus = () => el => expect(el).to.have.focus
+
+export let notHaveFocus = () => el => expect(el).not.to.be.focused
 
 export let haveAttribute = (name, value) => el => expect(el).to.have.attr(name, value)
 

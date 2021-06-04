@@ -1,12 +1,12 @@
-import { haveData, haveText, haveValue, test } from '../../utils'
+import { haveData, haveText, haveValue, html, test } from '../../utils'
 
 test('The name of the test',
-    `<h1 x-data x-text="'HEY'"></h1>`,
+    html`<h1 x-data x-text="'HEY'"></h1>`,
     ({ get }) => get('h1').should(haveText('HEY'))
 )
 
 test('x-model has value binding when initialized',
-    `
+    html`
     <div x-data="{ foo: 'bar' }">
         <input x-model="foo"></input>
     </div>
@@ -15,7 +15,7 @@ test('x-model has value binding when initialized',
 )
 
 test('x-model updates value when updated via input event',
-    `
+    html`
     <div x-data="{ foo: 'bar' }">
         <input x-model="foo"></input>
         <span x-text="foo"></span>
@@ -29,7 +29,7 @@ test('x-model updates value when updated via input event',
 )
 
 test('x-model has value binding when updated',
-    `
+    html`
     <div x-data="{ foo: 'bar' }">
         <input x-model="foo"></input>
 
@@ -44,7 +44,7 @@ test('x-model has value binding when updated',
 )
 
 test('x-model casts value to number if number modifier is present',
-    `
+    html`
     <div x-data="{ foo: null }">
         <input type="number" x-model.number="foo"></input>
     </div>
@@ -57,7 +57,7 @@ test('x-model casts value to number if number modifier is present',
 )
 
 test('x-model with number modifier returns: null if empty, original value if casting fails, numeric value if casting passes',
-    `
+    html`
     <div x-data="{ foo: 0, bar: '' }">
         <input type="number" x-model.number="foo"></input>
         <input x-model.number="bar"></input>
@@ -80,7 +80,7 @@ test('x-model with number modifier returns: null if empty, original value if cas
 )
 
 test('x-model trims value if trim modifier is present',
-    `
+    html`
     <div x-data="{ foo: '' }">
         <input x-model.trim="foo"></input>
 

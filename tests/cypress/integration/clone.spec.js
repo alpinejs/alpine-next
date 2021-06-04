@@ -1,7 +1,7 @@
-import { haveText, test } from '../utils'
+import { haveText, html, test } from '../utils'
 
 test('can clone a component',
-    `
+    html`
         <script>
             document.addEventListener('alpine:initialized', () => {
                 window.original = document.getElementById('original')
@@ -36,7 +36,7 @@ test('can clone a component',
 )
 
 test('wont run init on clone',
-    `
+    html`
         <script>
             document.addEventListener('alpine:initialized', () => {
                 window.original = document.getElementById('original')
@@ -66,7 +66,7 @@ test('wont run init on clone',
 )
 
 test('wont register listeners on clone',
-    `
+    html`
         <script>
             document.addEventListener('alpine:initialized', () => {
                 window.original = document.getElementById('original')

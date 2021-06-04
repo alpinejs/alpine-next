@@ -1,7 +1,7 @@
-import { haveText, test } from '../utils'
+import { haveText, html, test } from '../../utils'
 
 test('can morph components',
-    [`
+    [html`
         <div x-data="{ frame: 0 }">
             <template x-ref="0">
                 <h1><div></div>foo</h1>
@@ -30,7 +30,7 @@ test('can morph components',
 )
 
 test('components within morph retain state between',
-    [`
+    [html`
         <div x-data="{ frame: 0 }">
             <template x-ref="0">
                 <div x-data="{ count: 1 }">

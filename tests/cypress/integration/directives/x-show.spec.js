@@ -1,7 +1,7 @@
-import { beHidden, beVisible, haveAttribute, test } from '../../utils'
+import { beHidden, beVisible, haveAttribute, html, test } from '../../utils'
 
 test('x-show toggles display: none; with no other style attributes',
-    `
+    html`
         <div x-data="{ show: true }">
             <span x-show="show">thing</span>
 
@@ -16,7 +16,7 @@ test('x-show toggles display: none; with no other style attributes',
 )
 
 test('x-show (with true default) toggles display: none; even if it exists with the page load',
-    `
+    html`
         <div x-data="{ show: true }">
             <span x-show="show" style="display: none;">thing</span>
 
@@ -31,7 +31,7 @@ test('x-show (with true default) toggles display: none; even if it exists with t
 )
 
 test('x-show (with false default) toggles display: none; even if it exists with the page load',
-    `
+    html`
         <div x-data="{ show: false }">
             <span x-show="show" style="display: none;">thing</span>
 
@@ -46,7 +46,7 @@ test('x-show (with false default) toggles display: none; even if it exists with 
 )
 
 test('x-show toggles display: none; with other style attributes',
-    `
+    html`
         <div x-data="{ show: true }">
             <span x-show="show" style="color: blue;">thing</span>
 
@@ -63,7 +63,7 @@ test('x-show toggles display: none; with other style attributes',
 )
 
 test('x-show waits for transitions within it to finish before hiding an elements',
-    `
+    html`
         <style>
             .transition { transition-property: background-color, border-color, color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
             .duration-100 { transition-duration: 100ms; }
@@ -86,7 +86,7 @@ test('x-show waits for transitions within it to finish before hiding an elements
 )
 
 test('x-show does NOT wait for transitions to finish if .immediate is present',
-    `
+    html`
         <style>
             .transition { transition-property: background-color, border-color, color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
             .duration-100 { transition-duration: 100ms; }
@@ -107,7 +107,7 @@ test('x-show does NOT wait for transitions to finish if .immediate is present',
 )
 
 test('x-show with x-bind:style inside x-for works correctly',
-    `
+    html`
         <div x-data="{items: [{ cleared: false }, { cleared: false }]}">
             <template x-for="(item, index) in items" :key="index">
                 <button x-show="! item.cleared"
@@ -132,7 +132,7 @@ test('x-show with x-bind:style inside x-for works correctly',
 )
 
 test('x-show takes precedence over style bindings for display property',
-    `
+    html`
         <div x-data="{ show: false }">
             <span x-show="show" :style="'color: red;'">thing</span>
             <span :style="'color: red;'" x-show="show">thing</span>

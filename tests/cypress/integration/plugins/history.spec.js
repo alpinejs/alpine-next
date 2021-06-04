@@ -1,7 +1,7 @@
-import { haveText, test } from '../utils'
+import { haveText, html, test } from '../../utils'
 
 test('can go back and forth',
-    [`
+    [html`
         <div x-data="{ count: $history(1) }">
             <button @click="count++">Inc</button>
             <span x-text="count"></span>
@@ -23,7 +23,7 @@ test('can go back and forth',
 )
 
 test('property is set from the query string on load',
-    [`
+    [html`
         <div x-data="{ count: $history(1) }">
             <button @click="count++">Inc</button>
             <span x-text="count"></span>
@@ -41,7 +41,7 @@ test('property is set from the query string on load',
 )
 
 test('can go back and forth with multiple components',
-    [`
+    [html`
         <div x-data="{ foo: $history(1) }" id="foo">
             <button @click="foo++">Inc</button>
             <span x-text="foo"></span>

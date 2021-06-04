@@ -1,7 +1,7 @@
-import { haveText, test } from '../utils'
+import { haveText, html, test } from '../utils'
 
 test('element side effects are cleaned up after the elements are removed',
-    `
+    html`
         <div x-data="{ foo: 1, bar: 1 }">
             <button @click="bar++">bar</button>
             <a href="#" @click.prevent="$refs.span.remove()">remove</a>
@@ -26,7 +26,7 @@ test('element side effects are cleaned up after the elements are removed',
 )
 
 test('can mutate directive value',
-    `
+    html`
         <div x-data="{ foo: 'bar', bar: 'baz' }">
             <button @click="$refs.target.setAttribute('x-text', 'bar')">change text</button>
 
@@ -41,7 +41,7 @@ test('can mutate directive value',
 )
 
 test('can add new directive',
-    `
+    html`
         <div x-data="{ foo: 'bar' }">
             <button @click="$refs.target.setAttribute('x-text', 'foo')">change text</button>
 

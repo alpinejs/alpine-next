@@ -1,7 +1,7 @@
-import { beVisible, notBeVisible, notHaveAttribute, test } from '../../utils'
+import { beVisible, html, notBeVisible, notHaveAttribute, test } from '../../utils'
 
 test('x-if',
-    `
+    html`
         <div x-data="{ show: false }">
             <button @click="show = ! show">Toggle</button>
 

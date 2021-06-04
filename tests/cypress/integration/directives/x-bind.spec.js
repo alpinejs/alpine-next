@@ -1,7 +1,7 @@
-import { beHidden, beVisible, haveText, beChecked, haveAttribute, haveClasses, haveValue, notBeChecked, notHaveAttribute, notHaveClasses, test } from '../../utils'
+import { beHidden, beVisible, haveText, beChecked, haveAttribute, haveClasses, haveValue, notBeChecked, notHaveAttribute, notHaveClasses, test, html } from '../../utils'
 
 test('sets attribute bindings on initialize',
-    `
+    html`
         <div x-data="{ foo: 'bar' }">
             <span x-ref="me" x-bind:foo="foo">[Subject]</span>
         </div>
@@ -10,7 +10,7 @@ test('sets attribute bindings on initialize',
 )
 
 test('style attribute bindings are added by string syntax',
-    `
+    html`
         <div x-data="{ initialClass: 'foo' }">
             <span x-bind:class="initialClass"></span>
         </div>
@@ -19,7 +19,7 @@ test('style attribute bindings are added by string syntax',
 )
 
 test('aria-pressed/checked attribute boolean values are cast to a true/false string',
-    `
+    html`
         <div x-data="{ open: true }">
             <span x-bind:aria-pressed="open"></span>
         </div>
@@ -28,7 +28,7 @@ test('aria-pressed/checked attribute boolean values are cast to a true/false str
 )
 
 test('non-boolean attributes set to null/undefined/false are removed from the element',
-    `
+    html`
         <div x-data="{}">
             <a href="#hello" x-bind:href="null">null</a>
             <a href="#hello" x-bind:href="false">false</a>
@@ -50,7 +50,7 @@ test('non-boolean attributes set to null/undefined/false are removed from the el
 )
 
 test('non-boolean empty string attributes are not removed',
-    `
+    html`
         <div x-data>
             <a href="#hello" x-bind:href="''"></a>
         </div>
@@ -59,7 +59,7 @@ test('non-boolean empty string attributes are not removed',
 )
 
 test('boolean attribute values are set to their attribute name if true and removed if false',
-    `
+    html`
         <div x-data="{ isSet: true }">
             <span @click="isSet = false" id="setToFalse">Set To False</span>
 
@@ -143,7 +143,7 @@ test('boolean attribute values are set to their attribute name if true and remov
 )
 
 test('boolean empty string attributes are not removed',
-    `
+    html`
         <div x-data="{}">
             <input x-bind:disabled="''">
         </div>
@@ -152,7 +152,7 @@ test('boolean empty string attributes are not removed',
 )
 
 test('binding supports short syntax',
-    `
+    html`
         <div x-data="{ foo: 'bar' }">
             <span :class="foo"></span>
         </div>
@@ -161,7 +161,7 @@ test('binding supports short syntax',
 )
 
 test('checkbox is unchecked by default',
-    `
+    html`
         <div x-data="{foo: {bar: 'baz'}}">
             <input type="checkbox" x-bind:value="''"></input>
             <input type="checkbox" x-bind:value="'test'"></input>
@@ -180,7 +180,7 @@ test('checkbox is unchecked by default',
 )
 
 test('radio is unchecked by default',
-    `
+    html`
         <div x-data="{foo: {bar: 'baz'}}">
             <input type="radio" x-bind:value="''"></input>
             <input type="radio" x-bind:value="'test'"></input>
@@ -199,7 +199,7 @@ test('radio is unchecked by default',
 )
 
 test('checkbox values are set correctly',
-    `
+    html`
         <div x-data="{ stringValue: 'foo', trueValue: true, falseValue: false }">
             <input type="checkbox" name="stringCheckbox" :value="stringValue" />
             <input type="checkbox" name="trueCheckbox" :value="trueValue" />
@@ -214,7 +214,7 @@ test('checkbox values are set correctly',
 )
 
 test('radio values are set correctly',
-    `
+    html`
         <div x-data="{lists: [{id: 1}, {id: 8}], selectedListID: '8'}">
             <template x-for="list in lists" :key="list.id">
                 <input x-model="selectedListID" type="radio" :value="list.id.toString()" :id="'list-' + list.id">
@@ -233,7 +233,7 @@ test('radio values are set correctly',
 )
 
 test('.camel modifier correctly sets name of attribute',
-    `
+    html`
         <div x-data>
             <svg x-bind:view-box.camel="'0 0 42 42'"></svg>
         </div>
@@ -242,7 +242,7 @@ test('.camel modifier correctly sets name of attribute',
 )
 
 test('attribute binding names can contain numbers',
-    `
+    html`
         <svg x-data>
             <line x1="1" y1="2" :x2="3" x-bind:y2="4" />
         </svg>
@@ -254,7 +254,7 @@ test('attribute binding names can contain numbers',
 )
 
 test('non-string and non-boolean attributes are cast to string when bound to checkbox',
-    `
+    html`
         <div x-data="{ number: 100, zero: 0, bool: true, nullProp: null }">
             <input type="checkbox" id="number" :value="number">
             <input type="checkbox" id="zero" :value="zero">
@@ -271,7 +271,7 @@ test('non-string and non-boolean attributes are cast to string when bound to che
 )
 
 test('can bind an object of directives',
-    `
+    html`
         <script>
             window.modal = function () {
                 return {
@@ -300,7 +300,7 @@ test('can bind an object of directives',
 )
 
 test('x-bind object syntax supports x-for',
-    `
+    html`
         <script>
             window.todos = () => { return {
                 todos: ['foo', 'bar'],
@@ -324,7 +324,7 @@ test('x-bind object syntax supports x-for',
 )
 
 test('x-bind object syntax syntax supports x-transition',
-    `
+    html`
         <style>
             .transition { transition-property: background-color, border-color, color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
             .duration-100 { transition-duration: 100ms; }
@@ -358,7 +358,7 @@ test('x-bind object syntax syntax supports x-transition',
 )
 
 test('x-bind object syntax event handlers defined as functions receive the event object as their first argument',
-    `
+    html`
         <script>
             window.data = () => { return {
                 button: {

@@ -1,7 +1,7 @@
-import { beHidden, beVisible, haveText, beChecked, haveAttribute, haveClasses, haveValue, notBeChecked, notHaveAttribute, notHaveClasses, test } from '../../utils'
+import { beHidden, beVisible, haveText, beChecked, haveAttribute, haveClasses, haveValue, notBeChecked, notHaveAttribute, notHaveClasses, test, html } from '../../utils'
 
 test('class attribute bindings are merged by string syntax',
-    `
+    html`
         <div x-data="{ isOn: false }">
             <span class="foo" x-bind:class="isOn ? 'bar': ''"></span>
 
@@ -18,7 +18,7 @@ test('class attribute bindings are merged by string syntax',
 )
 
 test('class attribute bindings are added by string syntax',
-    `
+    html`
         <div x-data="{ initialClass: 'foo' }">
             <span x-bind:class="initialClass"></span>
         </div>
@@ -27,7 +27,7 @@ test('class attribute bindings are added by string syntax',
 )
 
 test('class attribute bindings are added by array syntax',
-    `
+    html`
         <div x-data="{ initialClass: 'foo' }">
             <span x-bind:class="[initialClass, 'bar']"></span>
         </div>
@@ -36,7 +36,7 @@ test('class attribute bindings are added by array syntax',
 )
 
 test('classes are removed before being added',
-    `
+    html`
         <div x-data="{ isOpen: true }">
             <span class="text-red" :class="isOpen ? 'block' : 'hidden'">
                 Span
@@ -53,7 +53,7 @@ test('classes are removed before being added',
 )
 
 test('extra whitespace in class binding string syntax is ignored',
-    `
+    html`
         <div x-data>
             <span x-bind:class="'  foo  bar  '"></span>
         </div>
@@ -62,7 +62,7 @@ test('extra whitespace in class binding string syntax is ignored',
 )
 
 test('undefined class binding resolves to empty string',
-    `
+    html`
         <div x-data="{ errorClass: (hasError) => { if (hasError) { return 'red' } } }">
             <span id="error" x-bind:class="errorClass(true)">should be red</span>
             <span id="empty" x-bind:class="errorClass(false)">should be empty</span>

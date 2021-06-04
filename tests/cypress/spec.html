@@ -6,8 +6,11 @@
         <!-- This is where our test subjects will be injected. -->
     </blockquote>
 
-    <script src="http://alpine-next.test/packages/history/dist/cdn.js"></script>
-    <script src="http://alpine-next.test/packages/morph/dist/cdn.js"></script>
+    <script src="/../../packages/history/dist/cdn.js"></script>
+    <script src="/../../packages/morph/dist/cdn.js"></script>
+    <script src="/../../packages/persist/dist/cdn.js"></script>
+    <script src="/../../packages/trap/dist/cdn.js"></script>
+    <script src="/../../packages/intersect/dist/cdn.js"></script>
     <script>
         let root = document.querySelector('#root')
 
@@ -34,7 +37,7 @@
             // Load Alpine.
             let script = document.createElement('script')
 
-            script.src = 'http://alpine-next.test/packages/alpinejs/dist/cdn.js'
+            script.src = '/../../packages/alpinejs/dist/cdn.js'
 
             root.after(script)
 

@@ -1,7 +1,7 @@
-import { haveText, test } from '../../utils'
+import { haveText, html, test } from '../../utils'
 
 test('$watch',
-    `
+    html`
         <div
             x-data="{ foo: 'bar', bob: 'lob' }"
             x-init="$watch('foo', value => { bob = value })"
@@ -22,7 +22,7 @@ test('$watch',
 )
 
 test('$watch receives old value',
-    `
+    html`
         <div
             x-data="{ foo: 'bar', fresh: '', old: '' }"
             x-init="$watch('foo', (value, oldValue) => { fresh = value; old = oldValue; })"
@@ -41,7 +41,7 @@ test('$watch receives old value',
 )
 
 test('$watch nested properties',
-    `
+    html`
         <div x-data="{ foo: { bar: 'baz', bob: 'lob' } }" x-init="
             $watch('foo.bar', value => { foo.bob = value });
         ">
@@ -61,7 +61,7 @@ test('$watch nested properties',
 )
 
 test('$watch arrays',
-    `
+    html`
         <div x-data="{ foo: ['one'], bob: 'lob' }"
             x-init="$watch('foo', value => { bob = value })">
             <h1 x-text="foo"></h1>
@@ -111,7 +111,7 @@ test('$watch arrays',
 )
 
 test('$watch nested arrays',
-    `
+    html`
         <div x-data="{ foo: {baz: ['one']}, bob: 'lob' }" x-init="$watch('foo.baz', value => { bob = value })">
             <h1 x-text="foo.baz"></h1>
             <h2 x-text="bob"></h2>

@@ -1,7 +1,7 @@
-import { haveText, test } from '../../utils'
+import { haveText, html, test } from '../../utils'
 
 test('$dispatch dispatches events properly',
-    `
+    html`
         <div x-data="{ foo: 'bar' }" x-on:custom-event="foo = $event.detail.newValue">
             <span x-text="foo"></span>
 

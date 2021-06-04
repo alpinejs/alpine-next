@@ -1,7 +1,7 @@
-import { haveText, test } from '../utils'
+import { haveText, html, test } from '../utils'
 
 test('can register custom data providers',
-    `
+    html`
         <script>
             document.addEventListener('alpine:initializing', () => {
                 Alpine.data('test', () => ({
@@ -18,7 +18,7 @@ test('can register custom data providers',
 )
 
 test('init functions inside custom datas are called automatically',
-    `
+    html`
         <script>
             document.addEventListener('alpine:initializing', () => {
                 Alpine.data('test', () => ({
@@ -41,7 +41,7 @@ test('init functions inside custom datas are called automatically',
 )
 
 test('init functions "this" context is reactive',
-    `
+    html`
         <script>
             document.addEventListener('alpine:initializing', () => {
                 Alpine.data('test', () => ({

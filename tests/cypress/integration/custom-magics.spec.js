@@ -1,7 +1,7 @@
-import { haveText, test } from '../utils'
+import { haveText, html, test } from '../utils'
 
 test('can register custom magic properties',
-    `
+    html`
         <script>
             document.addEventListener('alpine:initializing', () => {
                 Alpine.magic('foo', (el) => {

@@ -1,7 +1,7 @@
-import { haveText, test } from '../../utils'
+import { haveText, html, test } from '../../utils'
 
 test('sets text on init',
-    `
+    html`
         <div x-data="{ foo: 'bar' }" x-init="foo = 'baz'">
             <span x-text="foo"></span>
         </div>
@@ -11,7 +11,7 @@ test('sets text on init',
 
 
 test('x-init can be used outside of x-data',
-    `
+    html`
         <div x-init="$el.textContent = 'foo'"></div>
     `,
     ({ get }) => get('div').should(haveText('foo'))
@@ -19,7 +19,7 @@ test('x-init can be used outside of x-data',
 
 
 test('changes made in x-init happen before the rest of the component',
-    `
+    html`
         <div x-data="{ foo: 'bar' }" x-init="$refs.foo.innerText = 'yo'">
             <span x-text="foo" x-ref="foo">baz</span>
         </div>
@@ -28,7 +28,7 @@ test('changes made in x-init happen before the rest of the component',
 )
 
 test('can make deferred changes with $nextTick',
-    `
+    html`
         <div x-data="{ foo: 'bar' }" x-init="$nextTick(() => $refs.foo.innerText = 'yo')">
             <span x-text="foo" x-ref="foo">baz</span>
         </div>

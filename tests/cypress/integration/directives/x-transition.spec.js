@@ -1,7 +1,7 @@
-import { beHidden, beVisible, haveClasses, notBeVisible, notHaveClasses, test } from '../../utils'
+import { beHidden, beVisible, haveClasses, html, notBeVisible, notHaveClasses, test } from '../../utils'
 
 test('transition in',
-    `
+    html`
         <style>
             .transition { transition-property: background-color, border-color, color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
             .duration-100 { transition-duration: 100ms; }
@@ -28,7 +28,7 @@ test('transition in',
 )
 
 test('transition out',
-    `
+    html`
         <style>
             .transition { transition-property: background-color, border-color, color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
             .duration-100 { transition-duration: 100ms; }

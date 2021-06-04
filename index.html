@@ -1,37 +1,15 @@
 <html>
     <style>.bottom-100 { bottom: 100%; }</style>
 
-    <script src="http://alpine-next.test/packages/intersect/dist/cdn.js" defer></script>
-    <script src="http://alpine-next.test/packages/morph/dist/cdn.js" defer></script>
-    <script src="http://alpine-next.test/packages/history/dist/cdn.js"></script>
-    <script src="http://alpine-next.test/packages/persist/dist/cdn.js"></script>
-    <script src="http://alpine-next.test/packages/trap/dist/cdn.js"></script>
-    <script src="http://alpine-next.test/packages/alpinejs/dist/cdn.js" defer></script>
+    <script src="/packages/intersect/dist/cdn.js" defer></script>
+    <script src="/packages/morph/dist/cdn.js" defer></script>
+    <script src="/packages/history/dist/cdn.js"></script>
+    <script src="/packages/persist/dist/cdn.js"></script>
+    <script src="/packages/trap/dist/cdn.js"></script>
+    <script src="/packages/alpinejs/dist/cdn.js" defer></script>
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
     <script src="https://unpkg.com/jsdon@0.1.14/min.js"></script>
-
-    <div x-data="{ frame: 0 }">
-        <template x-ref="0">
-            <div x-data="{ count: 1 }">
-                <button @click="count++">inc</button>
-
-                <span x-text="String(frame) + count"></span>
-            </div>
-        </template>
-
-        <template x-ref="1">
-            <div x-data="{ count: 1 }">
-                <button @click="count++">inc</button>
-
-                <span x-text="String(frame) + 'foo' + count"></span>
-            </div>
-        </template>
-
-        <button @click="frame++" id="morph">morph</button>
-
-        <article x-morph="$refs[frame % 3].innerHTML"></article>
-    </div>
 
 
 
@@ -44,9 +22,11 @@
         <button x-text="step" @click="step++"></button>
     </div> -->
 
-    <!-- <div x-data="{ foo: { step: $history(1).foo } }">
-        <button x-text="foo.step" @click="foo.step++"></button>
-    </div> -->
+    <div x-data="{ count: 0 }">
+        <span x-text="count"></span>
+
+        <div x-intersect="count++" style="margin-top: 100vh;">hi</div>
+    </div>
 
     <!-- <div x-data="test">
         <button x-text="foo.step" @click="foo.step++"></button>
