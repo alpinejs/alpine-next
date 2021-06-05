@@ -53,7 +53,7 @@ test('x-data can use attributes from a reusable function',
             }
         </script>
         <div x-data="test()">
-            <span x-text=html"foo"></span>
+            <span x-text="foo"></span>
         </div>
     `,
     ({ get }) => get('span').should(haveText('bar'))
