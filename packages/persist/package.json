@@ -6,5 +6,4 @@
     "license": "MIT",
     "main": "dist/module.cjs.js",
     "module": "dist/module.esm.js",
-    "browser": "dist/cdn.min.js"
 }
