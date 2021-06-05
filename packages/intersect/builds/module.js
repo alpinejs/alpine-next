@@ -1,3 +1,3 @@
-import registerIntersectDirective from './../src/index.js'
+import intersect from './../src/index.js'
 
-export default registerIntersectDirective
+export default intersect

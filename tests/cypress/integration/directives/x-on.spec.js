@@ -30,9 +30,9 @@ test('can call a method without parenthesis',
     }
 )
 
-test.only('event object is passed as last param',
+test('event object is not passed if other params are present',
     html`
-        <div x-data="{ foo: 'bar', baz(word, $event) { this.foo = word + $event.target.dataset.bob } }">
+        <div x-data="{ foo: 'bar', baz(word) { this.foo = word } }">
             <button x-on:click="baz('foo')" data-bob="lob"></button>
 
             <span x-text="foo"></span>
@@ -41,7 +41,7 @@ test.only('event object is passed as last param',
     ({ get }) => {
         get('span').should(haveText('bar'))
         get('button').click()
-        get('span').should(haveText('foolob'))
+        get('span').should(haveText('foo'))
     }
 )
 

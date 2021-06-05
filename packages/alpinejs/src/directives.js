@@ -1,4 +1,5 @@
 import { onAttributeRemoved, onElRemoved } from './mutation'
+import { evaluate, evaluateLater } from './evaluator'
 import { elementBoundEffect } from './reactivity'
 import Alpine from './alpine'
 
@@ -62,7 +63,7 @@ export function getDirectiveHandler(el, directive) {
 
     cleanups.push(cleanupEffect)
 
-    let utilities = { Alpine, effect, cleanup }
+    let utilities = { Alpine, effect, cleanup, evaluateLater, evaluate }
 
     let doCleanup = () => cleanups.forEach(i => i())
 

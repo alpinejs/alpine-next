@@ -1,5 +1,5 @@
-import registerMorphDirective, { morph } from '../src/index.js'
+import morphPlugin, { morph } from '../src/index.js'
 
-export default registerMorphDirective
+export default morphPlugin
 
 export { morph }

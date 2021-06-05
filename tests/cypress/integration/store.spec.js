@@ -17,6 +17,21 @@ test('can register and use a global store',
     }
 )
 
+test('store init function is called',
+    [html`
+        <div x-data>
+            <span x-text="$store.test.foo"></span>
+            <button @click="$store.test.foo = 'baz'">clickme</button>
+        </div>
+    `,
+    `
+        Alpine.store('test', { foo: 'bar', init() { this.foo = 'baz'} })
+    `],
+    ({ get }) => {
+        get('span').should(haveText('baz'))
+    }
+)
+
 test('can use primitives as store',
     [html`
         <div x-data>

@@ -1,39 +1,41 @@
 import 'wicg-inert'
 
-export default function (el, { expression }, { Alpine, effect }) {
-    let evaluator = Alpine.evaluateLater(el, expression)
+export default function (Alpine) {
+    Alpine.directive('trap', (el, { expression }, { effect, evaluateLater }) => {
+        let evaluator = evaluateLater(el, expression)
 
-    let oldValue = false
+        let oldValue = false
 
-    let undoTrappings = []
+        let undoTrappings = []
 
-    effect(() => evaluator(value => {
-        if (oldValue === value) return
+        effect(() => evaluator(value => {
+            if (oldValue === value) return
 
-        // Start trapping.
-        if (value && ! oldValue) {
-            let activeEl = document.activeElement
+            // Start trapping.
+            if (value && ! oldValue) {
+                let activeEl = document.activeElement
 
-            undoTrappings.push(() => activeEl && setTimeout(() => activeEl.focus()))
+                undoTrappings.push(() => activeEl && setTimeout(() => activeEl.focus()))
 
-            crawlSiblingsUp(el, (sibling) => {
-                let cache = sibling.hasAttribute('inert')
+                crawlSiblingsUp(el, (sibling) => {
+                    let cache = sibling.hasAttribute('inert')
 
-                sibling.setAttribute('inert', 'inert')
+                    sibling.setAttribute('inert', 'inert')
 
-                undoTrappings.push(() => cache || sibling.removeAttribute('inert'))
-            })
+                    undoTrappings.push(() => cache || sibling.removeAttribute('inert'))
+                })
 
-            focusFirstElement(el)
-        }
+                focusFirstElement(el)
+            }
 
-        // Stop trapping.
-        if (! value && oldValue) {
-            while(undoTrappings.length) undoTrappings.pop()()
-        }
+            // Stop trapping.
+            if (! value && oldValue) {
+                while(undoTrappings.length) undoTrappings.pop()()
+            }
 
-        oldValue = !! value
-    }))
+            oldValue = !! value
+        }))
+    })
 }
 
 function crawlSiblingsUp(el, callback) {

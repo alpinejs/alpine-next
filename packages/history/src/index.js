@@ -1,4 +1,4 @@
-export function history(Alpine) {
+export default function history(Alpine) {
     Alpine.magic('history', (el, { Alpine }) =>  {
         return Alpine.interceptor((key, path) => {
             let pause = false

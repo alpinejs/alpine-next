@@ -1,3 +1,3 @@
-import { magic } from '../src/index.js'
+import persist from '../src/index.js'
 
-export default magic
+export default persist

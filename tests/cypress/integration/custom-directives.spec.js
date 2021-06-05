@@ -25,9 +25,9 @@ test('directives are auto cleaned up',
         </div>
     `,
     `
-        Alpine.directive('foo', (el, {}, { effect, cleanup }) => {
-            let evaluate = Alpine.evaluateLater(el, 'foo')
-            let incCount = Alpine.evaluateLater(el, 'count++')
+        Alpine.directive('foo', (el, {}, { effect, cleanup, evaluateLater }) => {
+            let evaluate = evaluateLater(el, 'foo')
+            let incCount = evaluateLater(el, 'count++')
 
             cleanup(() => {
                 incCount()
