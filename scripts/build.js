@@ -45,7 +45,6 @@ function bundleFile(package, file) {
                 platform: 'browser',
                 define: { CDN: true },
             }).then(() => {
-                writeToPackageDotJson(package, 'browser', `dist/${file.replace('.js', '.min.js')}`)
                 outputSize(package, `packages/${package}/dist/${file.replace('.js', '.min.js')}`)
             })
 

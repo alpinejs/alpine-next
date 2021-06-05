@@ -30,6 +30,21 @@ test('can call a method without parenthesis',
     }
 )
 
+test.only('event object is passed as last param',
+    html`
+        <div x-data="{ foo: 'bar', baz(word, $event) { this.foo = word + $event.target.dataset.bob } }">
+            <button x-on:click="baz('foo')" data-bob="lob"></button>
+
+            <span x-text="foo"></span>
+        </div>
+    `,
+    ({ get }) => {
+        get('span').should(haveText('bar'))
+        get('button').click()
+        get('span').should(haveText('foolob'))
+    }
+)
+
 test('nested data modified in event listener updates affected attribute bindings',
     html`
         <div x-data="{ nested: { foo: 'bar' } }">

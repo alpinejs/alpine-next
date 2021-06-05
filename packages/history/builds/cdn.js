@@ -1,5 +1,5 @@
-import { magic } from '../src/index.js'
+import { history } from '../src/index.js'
 
 document.addEventListener('alpine:initializing', () => {
-    window.Alpine.magic('history', magic)
+    window.Alpine.plugin(history)
 })
