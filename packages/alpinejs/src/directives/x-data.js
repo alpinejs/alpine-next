@@ -27,6 +27,7 @@ directive('data', skipDuringClone((el, { expression }, { cleanup }) => {
 
     initInterceptors(data)
 
+    console.log(data);
     injectMagics(data, el)
 
     let reactiveData = reactive(data)

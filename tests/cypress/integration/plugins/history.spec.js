@@ -2,7 +2,7 @@ import { haveText, html, test } from '../../utils'
 
 test('can go back and forth',
     [html`
-        <div x-data="{ count: $history(1) }">
+        <div x-data="{ count: $queryString(1) }">
             <button @click="count++">Inc</button>
             <span x-text="count"></span>
         </div>
@@ -24,7 +24,7 @@ test('can go back and forth',
 
 test('property is set from the query string on load',
     [html`
-        <div x-data="{ count: $history(1) }">
+        <div x-data="{ count: $queryString(1) }">
             <button @click="count++">Inc</button>
             <span x-text="count"></span>
         </div>
@@ -40,14 +40,32 @@ test('property is set from the query string on load',
     },
 )
 
+test('can use a query string key alias',
+    [html`
+        <div x-data="{ count: $queryString(1).as('foo') }">
+            <button @click="count++">Inc</button>
+            <span x-text="count"></span>
+        </div>
+    `],
+    ({ get, url }, reload) => {
+        get('span').should(haveText('1'))
+        url().should('include', '?foo=1')
+        get('button').click()
+        get('span').should(haveText('2'))
+        url().should('include', '?foo=2')
+        reload()
+        get('span').should(haveText('2'))
+    },
+)
+
 test('can go back and forth with multiple components',
     [html`
-        <div x-data="{ foo: $history(1) }" id="foo">
+        <div x-data="{ foo: $queryString(1) }" id="foo">
             <button @click="foo++">Inc</button>
             <span x-text="foo"></span>
         </div>
 
-        <div x-data="{ bar: $history(1) }" id="bar">
+        <div x-data="{ bar: $queryString(1) }" id="bar">
             <button @click="bar++">Inc</button>
             <span x-text="bar"></span>
         </div>

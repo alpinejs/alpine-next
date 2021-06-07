@@ -1,21 +1,24 @@
 export default function history(Alpine) {
-    Alpine.magic('history', (el, { Alpine }) =>  {
-        return Alpine.interceptor((key, path) => {
+    Alpine.magic('queryString', (el, { interceptor }) =>  {
+        let alias
+
+        return interceptor((key, path) => {
             let pause = false
+            let queryKey = alias || path
 
             return {
-                init(initialValue, set, reactiveSet) {
+                init(initialValue, set, reactiveSet, func) {
                     let value = initialValue
                     let url = new URL(window.location.href)
 
-                    if (url.searchParams.has(path)) {
-                        set(url.searchParams.get(path))
-                        value = url.searchParams.get(path)
+                    if (url.searchParams.has(queryKey)) {
+                        set(url.searchParams.get(queryKey))
+                        value = url.searchParams.get(queryKey)
                     }
 
                     let object = { value }
 
-                    url.searchParams.set(path, value)
+                    url.searchParams.set(queryKey, value)
 
                     replace(url.toString(), path, object)
 
@@ -43,11 +46,13 @@ export default function history(Alpine) {
 
                     let url = new URL(window.location.href)
 
-                    url.searchParams.set(path, value)
+                    url.searchParams.set(queryKey, value)
 
                     push(url.toString(), path, object)
                 },
             }
+        }, func => {
+            func.as = key => { alias = key; return func }
         })
     })
 }

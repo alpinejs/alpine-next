@@ -6,7 +6,9 @@ export function initInterceptors(data) {
             let path = basePath === '' ? key : `${basePath}.${key}`
 
             if (typeof value === 'function' && value.interceptor) {
-                Object.defineProperty(obj, key, value(key, path))
+                let result = value(key, path)
+
+                Object.defineProperty(obj, key, result[0])
             }
 
             if (isObject(value)) {
@@ -18,20 +20,16 @@ export function initInterceptors(data) {
     return recurse(data)
 }
 
-export function interceptor(callback) {
+export function interceptor(callback, mutateFunc = () => {}) {
     return initialValue => {
-        let parentIniter = () => {}
-        let parentSetter = () => {}
-
-        if (typeof initialValue === 'function' && initialValue.interceptor) {
-            let parent = initialValue(key, path)
-
-            parentIniter = parent.init
-            parentSetter = parent.set
-        }
-
         function func(key, path) {
-            let store = initialValue
+            let parentFunc = func.parent
+                ? func.parent
+                : (key, path) => ([{}, { initer() {}, setter() {} }])
+
+            let [parentNoop, { initer: parentIniter, setter: parentSetter, initialValue: parentInitialValue }] = parentFunc(key, path)
+
+            let store = parentInitialValue === undefined ? initialValue : parentInitialValue
 
             let { init: initer, set: setter } = callback(key, path)
 
@@ -49,7 +47,7 @@ export function interceptor(callback) {
                 inited = true
             }
 
-            return {
+            return [{
                 get() {
                     setup(this)
 
@@ -58,16 +56,21 @@ export function interceptor(callback) {
                 set(value) {
                     setup(this)
 
+                    parentSetter.bind(this)(value, setValue, reactiveSetValue.bind(this))
                     setter.bind(this)(value, setValue, reactiveSetValue.bind(this))
-
-                    parentSetter.bind(this)(store, setValue, reactiveSetValue.bind(this))
                 },
                 enumerable: true,
                 configurable: true,
-            }
+            }, { initer, setter, initialValue }]
         }
 
         func.interceptor = true
+
+        mutateFunc(func)
+
+        if (typeof initialValue === 'function' && initialValue.interceptor) {
+            func.parent = initialValue
+        }
 
         return func
     }
