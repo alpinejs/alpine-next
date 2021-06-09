@@ -48,3 +48,20 @@ test('can use primitives as store',
         get('span').should(haveText('baz'))
     }
 )
+
+test('can use number as store',
+    [html`
+        <div x-data>
+            <span x-text="$store.test"></span>
+            <button @click="$store.test++">clickme</button>
+        </div>
+    `,
+    `
+        Alpine.store('test', 0)
+    `],
+    ({ get }) => {
+        get('span').should(haveText('0'))
+        get('button').click()
+        get('span').should(haveText('1'))
+    }
+)

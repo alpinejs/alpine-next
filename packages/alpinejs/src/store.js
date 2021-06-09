@@ -14,7 +14,7 @@ export function store(name, value) {
         value.init()
     }
 
-    stores[name] = reactive(value)
+    stores[name] = value
 }
 
 export function getStores() { return stores }
