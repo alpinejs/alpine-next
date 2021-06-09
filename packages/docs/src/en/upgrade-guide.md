@@ -287,7 +287,7 @@ However, using V3's new custom directive API, it's trivial to reintroduce this f
 <script>
     document.addEventListener('alpine:initializing', () => {
         Alpine.directive('html', (el, { expression }, { evaluateLater, effect }) => {
-            let getHtml = evaluateLater(el, expression)
+            let getHtml = evaluateLater(expression)
 
             effect(() => {
                 el.innerHTML = getHTML()

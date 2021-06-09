@@ -2,7 +2,7 @@ import 'wicg-inert'
 
 export default function (Alpine) {
     Alpine.directive('trap', (el, { expression }, { effect, evaluateLater }) => {
-        let evaluator = evaluateLater(el, expression)
+        let evaluator = evaluateLater(expression)
 
         let oldValue = false
 

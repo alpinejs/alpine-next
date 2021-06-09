@@ -2,7 +2,7 @@ let pauseReactions = false
 
 export default function (Alpine) {
     Alpine.directive('intersect', (el, { value, modifiers, expression }, { evaluateLater }) => {
-        let evaluate = evaluateLater(el, expression)
+        let evaluate = evaluateLater(expression)
 
         if (['out', 'leave'].includes(value)) {
             el._x_intersectLeave(evaluate, modifiers)

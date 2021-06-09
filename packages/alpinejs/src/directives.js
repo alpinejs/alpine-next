@@ -63,7 +63,13 @@ export function getDirectiveHandler(el, directive) {
 
     cleanups.push(cleanupEffect)
 
-    let utilities = { Alpine, effect, cleanup, evaluateLater, evaluate }
+    let utilities = {
+        Alpine,
+        effect,
+        cleanup,
+        evaluateLater: evaluateLater.bind(evaluateLater, el),
+        evaluate: evaluate.bind(evaluate, el),
+    }
 
     let doCleanup = () => cleanups.forEach(i => i())
 

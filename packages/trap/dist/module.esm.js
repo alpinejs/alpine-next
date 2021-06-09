@@ -508,7 +508,7 @@ var require_inert = __commonJS((exports, module) => {
 var import_wicg_inert = __toModule(require_inert());
 function src_default(Alpine) {
   Alpine.directive("trap", (el, {expression}, {effect, evaluateLater}) => {
-    let evaluator = evaluateLater(el, expression);
+    let evaluator = evaluateLater(expression);
     let oldValue = false;
     let undoTrappings = [];
     effect(() => evaluator((value) => {

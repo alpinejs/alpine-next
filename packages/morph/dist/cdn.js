@@ -202,7 +202,7 @@
   // packages/morph/src/index.js
   function src_default(Alpine) {
     Alpine.directive("morph", (el, {expression}, {effect, evaluateLater}) => {
-      let evaluate = evaluateLater(el, expression);
+      let evaluate = evaluateLater(expression);
       effect(() => {
         evaluate((value) => {
           let child = el.firstElementChild || el.firstChild || el.appendChild(document.createTextNode(""));

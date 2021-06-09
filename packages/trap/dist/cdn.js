@@ -475,7 +475,7 @@
   // packages/trap/src/index.js
   function src_default(Alpine) {
     Alpine.directive("trap", (el, {expression}, {effect, evaluateLater}) => {
-      let evaluator = evaluateLater(el, expression);
+      let evaluator = evaluateLater(expression);
       let oldValue = false;
       let undoTrappings = [];
       effect(() => evaluator((value) => {

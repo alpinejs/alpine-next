@@ -22,11 +22,17 @@
         <button x-text="step" @click="step++"></button>
     </div> -->
 
-    <div x-data="{ count: 0, open: true }">
+    <div x-data="{ count: 0 }">
+       <button @click="count++">increment</button>
+
+       <span x-text="count"></span>
+    </div>
+
+    <!-- <div x-data="{ count: 0, open: true }">
         <span x-text="count" :class="open && 'foo'"></span>
 
         <div x-intersect="count++" style="margin-top: 100vh;">hi</div>
-    </div>
+    </div> -->
 
     <!-- <div x-data="test">
         <button x-text="foo.step" @click="foo.step++"></button>
