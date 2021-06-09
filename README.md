@@ -1,9 +1,9 @@
 ## Alpine V3
 
 ### Coming From Alpine Day?
-This repo is temporary until V3 is fully published. For now, here is the Alpine V3 file you can drop into a `<script ...defer>` tag and test it out!
+This repo is temporary until V3 is fully published. For now, here is the Alpine V3 file you can drop into a `<script>` tag and test it out!
 
-[/packages/alpinejs/dist/cdn.js](Alpine V3 JS File)
+[/packages/alpinejs/dist/cdn.js](/packages/alpinejs/dist/cdn.js)
 
 ### Quickstart
 
