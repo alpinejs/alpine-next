@@ -5,7 +5,7 @@ title: Upgrade From V2
 
 # Upgrade from V2
 
-Upgrading from Alpine V2 to V3 should be fairly painless. In many cases, NOTHING has to be done to your codebase to use V3. Below is an exhaustive list of breaking changes and deprecations in descending order of how likely users are to be affected by them:
+Upgrading from Alpine V2 to V3 should be fairly painless. In many cases, NOTHING has to be done to your codebase to use V3. Below is an exhaustive list of breaking changes and depreciations in descending order of how likely users are to be affected by them:
 
 <a name="breaking-changes"></a>
 ## Breaking Changes
