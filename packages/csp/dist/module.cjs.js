@@ -477,7 +477,7 @@ var require_reactivity_cjs = __commonJS((exports2) => {
   function createReactiveEffect(fn, options) {
     const effect4 = function reactiveEffect() {
       if (!effect4.active) {
-        return options.scheduler ? void 0 : fn();
+        return fn();
       }
       if (!effectStack.includes(effect4)) {
         cleanup(effect4);
@@ -779,6 +779,8 @@ var require_reactivity_cjs = __commonJS((exports2) => {
       return wrap(target.get(key));
     } else if (has2.call(rawTarget, rawKey)) {
       return wrap(target.get(rawKey));
+    } else if (target !== rawTarget) {
+      target.get(key);
     }
   }
   function has$1(key, isReadonly2 = false) {
@@ -1898,8 +1900,12 @@ function destroyTree(root) {
 }
 
 // packages/alpinejs/src/plugin.js
-function plugin(callback) {
-  callback(alpine_default);
+var plugins = new WeakSet();
+function plugin(callback, config = {}) {
+  if (plugins.has(callback))
+    return;
+  callback(alpine_default, config);
+  plugins.add(callback);
 }
 
 // packages/alpinejs/src/store.js
