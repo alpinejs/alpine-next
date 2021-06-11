@@ -60,7 +60,7 @@ You can also apply `.stop` to achieve the equivelant of `event.stopPropagation()
 Sometimes you may want to access the native browser event object inside your own code. To make this easy, Alpine automatically injects an `$event` magic variable:
 
 ```html
-<button @click="$event.target.delete()">Remove Me</button>
+<button @click="$event.target.remove()">Remove Me</button>
 ```
 
 <a name="dispatching-custom-events"></a>
