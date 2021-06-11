@@ -62,7 +62,7 @@ Alpine.effect(() => {
 })
 ```
 
-When this code is firt run, "1" will be logged to the console. Any time `data.count` changes, it's value will be logged to the console again.
+When this code is first run, "1" will be logged to the console. Any time `data.count` changes, it's value will be logged to the console again.
 
 This is the mechanism that unlocks all of the reactivity at the core of Alpine.
 
