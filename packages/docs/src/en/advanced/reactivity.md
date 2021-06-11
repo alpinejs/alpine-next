@@ -98,4 +98,4 @@ button.addEventListener('click', () => {
 
 As you can see, you can make any data reactive, and you can also wrap any functionality in `Alpine.effect`.
 
-This combination unlocks an incredibly powerful programming paradaigm for web development. Run wild and free.
+This combination unlocks an incredibly powerful programming paradigm for web development. Run wild and free.
